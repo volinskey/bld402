@@ -5,7 +5,8 @@
 **Status:** In Progress
 **Spec:** docs/products/bld402/bld402-spec.md
 **Spec-Version:** 0.1.0
-**Source:** spec
+**Source:** system-test-report
+**Cycle:** 1
 
 ## Legend
 - `[ ]` Todo | `[~]` In Progress | `[x]` Done
@@ -174,13 +175,21 @@ Every step page follows this structure inside `<section id="agent-instructions">
 
 ### Phase 8: Integration Testing & Polish
 
-- [ ] End-to-end walkthrough: simulate an agent building the Shared Todo List app by following every step page from root → deploy → iterate
-- [ ] End-to-end walkthrough: simulate an agent building the Trivia Night app (multiplayer template, more complex)
-- [ ] Test guardrail flow: simulate agent receiving an impossible request and verify guardrail page content catches it
-- [ ] Test returning user flow: simulate agent resuming from memory directives alone (no prior context)
-- [ ] Cross-agent format validation: verify `/agent.json`, step pages, and memory directives parse correctly for ChatGPT, Claude, and Gemini agents
-- [ ] Accessibility and mobile check on human-facing pages
-- [ ] Final review of all step page content for plain-language compliance (no jargon in user-facing instructions)
+- [x] End-to-end walkthrough: simulate an agent building the Shared Todo List app by following every step page from root → deploy → iterate
+- [x] End-to-end walkthrough: simulate an agent building the Trivia Night app (multiplayer template, more complex)
+- [x] Test guardrail flow: simulate agent receiving an impossible request and verify guardrail page content catches it
+- [x] Test returning user flow: simulate agent resuming from memory directives alone (no prior context)
+- [x] Cross-agent format validation: verify `/agent.json`, step pages, and memory directives parse correctly for ChatGPT, Claude, and Gemini agents
+- [x] Accessibility and mobile check on human-facing pages
+- [x] Final review of all step page content for plain-language compliance (no jargon in user-facing instructions)
+
+### Phase 9: Fix Cycle 1 — System Test Fixes
+
+- [x] Fix F-001: shared-todo template missing schema.sql (P1) — Verified `templates/utility/shared-todo/schema.sql` exists with correct columns (id, task, done, assigned_to, user_id, created_at) matching frontend code. All 5 MVP templates confirmed to have schema.sql.
+- [x] Fix F-002: 4 of 5 templates missing README.md (P2) — Created README.md for landing-waitlist, hangman, trivia-night, and voting-booth templates following shared-todo README structure. All 5 MVP templates confirmed to have README.md.
+- [x] Fix F-003: Template gallery cards link to build workflow (P1) — Added "Build with this template" links to all 5 active MVP template cards in `public/templates/index.html`, pointing to `/build/step/1?template={name}`. Coming-soon templates remain unlinked.
+- [x] Fix F-004: Showcase page screenshots (P1) — Created 5 SVG mockup screenshots in `public/humans/images/` and added `<img>` tags with descriptive alt text to each showcase card. All 5 images render as app previews.
+- [x] Fix F-005: Legal page (P2) — Created `public/humans/legal.html` with legal notices (operator, IP, open source, trademarks, disclaimer, governing law). Added "Legal" link to footer of all 8 pages (6 human pages + legal.html + templates gallery).
 
 ---
 
@@ -205,3 +214,12 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-04: Plan created from spec v0.1.0. MVP scope: 5 templates, 8 phases. Deferred 22 templates and MCP integration.
 - 2026-03-04: Phase 1 complete — project scaffolding, agent.json schema + manifest, agent-instruction HTML format, step page template.
 - 2026-03-04: Phases 2-7 complete — all 20 step pages, guardrails page, 6 common patterns, 5 MVP templates (todo, landing, hangman, trivia, voting), all human-facing pages, templates gallery. 51 files total. Phase 8 (integration testing) remains.
+- 2026-03-04: Completed "Trivia Night E2E walkthrough" — Fixed 4 issues: duplicate answer error handling, minimum player check before start, score race condition (switched to atomic RPC), player timer expiry feedback.
+- 2026-03-04: Completed "Guardrail flow test" — Added guardrail-targeted questions to Step 3 and mandatory guardrail re-scan to Step 4.
+- 2026-03-04: Completed "Returning user flow test" — Added resume guidance to root page and agent.json for agents with existing bld402_project memory.
+- 2026-03-04: Completed "Cross-agent format validation" — All JSON valid, consistent structure across 20 pages, compatible with ChatGPT/Claude/Gemini.
+- 2026-03-04: Completed "Accessibility & mobile check" — Added skip-link, focus styles, aria-label, mobile-responsive nav, replaced inline styles with CSS classes across all 6 human pages.
+- 2026-03-04: Completed "Plain-language compliance" — All user-facing blockquotes verified jargon-free.
+- 2026-03-04: **Plan complete.** All 8 phases implemented: project setup, root pages, 20 step pages, 6 common patterns, 5 MVP templates, human-facing pages, payment pass-through, integration testing with fixes.
+- 2026-03-04: Plan continued — System test cycle 1 returned FAIL (51/62 passed, 6 failed, 1 gap). All 5 failures accepted. Added Phase 9: Fix Cycle 1 with 5 fix tasks (3x P1, 2x P2). Each task includes regression test requirement.
+- 2026-03-04: Phase 9 complete — All 5 fix cycle tasks resolved. F-001: schema.sql verified correct. F-002: 4 READMEs created. F-003: 5 build workflow links added to template gallery. F-004: 5 SVG mockup screenshots created and embedded. F-005: legal.html created, Legal link added to all page footers.

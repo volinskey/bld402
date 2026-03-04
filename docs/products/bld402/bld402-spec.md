@@ -1,11 +1,11 @@
 ---
 product: bld402
-version: 0.1.0
+version: 0.2.0
 status: Draft
 type: product
 interfaces: [website]
 created: 2026-03-04
-updated: 2026-03-04
+updated: 2026-03-05
 ---
 
 # bld402 — Build Web Apps Without Code on run402
@@ -76,11 +76,14 @@ Guide the agent through building the app step by step, generating all code.
 
 ### F5: Build Workflow — Deploy Phase
 
-Deploy the finished app to run402 static hosting and give the user a shareable URL.
+Deploy the finished app to run402 static hosting and give the user a memorable, shareable URL.
 
 - Agent calls run402's `/v1/deployments` endpoint to deploy the static site.
-- Return a permanent, shareable URL (`https://dpl-{id}.sites.run402.com`).
-- Confirm to the user: "Your app is live! Share this link: ..."
+- After deployment, claim a memorable subdomain via `POST /v1/subdomains` with `{ name, deployment_id }` using the project's `service_key`. This gives the app a URL like `https://hangman.run402.com` instead of the raw deployment URL.
+- Subdomain rules: 3-63 characters, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no reserved words (api, www, admin, etc.). Free, no x402 payment required.
+- When redeploying (iterate phase), reassign the subdomain to the new deployment_id — same `POST /v1/subdomains` call, same name, new deployment_id.
+- Return the subdomain URL to the user: "Your app is live! Share this link: https://myapp.run402.com"
+- Fall back to the raw deployment URL (`https://dpl-{id}.sites.run402.com`) if subdomain claiming fails.
 
 ### F6: Build Workflow — Iterate Phase
 
@@ -97,7 +100,7 @@ After deployment, the user provides feedback and the app evolves until they're h
 At any point in the workflow, clearly flag when a request is NOT possible on run402.
 
 - Maintain a definitive list of what run402 CANNOT do:
-  - Custom domain names / domain registration
+  - Fully custom domain names (but run402 subdomains like `myapp.run402.com` ARE supported — see F5)
   - Server-side compute / backend logic / lambdas / edge functions
   - Real-time WebSocket connections (polling is the alternative)
   - Email sending / SMS / push notifications
@@ -169,7 +172,7 @@ A comprehensive library of ready-to-use code templates that agents use as starti
 The `/humans` section provides everything a human visitor needs.
 
 - **About** — What bld402 is, how it works in plain language, the relationship to run402.
-- **Showcase** — Gallery of example apps built on the platform with screenshots. "Want to build one of these? Point your agent here: bld402.com"
+- **Showcase** — Gallery of live demo apps running on run402 with screenshots. Each card links to the live app at its `*.run402.com` subdomain. "Want to build one of these? Point your agent here: bld402.com"
 - **How It Works** — Step-by-step explanation: 1) Talk to your AI agent, 2) Describe what you want, 3) Point the agent to bld402.com, 4) Get a working app with a shareable link.
 - **Terms & Conditions** — Service terms for bld402 (free layer, no warranty, run402 T&C apply for infrastructure).
 - **Privacy Policy** — bld402 stores nothing. run402's privacy policy governs data stored there.
@@ -183,6 +186,196 @@ bld402 guides agents through run402's payment flow without adding any fees.
 - Guide the agent to call run402's `/v1/faucet` to get test USDC.
 - When the user wants to keep their app running beyond the prototype lease (7 days), guide upgrade to mainnet (USDC on Base) or Stripe subscription.
 - bld402 never charges anything. All costs are run402's standard pricing.
+
+### F12: Live Showcase Apps
+
+Five fully functional demo apps, each built using the bld402 workflow and deployed to run402 with a memorable subdomain. These are the proof that bld402 works — a visitor clicks a showcase card and lands on a real, working app. Each app is built from its MVP template, deployed to run402, and validated individually via red team system testing.
+
+#### Shared Subdomain Convention
+
+All showcase apps live at `{app-name}.run402.com`:
+
+| App | Subdomain | URL |
+|-----|-----------|-----|
+| Shared Todo List | `todo` | https://todo.run402.com |
+| Landing Page + Waitlist | `waitlist` | https://waitlist.run402.com |
+| Hangman | `hangman` | https://hangman.run402.com |
+| Trivia Night | `trivia` | https://trivia.run402.com |
+| Voting Booth | `vote` | https://vote.run402.com |
+
+#### Build Process
+
+Each showcase app must be built by following the actual bld402 workflow (steps 1-16) using the corresponding template. This serves as both a functional test of the workflow and produces the live demo. The run402 project for each app should use the **Hobby tier** (not Prototype) so the apps don't expire after 7 days.
+
+#### App 1: Shared Todo List (`todo.run402.com`)
+
+A collaborative task list where multiple people can add, complete, and assign tasks.
+
+**What it does:**
+- Any visitor can add a task (text input + add button)
+- Tasks display in a list with checkbox to mark done, assigned-to field, and delete button
+- Tasks persist in the database — reload the page and they're still there
+- Real-time-ish updates via polling (every 5 seconds)
+- Clean, minimal UI — works on mobile and desktop
+
+**Database schema:**
+- `todos` table: `id` (serial PK), `task` (text, not null), `done` (boolean, default false), `assigned_to` (text, nullable), `user_id` (uuid, nullable), `created_at` (timestamptz, default now())
+
+**RLS policy:** `public_read_write` — anyone can read and write (no auth required for the demo)
+
+**UI requirements:**
+- Header: "Shared Todo List" with subtle bld402 branding ("Built with bld402")
+- Input bar at top: text field + "Add" button
+- Task list below: each row has checkbox, task text, assigned-to tag, delete icon
+- Completed tasks are struck through and grayed out
+- Empty state: "No tasks yet. Add one above!"
+- Mobile-responsive: single column, touch-friendly tap targets
+
+**Seed data:** Pre-populate with 3 example tasks so the app isn't empty on first visit:
+1. "Buy groceries for the party" (assigned to "Alex")
+2. "Set up the playlist" (assigned to "Jordan", done: true)
+3. "Send invites to everyone" (assigned to "Sam")
+
+#### App 2: Landing Page + Waitlist (`waitlist.run402.com`)
+
+A product launch page with email signup — the classic "coming soon" page.
+
+**What it does:**
+- Hero section with product name, tagline, and call-to-action
+- Email signup form: enter email, click "Join the Waitlist"
+- After signup: thank you message with position number ("You're #42 on the waitlist!")
+- Signups persist in the database
+- Simple, polished single-page design
+
+**Database schema:**
+- `signups` table: `id` (serial PK), `email` (text, unique, not null), `created_at` (timestamptz, default now())
+
+**RLS policy:** `public_read_write` for inserts (anyone can sign up), service_role for reads (signup list is private)
+
+**UI requirements:**
+- Hero section: large heading "Something Amazing is Coming", subtext "Sign up to be the first to know", gradient or bold color background
+- Email input + "Join the Waitlist" button centered
+- After submit: hide form, show "You're in! You're #{count} on the waitlist."
+- Duplicate email: friendly message "You're already on the list!"
+- Footer: "Built with bld402" branding
+- Mobile-responsive, single-page, no scroll needed on desktop
+
+**Seed data:** Pre-populate with 15-20 fake email signups so the first real visitor sees "You're #21 on the waitlist!" instead of "#1"
+
+#### App 3: Hangman (`hangman.run402.com`)
+
+Classic word guessing game — solo play with random words.
+
+**What it does:**
+- Random word selected from a built-in word list (stored in DB)
+- Display: word as blanks (underscores), hangman drawing (SVG), guessed letters
+- Player clicks letter buttons (A-Z) to guess
+- Correct guess: reveal letter(s) in the word
+- Wrong guess: add body part to hangman (6 wrong = game over)
+- Win state: "You got it! The word was ___" + play again button
+- Lose state: "Game over! The word was ___" + play again button
+- Track wins/losses in the current session (not persisted)
+
+**Database schema:**
+- `words` table: `id` (serial PK), `word` (text, not null), `category` (text, nullable), `difficulty` (text: easy/medium/hard)
+- `games` table: `id` (serial PK), `word_id` (integer, references words), `guesses` (text[], default '{}'), `status` (text: playing/won/lost), `created_at` (timestamptz, default now())
+
+**RLS policy:** `public_read` for words, `public_read_write` for games
+
+**UI requirements:**
+- Header: "Hangman" with win/loss counter
+- Center: hangman SVG drawing (progressive: head, body, left arm, right arm, left leg, right leg)
+- Below drawing: word display as underscored blanks with revealed letters
+- Below word: A-Z letter grid (buttons), used letters grayed out
+- Win/lose overlay with the word and "Play Again" button
+- "Built with bld402" footer
+- Mobile-responsive: letter grid wraps, tap-friendly
+
+**Seed data:** Pre-populate `words` table with 50+ words across 3 difficulty levels:
+- Easy (4-5 letters): cat, dog, fish, bird, book, tree, star, moon, cake, rain, etc.
+- Medium (6-7 letters): garden, puzzle, rocket, castle, bridge, planet, etc.
+- Hard (8+ letters): elephant, dinosaur, fireworks, adventure, butterfly, etc.
+
+#### App 4: Trivia Night (`trivia.run402.com`)
+
+Multiplayer trivia game — one person hosts, others join with a code, live scoring.
+
+**What it does:**
+- **Host flow:** Create a room → get a 4-digit join code → add questions (or use pre-loaded set) → start the game → see live scoreboard
+- **Player flow:** Enter join code → pick a display name → wait for host to start → answer questions → see score after each round
+- Questions display one at a time with 4 multiple-choice options and a countdown timer (15 seconds)
+- After timer expires or all players answer, show correct answer + updated scores
+- End of game: final scoreboard ranked by score, host can play again
+- Polling-based updates (every 2 seconds during active game)
+
+**Database schema:**
+- `rooms` table: `id` (serial PK), `code` (text, unique, 4 digits), `host_name` (text), `status` (text: lobby/playing/finished), `current_question` (integer, default 0), `created_at` (timestamptz)
+- `questions` table: `id` (serial PK), `room_id` (integer, references rooms), `question_text` (text), `options` (jsonb, array of 4 strings), `correct_index` (integer, 0-3), `time_limit` (integer, default 15), `order_num` (integer)
+- `players` table: `id` (serial PK), `room_id` (integer, references rooms), `name` (text), `score` (integer, default 0), `joined_at` (timestamptz)
+- `answers` table: `id` (serial PK), `player_id` (integer, references players), `question_id` (integer, references questions), `selected_index` (integer), `answered_at` (timestamptz), unique constraint on (player_id, question_id)
+
+**RLS policy:** `public_read` for rooms and questions, `public_read_write` for players and answers
+
+**UI requirements:**
+- **Landing screen:** Two buttons: "Host a Game" / "Join a Game"
+- **Host lobby:** Shows room code (large, copyable), player list updating live, "Start Game" button (disabled until 2+ players)
+- **Player lobby:** Enter code + name, then waiting screen showing other players
+- **Question screen:** Question text, 4 answer buttons (color-coded: red/blue/green/yellow), countdown timer bar
+- **Results screen:** Correct answer highlighted, points awarded, scoreboard
+- **Final screen:** Ranked scoreboard, "Play Again" button for host
+- "Built with bld402" footer
+- Mobile-first: works great on phones (players will be on phones)
+
+**Seed data:** Pre-load 3 question sets (10 questions each) that hosts can use:
+1. **General Knowledge:** Mix of geography, science, pop culture, history
+2. **Movies & TV:** Popular films and shows, quotes, actors
+3. **Food & Drink:** Cuisine origins, ingredients, cooking terms
+
+#### App 5: Voting Booth (`vote.run402.com`)
+
+Create a poll, share the link, see live results.
+
+**What it does:**
+- **Create flow:** Enter question + 2-6 options → get a shareable poll URL
+- **Vote flow:** See question + options → click to vote → see live results
+- Results shown as horizontal bar chart with percentages, updating via polling (every 3 seconds)
+- One vote per browser (tracked via localStorage, not auth)
+- Poll creator can close the poll (no more votes)
+
+**Database schema:**
+- `polls` table: `id` (serial PK), `question` (text, not null), `slug` (text, unique), `is_open` (boolean, default true), `admin_token` (text), `created_at` (timestamptz)
+- `options` table: `id` (serial PK), `poll_id` (integer, references polls), `label` (text, not null), `order_num` (integer)
+- `votes` table: `id` (serial PK), `option_id` (integer, references options), `voter_token` (text, not null), `created_at` (timestamptz), unique constraint on (option_id's poll, voter_token)
+
+**RLS policy:** `public_read` for polls and options, `public_read_write` for votes (with unique constraint enforcing one vote per token per poll)
+
+**UI requirements:**
+- **Create screen:** "Create a Poll" heading, question input, dynamic option inputs (start with 2, "Add Option" button up to 6), "Create Poll" button
+- **Poll screen:** Question displayed large, option buttons below, after voting show results
+- **Results view:** Horizontal bar chart, each bar labeled with option text + vote count + percentage, total votes shown
+- Poll URL uses slug (e.g., `vote.run402.com/poll/best-pizza-topping`)
+- Closed poll: show results only, "This poll is closed" banner
+- "Built with bld402" footer
+- Mobile-responsive: bars stack vertically, tap-friendly vote buttons
+
+**Seed data:** Create 1 example poll pre-loaded: "What's the best pizza topping?" with options: Pepperoni, Mushrooms, Pineapple, Extra Cheese, Olives. Pre-populate with 25-30 random votes so the results chart looks active.
+
+#### Validation Requirement
+
+Each showcase app MUST be individually validated using the `/validate` red team process:
+1. Build the app using the bld402 workflow (following the templates)
+2. Deploy to run402 and claim the subdomain
+3. Run `/validate` against the app — red team tests the live deployed app at its `*.run402.com` URL
+4. Fix any failures found by the red team
+5. App is only considered complete when validation passes
+
+The system test for each app should verify:
+- The app loads at its subdomain URL
+- All described functionality works (CRUD operations, game logic, polling, etc.)
+- UI matches the spec (layout, responsiveness, branding)
+- Seed data is present
+- Edge cases are handled (empty states, duplicate submissions, invalid input)
+- Mobile viewport works
 
 ## Acceptance Criteria
 
@@ -210,8 +403,10 @@ bld402 guides agents through run402's payment flow without adding any fees.
 
 ### Deploy Phase (F5)
 - [ ] The agent can deploy the static site to run402 and return a working URL.
-- [ ] The URL is accessible in a browser and the app functions correctly.
-- [ ] The user receives the URL in plain language ("Your app is live! Share this link.").
+- [ ] The agent claims a memorable subdomain via `POST /v1/subdomains` after deployment.
+- [ ] The subdomain URL (e.g., `https://myapp.run402.com`) is accessible in a browser and the app functions correctly.
+- [ ] The user receives the subdomain URL in plain language ("Your app is live! Share this link.")
+- [ ] On redeploy, the agent reassigns the subdomain to the new deployment.
 
 ### Iterate Phase (F6)
 - [ ] The user can request changes in plain language and the agent modifies and redeploys.
@@ -236,7 +431,8 @@ bld402 guides agents through run402's payment flow without adding any fees.
 
 ### Human Pages (F10)
 - [ ] `/humans` contains: about, showcase, how-it-works, terms, privacy, legal sections.
-- [ ] The showcase includes screenshots of at least 5 example apps.
+- [ ] The showcase links to 5 live demo apps at their `*.run402.com` subdomains.
+- [ ] The showcase includes screenshots of the 5 live apps.
 - [ ] The "how it works" section is understandable by a non-technical person.
 
 ### Payment Pass-Through (F11)
@@ -244,6 +440,16 @@ bld402 guides agents through run402's payment flow without adding any fees.
 - [ ] The agent is guided to use run402's `/v1/faucet` for test USDC.
 - [ ] Upgrade path to mainnet/Stripe is available when the user is ready.
 - [ ] bld402 adds zero fees to any transaction.
+
+### Live Showcase Apps (F12)
+- [ ] All 5 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, hangman.run402.com, trivia.run402.com, vote.run402.com.
+- [ ] Each app was built using the bld402 workflow and its corresponding MVP template.
+- [ ] Each app has seed data so it's not empty on first visit.
+- [ ] Each app includes "Built with bld402" branding.
+- [ ] Each app works on mobile and desktop.
+- [ ] Each app has been individually validated via `/validate` red team testing against its live URL.
+- [ ] The showcase page links to each live app.
+- [ ] Showcase apps use Hobby tier (not Prototype) so they don't expire.
 
 ## Constraints & Dependencies
 
@@ -271,8 +477,8 @@ bld402 guides agents through run402's payment flow without adding any fees.
    c. Creates tables (questions, players, scores) via SQL.
    d. Sets up RLS (public_read for questions, user_owns_rows for scores).
    e. Generates frontend code from trivia template with user's customizations.
-8. Agent deploys to run402 static hosting, gets URL.
-9. Agent tells user: "Your trivia game is live! Share this link with your friends: https://dpl-abc123.sites.run402.com"
+8. Agent deploys to run402 static hosting, claims subdomain `trivia.run402.com`.
+9. Agent tells user: "Your trivia game is live! Share this link with your friends: https://trivia.run402.com"
 10. User tries it, says: "Can you make the timer longer and add funny sound effects?"
 11. Agent modifies code, redeploys, gives new URL.
 12. User is happy. Agent stores memory directives for future reference.
@@ -296,6 +502,6 @@ bld402 guides agents through run402's payment flow without adding any fees.
 
 - [x] ~~MCP server integration~~ — Yes, but only if installation can be made seamless for users with zero technical knowledge. If we can't make it one-click/one-sentence, skip it.
 - [ ] What is the exact format for agent memory directives? (JSON blob? Structured markdown? Needs testing with multiple agents — ChatGPT, Claude, Gemini — to find what persists best.)
-- [x] ~~Live previews vs screenshots on showcase~~ — Deferred. Start with screenshots only.
+- [x] ~~Live previews vs screenshots on showcase~~ — Resolved. Showcase links to live apps at `*.run402.com` subdomains (F12). Screenshots kept as fallback/preview.
 - [x] ~~Handling run402 API changes~~ — Version pinning on run402 API version. Add an update procedure to the bld402 repo for when run402 changes.
 - [x] ~~App gallery~~ — Yes. Add a public gallery where users can optionally publish their apps. Pre-seed with sample apps built from templates.

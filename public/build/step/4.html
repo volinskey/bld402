@@ -41,6 +41,10 @@
         </blockquote>
 
         <p>If the user wants changes, go back to the relevant question and update. Then re-confirm.</p>
+
+        <h3>Guardrail verification (mandatory)</h3>
+        <p>Before confirming, scan every feature in your summary against the <a href="/build/guardrails">capability guardrails</a>. For each feature, verify it is buildable on run402. If you find a feature that slipped through (not flagged in Step 3), stop and address it with the user now — do not proceed to planning with impossible features in the spec.</p>
+
         <p>Once confirmed, build the internal <code>app_spec</code> — this is a structured document for YOUR use (not shown to the user). It translates the user's plain-language answers into the technical details you'll need for building.</p>
 
         <h3>Internal app_spec format</h3>

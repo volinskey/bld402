@@ -413,6 +413,8 @@
 
     async function startGame() {
       if (state.poller) clearInterval(state.poller);
+      const players = await api('/rest/v1/players?room_id=eq.' + state.roomId);
+      if (players.length === 0) return alert('Wait for at least one player to join before starting.');
       state.questions = await api('/rest/v1/questions?room_id=eq.' + state.roomId + '&order=sort_order');
       await api('/rest/v1/rooms?id=eq.' + state.roomId, {
         method: 'PATCH',
@@ -448,7 +450,13 @@
         if (timeLeft <= 5) timerEl.className = 'timer urgent';
         if (timeLeft <= 0) {
           clearInterval(state.timer);
-          if (state.isHost) showResults(index);
+          if (state.isHost) {
+            showResults(index);
+          } else {
+            document.querySelectorAll('.option').forEach(o => o.style.pointerEvents = 'none');
+            document.getElementById('q-waiting').textContent = "Time's up! Waiting for host...";
+            document.getElementById('q-waiting').style.display = '';
+          }
         }
       }, 1000);
 
@@ -464,21 +472,27 @@
       document.querySelectorAll('.option').forEach(o => o.style.pointerEvents = 'none');
       document.querySelector(`[data-index="${index}"]`).classList.add('selected');
 
-      await api('/rest/v1/answers', {
-        method: 'POST',
-        body: JSON.stringify({
-          room_id: state.roomId,
-          question_id: q.id,
-          player_id: state.playerId,
-          selected_index: index,
-          is_correct: isCorrect
-        })
-      });
+      try {
+        await api('/rest/v1/answers', {
+          method: 'POST',
+          body: JSON.stringify({
+            room_id: state.roomId,
+            question_id: q.id,
+            player_id: state.playerId,
+            selected_index: index,
+            is_correct: isCorrect
+          })
+        });
+      } catch (err) {
+        // Duplicate answer (unique constraint) — ignore, answer already recorded
+        document.getElementById('q-waiting').style.display = '';
+        return;
+      }
 
       if (isCorrect) {
-        await api('/rest/v1/players?id=eq.' + state.playerId, {
-          method: 'PATCH',
-          body: JSON.stringify({ score: (await api('/rest/v1/players?id=eq.' + state.playerId))[0].score + 100 })
+        await api('/rest/v1/rpc/increment_score', {
+          method: 'POST',
+          body: JSON.stringify({ p_player_id: state.playerId, p_points: 100 })
         });
       }
 

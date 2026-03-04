@@ -7,8 +7,7 @@ CREATE TABLE todos (
   done boolean DEFAULT false,
   assigned_to text,
   user_id uuid,
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
+  created_at timestamptz DEFAULT now()
 );
 
 CREATE INDEX idx_todos_user ON todos(user_id);

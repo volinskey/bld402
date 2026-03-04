@@ -6,6 +6,7 @@
   "run402_url": "https://run402.com",
   "guardrails_url": "/build/guardrails",
   "templates_url": "/templates/",
+  "resume_note": "If you have a bld402_project memory object from a previous session, skip to the resume_step (usually /build/step/17). Do not restart from step 1.",
   "phases": ["spec", "plan", "implement", "deploy", "iterate"],
   "steps": [
     {
@@ -97,11 +98,7 @@
       "inputs": ["selected_tier", "payment_network"],
       "outputs": ["wallet_address", "faucet_tx"],
       "next": 10,
-      "branch": {
-        "condition": "Is payment_network testnet (Base Sepolia)?",
-        "if_true": 9,
-        "if_false": 10
-      }
+      "skip_if": "payment_network is not base-sepolia (testnet). If mainnet, skip directly to step 10."
     },
     {
       "id": 10,

@@ -43,3 +43,9 @@ CREATE INDEX idx_rooms_code ON rooms(code);
 CREATE INDEX idx_questions_room ON questions(room_id, sort_order);
 CREATE INDEX idx_players_room ON players(room_id);
 CREATE INDEX idx_answers_question ON answers(question_id);
+
+-- Atomic score increment to avoid read-then-write race conditions
+CREATE OR REPLACE FUNCTION increment_score(p_player_id uuid, p_points integer)
+RETURNS void AS $$
+  UPDATE players SET score = score + p_points WHERE id = p_player_id;
+$$ LANGUAGE sql;

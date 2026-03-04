@@ -63,18 +63,78 @@ pre code {
   margin-top: 1.5rem;
 }
 
+/* Focus styles (keyboard accessibility) */
+a:focus-visible, button:focus-visible {
+  outline: 2px solid #0066cc;
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* Skip to content (screen reader) */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 0;
+  background: #0066cc;
+  color: #fff;
+  padding: 0.5rem 1rem;
+  z-index: 100;
+  font-weight: 600;
+}
+.skip-link:focus {
+  top: 0;
+}
+
+/* Site header */
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+  background: #fff;
+}
+.site-header a.logo {
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-decoration: none;
+  color: #1a1a1a;
+}
+
 /* Human-facing pages */
 .human-nav {
   display: flex;
   gap: 1.5rem;
   flex-wrap: wrap;
-  margin-bottom: 2rem;
-  padding-bottom: 1rem;
-  border-bottom: 1px solid #e0e0e0;
+  border: none;
+  padding: 0;
+  margin: 0;
 }
 
 .human-nav a {
   font-weight: 500;
+  font-size: 0.9rem;
+}
+
+/* Site footer */
+.site-footer {
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.8rem;
+  color: #888;
+  border-top: 1px solid #e0e0e0;
+}
+
+@media (max-width: 600px) {
+  .site-header {
+    flex-direction: column;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  .human-nav {
+    gap: 1rem;
+    justify-content: center;
+  }
 }
 
 /* Cards (for template gallery, showcase) */

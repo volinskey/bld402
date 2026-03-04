@@ -37,7 +37,7 @@
         <h3>If using a template</h3>
         <p>Start from the template at <code>/templates/{category}/{template-name}/</code>. Read the template's <code>index.html</code> and customize:</p>
         <ol>
-          <li>Replace placeholder values (<code>{{PROJECT_ID}}</code>, <code>{{ANON_KEY}}</code>, <code>{{API_URL}}</code>) with actual values</li>
+          <li>Replace placeholder values (<code>{{ANON_KEY}}</code>, <code>{{API_URL}}</code>, <code>{{APP_NAME}}</code>) with actual values</li>
           <li>Apply the user's customizations from <code>app_spec</code></li>
           <li>Adjust colors, labels, and content to match what the user described</li>
         </ol>
@@ -59,9 +59,10 @@
         <h4>Configuration block (top of JavaScript)</h4>
         <pre><code>const CONFIG = {
   API_URL: 'https://run402.com',
-  ANON_KEY: '{anon_key}',
-  PROJECT_ID: '{project_id}'
+  ANON_KEY: '{anon_key}'
 };
+// Note: project_id is not needed in client-side code.
+// The anon_key JWT routes requests to the correct project automatically.
 
 async function api(path, options = {}) {
   const res = await fetch(CONFIG.API_URL + path, {

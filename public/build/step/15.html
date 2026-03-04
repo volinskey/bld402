@@ -52,7 +52,7 @@ Content-Type: application/json
   ]
 }</code></pre>
 
-        <p><strong>This endpoint is x402-gated ($0.05).</strong> The same payment flow as project creation applies — first request returns 402, sign payment, retry with header.</p>
+        <p><strong>This endpoint is x402-gated ($0.05).</strong> No API key or auth header is needed — the x402 payment header IS the authorization. Same flow as project creation: first request returns 402, sign payment, retry with <code>x-402-payment</code> header.</p>
 
         <p><strong>Response (201):</strong></p>
         <pre><code>{

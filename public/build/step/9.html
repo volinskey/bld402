@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 9: Get Testnet Funds — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 9: Get Testnet Funds</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 9: Get Testnet Funds</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have the <code>build_plan</code> confirmed. If <code>payment_network</code> is "base-sepolia" (testnet), you need free test USDC before creating the project. If mainnet, skip this step.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>If using testnet (default)</h3>
+        <p>You need a wallet address on Base Sepolia to receive test USDC. If you (the agent) have wallet capabilities, use your own wallet. If not, you'll need the user to provide a wallet address.</p>
+
+        <p><strong>Call the faucet:</strong></p>
+        <pre><code>POST https://run402.com/v1/faucet
+Content-Type: application/json
+
+{
+  "address": "0x...user_or_agent_wallet_address"
+}</code></pre>
+
+        <p><strong>Response (success):</strong></p>
+        <pre><code>{
+  "transactionHash": "0x...",
+  "amount": "0.25",
+  "token": "USDC",
+  "network": "base-sepolia"
+}</code></pre>
+
+        <p><strong>Rate limit:</strong> 1 faucet drip per 24 hours per IP address. If you get a 429 response, tell the user: "We need to wait before getting more test funds. Let's try again in a bit."</p>
+
+        <p><strong>What to tell the user:</strong></p>
+        <blockquote>"I'm grabbing some free test funds to set up your project. This is completely free — just test money for trying things out."</blockquote>
+
+        <h3>If using mainnet</h3>
+        <p>Skip this step. The user will pay with real USDC when creating the project. Proceed directly to Step 10.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>wallet_address</code> — The wallet address that received test USDC</li>
+          <li><code>faucet_tx</code> — Transaction hash from the faucet (or "skipped" if mainnet)</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "required_services", "selected_tier", "payment_network", "build_plan", "selected_templates", "selected_patterns"],
+          "store": {
+            "wallet_address": "Wallet address used for payments",
+            "faucet_tx": "Faucet transaction hash or 'skipped'"
+          },
+          "discard": ["guardrail_flags"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/10">Continue to Step 10: Provision Project &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

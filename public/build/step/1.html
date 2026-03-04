@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 1: Describe Your App — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 1: Describe Your App</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 1: Describe Your App</h1>
+      <p class="muted small">Phase: spec</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>This is the first step. The user wants to build a web app. You have no prior information about what they want.</p>
+        <p>Before proceeding, review the <a href="/build/guardrails">capability guardrails</a> so you know what's possible and what isn't.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Ask the user to describe what they want to build. Use simple, friendly language. Do NOT use any technical terms.</p>
+        <p>Good example questions:</p>
+        <ul>
+          <li>"What kind of app do you want to make?"</li>
+          <li>"Tell me about your idea — what should this app do?"</li>
+          <li>"Describe what you're imagining. Who uses it and what do they do?"</li>
+        </ul>
+        <p>Let the user describe it in their own words. Don't constrain them. Just listen and understand.</p>
+        <p>If the user's description includes something that hits a <a href="/build/guardrails">capability guardrail</a>, address it now — tell them what's not possible in plain language and suggest the alternative.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <p>Produce the following before moving on:</p>
+        <ul>
+          <li><code>app_description</code> — A plain-language summary of what the user wants to build, in your own words (2-4 sentences). This will be used to match templates and guide the build.</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": [],
+          "store": {
+            "app_description": "Plain-language summary of what the user wants to build",
+            "guardrail_flags": "Any capability limitations that were flagged and how they were resolved"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/2">Continue to Step 2: Match Templates &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

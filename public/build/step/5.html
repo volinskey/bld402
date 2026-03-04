@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 5: Determine Services — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 5: Determine Services</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 5: Determine Services</h1>
+      <p class="muted small">Phase: plan</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have the confirmed <code>app_spec</code>. Now determine which run402 services the app needs.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Based on the app spec, determine which run402 services are required. Every app uses at least database + static hosting.</p>
+
+        <h3>run402 services checklist</h3>
+        <table>
+          <thead><tr><th>Service</th><th>When needed</th><th>run402 feature</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Database</strong></td>
+              <td>Always — every app stores data</td>
+              <td>Postgres via PostgREST API. Tables created via SQL migration endpoint.</td>
+            </tr>
+            <tr>
+              <td><strong>REST API</strong></td>
+              <td>Always — how the frontend reads/writes data</td>
+              <td>Auto-generated from database schema. CRUD + filters at <code>/rest/v1/{table}</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Authentication</strong></td>
+              <td>When <code>app_spec.features.auth</code> is true</td>
+              <td>Email/password signup + login at <code>/auth/v1/signup</code> and <code>/auth/v1/token</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Row-Level Security</strong></td>
+              <td>When users should only see their own data, or when some data is public and some private</td>
+              <td>RLS templates: <code>user_owns_rows</code>, <code>public_read</code>, <code>public_read_write</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>File Storage</strong></td>
+              <td>When <code>app_spec.features.file_uploads</code> is true</td>
+              <td>S3-backed storage at <code>/storage/v1/object/{bucket}/{path}</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>Static Hosting</strong></td>
+              <td>Always — how the app is deployed</td>
+              <td>Deploy via <code>POST /v1/deployments</code>. Returns a shareable URL.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Database table planning</h3>
+        <p>For each data type in <code>app_spec.features.data_types</code>, plan a database table. Consider:</p>
+        <ul>
+          <li>What columns does each table need?</li>
+          <li>Which tables reference each other (foreign keys)?</li>
+          <li>Which RLS template applies to each table?</li>
+          <li>Does any table need seed data (e.g., default categories, sample content)?</li>
+        </ul>
+
+        <p>Do NOT tell the user about tables, columns, or SQL. Just note this internally for the build.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>required_services</code> — List of run402 services needed with details:
+            <pre><code>{
+  "database": true,
+  "tables": [
+    {"name": "todos", "columns": ["id", "task", "done", "user_id", "created_at"], "rls": "user_owns_rows"}
+  ],
+  "auth": true,
+  "file_storage": false,
+  "static_hosting": true,
+  "seed_data": false
+}</code></pre>
+          </li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "guardrail_flags"],
+          "store": {
+            "required_services": "Detailed services breakdown with table schemas and RLS assignments"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/6">Continue to Step 6: Select Tier &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

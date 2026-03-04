@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 13: Generate Frontend Code — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 13: Generate Frontend Code</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 13: Generate Frontend Code</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have all project details: <code>app_spec</code>, <code>project_id</code>, <code>anon_key</code>, <code>api_url</code>, <code>tables_created</code>, <code>rls_configured</code>, <code>selected_templates</code>, and <code>selected_patterns</code>.</p>
+        <p>Now generate the complete client-side application.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Generate all the files for the user's app. The app must:</p>
+        <ul>
+          <li>Be a complete, working single-page application (HTML + CSS + JavaScript)</li>
+          <li>Work in any modern browser without build tools, compilation, or npm</li>
+          <li>Use the run402 REST API for all data operations</li>
+          <li>Include all necessary API configuration (project_id, anon_key, api_url)</li>
+        </ul>
+
+        <h3>If using a template</h3>
+        <p>Start from the template at <code>/templates/{category}/{template-name}/</code>. Read the template's <code>index.html</code> and customize:</p>
+        <ol>
+          <li>Replace placeholder values (<code>{{PROJECT_ID}}</code>, <code>{{ANON_KEY}}</code>, <code>{{API_URL}}</code>) with actual values</li>
+          <li>Apply the user's customizations from <code>app_spec</code></li>
+          <li>Adjust colors, labels, and content to match what the user described</li>
+        </ol>
+
+        <h3>If building from patterns</h3>
+        <p>Assemble the app from common patterns at <code>/templates/patterns/</code>:</p>
+        <ol>
+          <li>Start with <code>responsive-layout.html</code> as the page structure</li>
+          <li>Add <code>db-connection.js</code> for API setup</li>
+          <li>Add <code>crud.js</code> for data operations</li>
+          <li>Add <code>auth-flow.js</code> if auth is needed</li>
+          <li>Add <code>file-upload.js</code> if file uploads are needed</li>
+          <li>Add <code>polling.js</code> if near-real-time updates are needed</li>
+          <li>Write custom UI components specific to the app</li>
+        </ol>
+
+        <h3>API integration patterns</h3>
+
+        <h4>Configuration block (top of JavaScript)</h4>
+        <pre><code>const CONFIG = {
+  API_URL: 'https://run402.com',
+  ANON_KEY: '{anon_key}',
+  PROJECT_ID: '{project_id}'
+};
+
+async function api(path, options = {}) {
+  const res = await fetch(CONFIG.API_URL + path, {
+    ...options,
+    headers: {
+      'apikey': CONFIG.ANON_KEY,
+      'Content-Type': 'application/json',
+      ...options.headers
+    }
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return res.json();
+}</code></pre>
+
+        <h4>Read data</h4>
+        <pre><code>// Get all todos, newest first
+const todos = await api('/rest/v1/todos?order=created_at.desc');
+
+// Get todos for current user
+const myTodos = await api('/rest/v1/todos?user_id=eq.' + userId);
+
+// Search with filters
+const urgent = await api('/rest/v1/todos?done=eq.false&order=created_at.desc&limit=10');</code></pre>
+
+        <h4>Write data</h4>
+        <pre><code>// Create
+await api('/rest/v1/todos', {
+  method: 'POST',
+  headers: { 'Prefer': 'return=representation' },
+  body: JSON.stringify({ task: 'Buy groceries', user_id: userId })
+});
+
+// Update
+await api('/rest/v1/todos?id=eq.' + todoId, {
+  method: 'PATCH',
+  body: JSON.stringify({ done: true })
+});
+
+// Delete
+await api('/rest/v1/todos?id=eq.' + todoId, { method: 'DELETE' });</code></pre>
+
+        <h4>Auth (if needed)</h4>
+        <pre><code>// Signup
+const { id, email } = await api('/auth/v1/signup', {
+  method: 'POST',
+  body: JSON.stringify({ email, password })
+});
+
+// Login
+const { access_token, refresh_token, user } = await api('/auth/v1/token?grant_type=password', {
+  method: 'POST',
+  body: JSON.stringify({ email, password })
+});
+
+// Use access_token for authenticated requests
+headers: { 'Authorization': 'Bearer ' + access_token }</code></pre>
+
+        <h3>File structure</h3>
+        <p>Generate a single <code>index.html</code> file with inline CSS and JavaScript. This is the simplest approach and works perfectly for deployment. If the app is complex, you may split into:</p>
+        <ul>
+          <li><code>index.html</code> — page structure</li>
+          <li><code>style.css</code> — styles</li>
+          <li><code>app.js</code> — application logic</li>
+        </ul>
+
+        <h3>Quality checklist</h3>
+        <ul>
+          <li>Does the app work without any build step?</li>
+          <li>Are all API URLs and keys correctly set?</li>
+          <li>Does the UI match what the user described?</li>
+          <li>Is it mobile-friendly (if requested)?</li>
+          <li>Are error states handled (show friendly messages, not technical errors)?</li>
+          <li>Does auth flow work if auth is enabled (signup, login, logout, protected routes)?</li>
+        </ul>
+
+        <h3>What to tell the user</h3>
+        <blockquote>"I've built your app! Let me deploy it so you can try it out."</blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>app_files</code> — Array of file objects ready for deployment:
+            <pre><code>[
+  {"file": "index.html", "data": "<!DOCTYPE html>...", "encoding": "utf-8"},
+  {"file": "style.css", "data": "body { ... }", "encoding": "utf-8"},
+  {"file": "app.js", "data": "const CONFIG = ...", "encoding": "utf-8"}
+]</code></pre>
+          </li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "lease_expires_at"],
+          "store": {
+            "app_files": "Array of file objects (file, data, encoding) — the complete app ready to deploy"
+          },
+          "discard": ["build_plan", "selected_templates", "selected_patterns"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/14">Continue to Step 14: Verify Code &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

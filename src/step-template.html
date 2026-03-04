@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step N: Title — bld402</title>
+  <meta name="description" content="bld402 build workflow — Step N: Title">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step N: Title</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step N: Title</h1>
+      <p class="muted small">Phase: spec | plan | implement | deploy | iterate</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>At this point you should have in memory: <code>key1</code>, <code>key2</code>.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <!-- Plain-language instructions for the agent -->
+        <p>Instructions here.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <p>Produce the following before moving on:</p>
+        <ul>
+          <li><code>output_key</code> — description</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <p>Update your memory with the following:</p>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": [],
+          "store": {},
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/N+1">Continue to Step N+1: Title &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

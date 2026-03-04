@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 14: Verify Code — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 14: Verify Code</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 14: Verify Code</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>app_files</code> — the complete app ready to deploy. Before deploying, verify everything is correct.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Review the generated code against this checklist. Fix any issues before deploying.</p>
+
+        <h3>Verification checklist</h3>
+
+        <h4>API configuration</h4>
+        <ul>
+          <li>Is <code>API_URL</code> set to <code>https://run402.com</code>?</li>
+          <li>Is <code>ANON_KEY</code> set to the actual <code>anon_key</code> from Step 10?</li>
+          <li>Is <code>service_key</code> absent from frontend code? (It should NEVER be in client-side code)</li>
+          <li>Do all API calls include the <code>apikey</code> header?</li>
+        </ul>
+
+        <h4>Data operations</h4>
+        <ul>
+          <li>Do table names in API calls match <code>tables_created</code>?</li>
+          <li>Do column names in queries match the actual schema?</li>
+          <li>Are PostgREST filter operators correct? (eq, neq, gt, gte, lt, lte, like, ilike, in, is)</li>
+          <li>Do POST requests include <code>Prefer: return=representation</code> if you need the created row back?</li>
+        </ul>
+
+        <h4>Authentication (if applicable)</h4>
+        <ul>
+          <li>Does signup call <code>/auth/v1/signup</code>?</li>
+          <li>Does login call <code>/auth/v1/token?grant_type=password</code>?</li>
+          <li>Is the <code>access_token</code> stored (e.g., in localStorage)?</li>
+          <li>Do authenticated requests include <code>Authorization: Bearer {access_token}</code>?</li>
+          <li>Is there a logout flow that clears the token?</li>
+          <li>Are protected UI elements hidden when not logged in?</li>
+        </ul>
+
+        <h4>RLS compatibility</h4>
+        <ul>
+          <li>If using <code>user_owns_rows</code>: does every INSERT include the <code>user_id</code> (or owner column)?</li>
+          <li>If using <code>public_read</code>: are write operations only done with <code>service_key</code> (admin only)?</li>
+          <li>If using <code>public_read_write</code>: is this acceptable for the app's security model?</li>
+        </ul>
+
+        <h4>UI / UX</h4>
+        <ul>
+          <li>Does the app display loading states while fetching data?</li>
+          <li>Are errors shown as friendly messages (not raw API errors)?</li>
+          <li>Does it work on mobile if <code>app_spec.ui.mobile_friendly</code> is true?</li>
+          <li>Are interactive elements (buttons, inputs) large enough to tap on mobile?</li>
+        </ul>
+
+        <h4>HTML validity</h4>
+        <ul>
+          <li>Does <code>index.html</code> start with <code>&lt;!DOCTYPE html&gt;</code>?</li>
+          <li>Are all tags properly closed?</li>
+          <li>Is <code>charset="UTF-8"</code> set?</li>
+          <li>Is <code>viewport</code> meta tag present for mobile?</li>
+        </ul>
+
+        <p>If any issues are found, fix them in <code>app_files</code> before proceeding.</p>
+
+        <h3>What to tell the user</h3>
+        <blockquote>"Everything looks good! Deploying your app now..."</blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>code_verified</code> — Boolean. Set to <code>true</code> only after all checklist items pass.</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at"],
+          "store": {},
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/15">Continue to Step 15: Deploy to run402 &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

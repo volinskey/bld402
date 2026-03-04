@@ -1,0 +1,222 @@
+{
+  "schema_version": "1.0",
+  "product": "bld402",
+  "product_url": "https://bld402.com",
+  "description": "bld402 is a free accessibility layer for run402.com. It enables anyone to build and deploy a complete web application by describing what they want in plain language. You (the AI agent) navigate this structured workflow to spec, plan, build, deploy, and iterate on the app using run402 infrastructure.",
+  "run402_url": "https://run402.com",
+  "guardrails_url": "/build/guardrails",
+  "templates_url": "/templates/",
+  "phases": ["spec", "plan", "implement", "deploy", "iterate"],
+  "steps": [
+    {
+      "id": 1,
+      "phase": "spec",
+      "title": "Describe your app",
+      "url": "/build/step/1",
+      "instruction": "Ask the user to describe what they want to build in their own words. No technical language. Just: what does the app do?",
+      "inputs": [],
+      "outputs": ["app_description"],
+      "next": 2
+    },
+    {
+      "id": 2,
+      "phase": "spec",
+      "title": "Match templates",
+      "url": "/build/step/2",
+      "instruction": "Compare the user's description against available templates. If a template matches, suggest it. If not, proceed with a custom build.",
+      "inputs": ["app_description"],
+      "outputs": ["matched_template_or_null"],
+      "next": 3
+    },
+    {
+      "id": 3,
+      "phase": "spec",
+      "title": "Clarify features",
+      "url": "/build/step/3",
+      "instruction": "Ask simple yes/no or multiple-choice questions to clarify what the app needs. No technical jargon. Keep questions plain and friendly.",
+      "inputs": ["app_description", "matched_template_or_null"],
+      "outputs": ["feature_answers"],
+      "next": 4
+    },
+    {
+      "id": 4,
+      "phase": "spec",
+      "title": "Confirm spec",
+      "url": "/build/step/4",
+      "instruction": "Summarize what you'll build in plain language. Ask the user to confirm or adjust. Store the structured app spec in memory.",
+      "inputs": ["app_description", "matched_template_or_null", "feature_answers"],
+      "outputs": ["app_spec"],
+      "next": 5
+    },
+    {
+      "id": 5,
+      "phase": "plan",
+      "title": "Determine services",
+      "url": "/build/step/5",
+      "instruction": "Based on the app spec, determine which run402 services are needed: database tables, authentication, file storage, static hosting.",
+      "inputs": ["app_spec"],
+      "outputs": ["required_services"],
+      "next": 6
+    },
+    {
+      "id": 6,
+      "phase": "plan",
+      "title": "Select tier",
+      "url": "/build/step/6",
+      "instruction": "Select the run402 tier. Default to Prototype ($0.10 on testnet = free). Only suggest higher tiers if the app clearly needs more resources.",
+      "inputs": ["app_spec", "required_services"],
+      "outputs": ["selected_tier", "payment_network"],
+      "next": 7
+    },
+    {
+      "id": 7,
+      "phase": "plan",
+      "title": "Select template",
+      "url": "/build/step/7",
+      "instruction": "Choose the code template(s) and common patterns to use as a starting point. Review the template library for the best match.",
+      "inputs": ["app_spec", "matched_template_or_null"],
+      "outputs": ["selected_templates", "selected_patterns"],
+      "next": 8
+    },
+    {
+      "id": 8,
+      "phase": "plan",
+      "title": "Finalize build plan",
+      "url": "/build/step/8",
+      "instruction": "Produce a step-by-step build plan and store it in memory. Confirm the plan with the user in plain language.",
+      "inputs": ["app_spec", "required_services", "selected_tier", "selected_templates"],
+      "outputs": ["build_plan"],
+      "next": 9
+    },
+    {
+      "id": 9,
+      "phase": "implement",
+      "title": "Get testnet funds",
+      "url": "/build/step/9",
+      "instruction": "If using testnet, call run402's /v1/faucet to get free test USDC. Guide the user through wallet setup if needed.",
+      "inputs": ["selected_tier", "payment_network"],
+      "outputs": ["wallet_address", "faucet_tx"],
+      "next": 10,
+      "branch": {
+        "condition": "Is payment_network testnet (Base Sepolia)?",
+        "if_true": 9,
+        "if_false": 10
+      }
+    },
+    {
+      "id": 10,
+      "phase": "implement",
+      "title": "Provision project",
+      "url": "/build/step/10",
+      "instruction": "Create a run402 project by calling POST /v1/projects. Store the project_id, anon_key, and service_key in memory.",
+      "inputs": ["wallet_address", "selected_tier"],
+      "outputs": ["project_id", "anon_key", "service_key", "api_url", "lease_expires_at"],
+      "next": 11
+    },
+    {
+      "id": 11,
+      "phase": "implement",
+      "title": "Create database tables",
+      "url": "/build/step/11",
+      "instruction": "Execute SQL to create the app's database tables using POST /admin/v1/projects/:id/sql with the service_key.",
+      "inputs": ["project_id", "service_key", "build_plan", "selected_templates"],
+      "outputs": ["tables_created"],
+      "next": 12
+    },
+    {
+      "id": 12,
+      "phase": "implement",
+      "title": "Configure row-level security",
+      "url": "/build/step/12",
+      "instruction": "Apply RLS policies using POST /admin/v1/projects/:id/rls. Choose from: user_owns_rows, public_read, public_read_write.",
+      "inputs": ["project_id", "service_key", "tables_created"],
+      "outputs": ["rls_configured"],
+      "next": 13
+    },
+    {
+      "id": 13,
+      "phase": "implement",
+      "title": "Generate frontend code",
+      "url": "/build/step/13",
+      "instruction": "Generate the complete client-side application (HTML/CSS/JS) using the selected template as a starting point. Fill in project-specific values (project_id, API URL, table names).",
+      "inputs": ["app_spec", "project_id", "anon_key", "api_url", "selected_templates", "selected_patterns", "tables_created"],
+      "outputs": ["app_files"],
+      "next": 14
+    },
+    {
+      "id": 14,
+      "phase": "implement",
+      "title": "Verify code",
+      "url": "/build/step/14",
+      "instruction": "Review the generated code for correctness. Verify API URLs, auth headers, table names, and RLS compatibility. Test mentally or in a browser if possible.",
+      "inputs": ["app_files"],
+      "outputs": ["code_verified"],
+      "next": 15
+    },
+    {
+      "id": 15,
+      "phase": "deploy",
+      "title": "Deploy to run402",
+      "url": "/build/step/15",
+      "instruction": "Deploy the static site by calling POST /v1/deployments with all app files. Store the deployment URL.",
+      "inputs": ["app_files", "project_id"],
+      "outputs": ["deployment_id", "deployment_url"],
+      "next": 16
+    },
+    {
+      "id": 16,
+      "phase": "deploy",
+      "title": "Confirm deployment",
+      "url": "/build/step/16",
+      "instruction": "Tell the user their app is live. Share the deployment URL in plain, excited language: 'Your app is live! Share this link: ...'",
+      "inputs": ["deployment_url"],
+      "outputs": [],
+      "next": 17
+    },
+    {
+      "id": 17,
+      "phase": "iterate",
+      "title": "Gather feedback",
+      "url": "/build/step/17",
+      "instruction": "Ask the user to try their app and share what they think. Accept feedback in plain language.",
+      "inputs": ["deployment_url"],
+      "outputs": ["user_feedback"],
+      "next": 18,
+      "branch": {
+        "condition": "Does the user want changes?",
+        "if_true": 18,
+        "if_false": 20
+      }
+    },
+    {
+      "id": 18,
+      "phase": "iterate",
+      "title": "Apply changes",
+      "url": "/build/step/18",
+      "instruction": "Modify the code based on user feedback. Update database tables if needed (new SQL via service_key). Regenerate affected files.",
+      "inputs": ["user_feedback", "app_files", "project_id", "service_key", "anon_key", "api_url"],
+      "outputs": ["updated_app_files"],
+      "next": 19
+    },
+    {
+      "id": 19,
+      "phase": "iterate",
+      "title": "Redeploy",
+      "url": "/build/step/19",
+      "instruction": "Deploy the updated app. Each deployment creates a new immutable URL. Share the new URL with the user.",
+      "inputs": ["updated_app_files", "project_id"],
+      "outputs": ["new_deployment_url"],
+      "next": 17
+    },
+    {
+      "id": 20,
+      "phase": "iterate",
+      "title": "Done",
+      "url": "/build/step/20",
+      "instruction": "The user is happy. Remind them about the 7-day prototype lease. Offer upgrade options if they want to keep the app running. Store final memory for future reference.",
+      "inputs": ["deployment_url", "project_id", "lease_expires_at"],
+      "outputs": ["final_memory"],
+      "next": null
+    }
+  ]
+}

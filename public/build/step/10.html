@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 10: Provision Project — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 10: Provision Project</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 10: Provision Project</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>wallet_address</code> and <code>selected_tier</code>. Time to create the run402 project.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>Create the project</h3>
+        <pre><code>POST https://run402.com/v1/projects
+Content-Type: application/json
+
+{
+  "name": "app-name-slug",
+  "tier": "prototype"
+}</code></pre>
+
+        <p><strong>First request will return 402 Payment Required:</strong></p>
+        <pre><code>{
+  "error": "Payment required",
+  "accepts": [{
+    "scheme": "exact",
+    "price": "$0.10",
+    "network": "eip155:84532",
+    "to": "0x..."
+  }]
+}</code></pre>
+
+        <p><strong>x402 payment flow:</strong></p>
+        <ol>
+          <li>Read the 402 response to get the price, network, and recipient address.</li>
+          <li>Sign a payment authorization with the wallet (off-chain — no ETH needed for gas).</li>
+          <li>Retry the request with the <code>x-402-payment</code> header containing the signed payment.</li>
+          <li>The facilitator (Coinbase CDP) handles on-chain settlement.</li>
+        </ol>
+
+        <p><strong>Successful response (201):</strong></p>
+        <pre><code>{
+  "project_id": "prj_1772125073085_0001",
+  "anon_key": "eyJhbGciOiJIUzI1NiI...",
+  "service_key": "eyJhbGciOiJIUzI1NiI...",
+  "schema_slot": "p0001",
+  "tier": "prototype",
+  "lease_expires_at": "2026-03-11T16:57:53.085Z"
+}</code></pre>
+
+        <p><strong>CRITICAL:</strong> Store <code>project_id</code>, <code>anon_key</code>, and <code>service_key</code> in memory. You will need these for every subsequent API call.</p>
+
+        <h3>API URL</h3>
+        <p>The base API URL for all subsequent calls is: <code>https://run402.com</code></p>
+        <p>All REST, auth, storage, and admin endpoints use this base URL with the project's keys for routing.</p>
+
+        <h3>What to tell the user</h3>
+        <blockquote>"Your project is set up! I've created a secure space for your app's data. Now I'll start building."</blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>project_id</code> — The run402 project identifier</li>
+          <li><code>anon_key</code> — JWT for client-side API access (respects RLS)</li>
+          <li><code>service_key</code> — JWT for admin access (bypasses RLS) — NEVER expose to users</li>
+          <li><code>api_url</code> — Base API URL (https://run402.com)</li>
+          <li><code>lease_expires_at</code> — When the project lease expires</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "required_services", "build_plan", "selected_templates", "selected_patterns", "selected_tier", "payment_network", "wallet_address"],
+          "store": {
+            "project_id": "run402 project ID — needed for all API calls",
+            "anon_key": "Client-side API key — used in frontend code",
+            "service_key": "Admin API key — NEVER put this in frontend code, only use for setup",
+            "api_url": "https://run402.com",
+            "lease_expires_at": "ISO date when the project expires"
+          },
+          "discard": ["faucet_tx"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/11">Continue to Step 11: Create Database Tables &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 4: Confirm Spec — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 4: Confirm Spec</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 4: Confirm Spec</h1>
+      <p class="muted small">Phase: spec</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>app_description</code>, <code>matched_template_or_null</code>, and <code>feature_answers</code>. Time to confirm everything with the user before building.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Summarize what you're going to build in plain, friendly language. Present it as a short description the user can confirm.</p>
+
+        <p>Example format to present to the user:</p>
+        <blockquote>
+          <p>"Here's what I'll build for you:</p>
+          <p><strong>Your App Name</strong> — A [brief description].</p>
+          <ul>
+            <li>People [will/won't] need to sign in</li>
+            <li>It'll include [feature 1], [feature 2], [feature 3]</li>
+            <li>It'll work on [phones and computers / computers only]</li>
+            <li>[Any other key features]</li>
+          </ul>
+          <p>Sound good? Anything you want to add or change?"</p>
+        </blockquote>
+
+        <p>If the user wants changes, go back to the relevant question and update. Then re-confirm.</p>
+        <p>Once confirmed, build the internal <code>app_spec</code> — this is a structured document for YOUR use (not shown to the user). It translates the user's plain-language answers into the technical details you'll need for building.</p>
+
+        <h3>Internal app_spec format</h3>
+        <pre><code>{
+  "app_name": "User's app name or a generated name",
+  "description": "Plain-language summary",
+  "template": "template_name or null",
+  "features": {
+    "auth": true/false,
+    "auth_type": "email_password",
+    "data_types": ["list of things stored"],
+    "multiplayer": true/false,
+    "polling_needed": true/false,
+    "file_uploads": true/false,
+    "search": true/false,
+    "categories": true/false
+  },
+  "ui": {
+    "mobile_friendly": true/false,
+    "color_scheme": "description or null"
+  },
+  "guardrail_notes": "Any limitations flagged and accepted alternatives"
+}</code></pre>
+        <p>This spec stays in your memory. The user never sees this technical version.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>app_spec</code> — The structured app spec (JSON format above), stored in memory. Confirmed by the user.</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["guardrail_flags"],
+          "store": {
+            "app_spec": "Full structured app spec (JSON). This is the master reference for the rest of the build."
+          },
+          "discard": ["app_description", "matched_template_or_null", "feature_answers"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/5">Continue to Step 5: Determine Services &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

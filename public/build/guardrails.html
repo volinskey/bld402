@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capability Guardrails — bld402</title>
+  <meta name="description" content="What run402 can and cannot do. Check this before building.">
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <span>Capability Guardrails</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Capability Guardrails</h1>
+      <p>Before building, check the user's request against these lists. If a feature falls under "Not Possible," tell the user clearly in plain language and suggest the alternative.</p>
+
+      <h2>What run402 CAN do</h2>
+      <ul>
+        <li><strong>Postgres database</strong> — tables, columns, constraints, indexes, SQL queries</li>
+        <li><strong>REST API</strong> — full CRUD (create, read, update, delete) with filtering, pagination, ordering via PostgREST</li>
+        <li><strong>Row-level security</strong> — user_owns_rows, public_read, public_read_write templates</li>
+        <li><strong>User authentication</strong> — email/password signup, login, token refresh, logout</li>
+        <li><strong>File storage</strong> — upload, download, signed URLs, list objects (S3-backed)</li>
+        <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS, get a shareable URL, SPA support</li>
+        <li><strong>Multiple tiers</strong> — Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
+        <li><strong>Testnet (free)</strong> — Base Sepolia with faucet for test USDC</li>
+      </ul>
+
+      <h2>What run402 CANNOT do</h2>
+      <p>These features are <strong>not available</strong> on run402. If the user asks for any of these, explain the limitation in plain language and suggest the alternative.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Not Possible</th>
+            <th>Tell the user</th>
+            <th>Alternative</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Custom domain names</td>
+            <td>"Your app gets a unique shareable link, but you can't use your own domain name (like myapp.com) right now."</td>
+            <td>Use the provided deployment URL (dpl-*.sites.run402.com)</td>
+          </tr>
+          <tr>
+            <td>Server-side code / backend logic / lambdas / edge functions</td>
+            <td>"Everything runs in the browser. There's no way to run code on a server behind the scenes."</td>
+            <td>All logic runs client-side in JavaScript. Use the database for shared state.</td>
+          </tr>
+          <tr>
+            <td>Real-time WebSocket connections</td>
+            <td>"Live instant updates aren't available. But your app can check for new data every few seconds automatically."</td>
+            <td>Use polling (timed fetch every 3-10 seconds) for "near real-time" updates.</td>
+          </tr>
+          <tr>
+            <td>Email / SMS / push notifications</td>
+            <td>"Your app can't send emails, texts, or notifications. But it can show alerts inside the app itself."</td>
+            <td>In-app notifications, badge counters, or "new items" indicators that appear on page load/refresh.</td>
+          </tr>
+          <tr>
+            <td>Payment processing (beyond x402)</td>
+            <td>"Your app can't take payments from your users (no credit cards, no Stripe checkout)."</td>
+            <td>Track IOUs or balances in the database. Use external payment links if needed.</td>
+          </tr>
+          <tr>
+            <td>OAuth / social login (Google, Facebook, etc.)</td>
+            <td>"Sign-in is email and password only. No 'Sign in with Google' button."</td>
+            <td>Email/password authentication is built in and works well.</td>
+          </tr>
+          <tr>
+            <td>Custom database extensions</td>
+            <td>"You can use standard database features but can't add special add-ons."</td>
+            <td>Use standard PostgreSQL features (JSON columns, generated columns, etc.).</td>
+          </tr>
+          <tr>
+            <td>File sizes over 50 MB per deployment</td>
+            <td>"Your entire app needs to be under 50 MB. That's plenty for most apps, but no large video files."</td>
+            <td>Optimize images, use external hosting for large media files.</td>
+          </tr>
+          <tr>
+            <td>More than 100 requests/second</td>
+            <td>"Your app can handle about 100 people using it at the same time. For bigger events, some requests might be delayed."</td>
+            <td>Design for reasonable concurrency. Use caching strategies in the client.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h2>How to use this page</h2>
+      <p>During the <strong>spec phase</strong> (steps 1-4), check the user's feature requests against the "Not Possible" list above. If a match is found:</p>
+      <ol>
+        <li>Tell the user clearly using the suggested language in the "Tell the user" column.</li>
+        <li>Offer the alternative.</li>
+        <li>Ask if they'd like to proceed with the alternative or skip that feature.</li>
+        <li>Never attempt to build something that will fail — catch it here.</li>
+      </ol>
+
+      <p>During the <strong>implement phase</strong> (steps 9-14), if you realize a planned feature hits a guardrail, stop and revisit with the user before continuing.</p>
+    </section>
+  </main>
+</body>
+</html>

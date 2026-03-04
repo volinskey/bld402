@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 8: Finalize Build Plan — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 8: Finalize Build Plan</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 8: Finalize Build Plan</h1>
+      <p class="muted small">Phase: plan</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have everything needed: <code>app_spec</code>, <code>required_services</code>, <code>selected_tier</code>, <code>selected_templates</code>, and <code>selected_patterns</code>.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Create an internal build plan and confirm it with the user in plain language.</p>
+
+        <h3>Internal build plan format</h3>
+        <pre><code>{
+  "steps": [
+    "Get free test funds",
+    "Set up the project on run402",
+    "Create database tables: [list]",
+    "Set up access rules",
+    "Build the app from [template/patterns]",
+    "Deploy and get shareable link"
+  ],
+  "estimated_tables": ["table1", "table2"],
+  "template_base": "template_name or custom",
+  "patterns_used": ["pattern1", "pattern2"],
+  "customizations": ["what to add/change from template"]
+}</code></pre>
+
+        <h3>What to tell the user</h3>
+        <p>Present the plan in plain language:</p>
+        <blockquote>
+          <p>"Here's my plan:</p>
+          <ol>
+            <li>I'll set up a free project to power your app</li>
+            <li>I'll create the storage your app needs</li>
+            <li>I'll build the app [from our {template} template / from scratch]</li>
+            <li>I'll put it online and give you a link you can share</li>
+          </ol>
+          <p>This should take just a few minutes. Ready to go?"</p>
+        </blockquote>
+        <p>Wait for confirmation before proceeding to the implement phase.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>build_plan</code> — The structured build plan (JSON format above), confirmed by the user</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "required_services", "selected_tier", "payment_network", "selected_templates", "selected_patterns", "guardrail_flags"],
+          "store": {
+            "build_plan": "Structured build plan with steps, tables, template, patterns, customizations"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/9">Continue to Step 9: Get Testnet Funds &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

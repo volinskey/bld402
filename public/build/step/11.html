@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 11: Create Database Tables — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 11: Create Database Tables</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 11: Create Database Tables</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>project_id</code>, <code>service_key</code>, and <code>required_services</code> with table definitions. Time to create the database schema.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>Execute SQL migration</h3>
+        <pre><code>POST https://run402.com/admin/v1/projects/{project_id}/sql
+Content-Type: text/plain
+Authorization: Bearer {service_key}
+
+CREATE TABLE todos (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  task text NOT NULL,
+  done boolean DEFAULT false,
+  user_id uuid,
+  created_at timestamptz DEFAULT now()
+);
+
+CREATE TABLE categories (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name text NOT NULL UNIQUE,
+  created_at timestamptz DEFAULT now()
+);</code></pre>
+
+        <p><strong>Response:</strong></p>
+        <pre><code>{
+  "status": "ok",
+  "schema": "p0001",
+  "rows": [],
+  "rowCount": 0
+}</code></pre>
+
+        <h3>SQL rules</h3>
+        <ul>
+          <li><strong>Allowed:</strong> CREATE TABLE, ALTER TABLE, CREATE INDEX, INSERT (for seed data), UPDATE, DELETE, SELECT</li>
+          <li><strong>Blocked (will return 403):</strong> CREATE EXTENSION, COPY PROGRAM, ALTER SYSTEM, SET search_path, SET role, CREATE/DROP SCHEMA, GRANT/REVOKE, CREATE/DROP ROLE</li>
+          <li>Use <code>gen_random_uuid()</code> for UUID primary keys (built-in, no extension needed)</li>
+          <li>Use <code>timestamptz</code> for timestamps (timezone-aware)</li>
+          <li>Use <code>text</code> for strings (no need for varchar length limits)</li>
+          <li>Use <code>jsonb</code> for flexible/nested data</li>
+        </ul>
+
+        <h3>Schema reload delay</h3>
+        <p><strong>Important:</strong> After creating tables, the API needs 100-500ms to recognize the new schema. If the next API call returns a 404 for a table that was just created, wait 500ms and retry. This is normal.</p>
+
+        <h3>Seed data (if needed)</h3>
+        <p>If the build plan requires initial data (e.g., default categories, sample content), insert it in the same SQL migration or a follow-up call:</p>
+        <pre><code>INSERT INTO categories (name) VALUES
+  ('General'),
+  ('Urgent'),
+  ('Personal');</code></pre>
+
+        <h3>Verify tables</h3>
+        <p>After creation, verify the schema:</p>
+        <pre><code>GET https://run402.com/admin/v1/projects/{project_id}/schema
+Authorization: Bearer {service_key}</code></pre>
+
+        <h3>What to tell the user</h3>
+        <blockquote>"I've set up the storage for your app. Everything your app needs to remember will go here."</blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>tables_created</code> — List of table names successfully created, with their columns:
+            <pre><code>[
+  {"name": "todos", "columns": ["id", "task", "done", "user_id", "created_at"]},
+  {"name": "categories", "columns": ["id", "name", "created_at"]}
+]</code></pre>
+          </li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "build_plan", "project_id", "anon_key", "service_key", "api_url", "selected_templates", "selected_patterns", "lease_expires_at"],
+          "store": {
+            "tables_created": "List of tables with column names"
+          },
+          "discard": ["required_services"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/12">Continue to Step 12: Configure Row-Level Security &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 15: Deploy to run402 — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 15: Deploy</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 15: Deploy to run402</h1>
+      <p class="muted small">Phase: deploy</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have verified <code>app_files</code> and <code>project_id</code>. Time to put the app online.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>Deploy the static site</h3>
+        <pre><code>POST https://run402.com/v1/deployments
+Content-Type: application/json
+
+{
+  "name": "app-name",
+  "project": "{project_id}",
+  "files": [
+    {
+      "file": "index.html",
+      "data": "&lt;!DOCTYPE html&gt;...",
+      "encoding": "utf-8"
+    },
+    {
+      "file": "style.css",
+      "data": "body { ... }",
+      "encoding": "utf-8"
+    },
+    {
+      "file": "app.js",
+      "data": "const CONFIG = ...",
+      "encoding": "utf-8"
+    }
+  ]
+}</code></pre>
+
+        <p><strong>This endpoint is x402-gated ($0.05).</strong> The same payment flow as project creation applies — first request returns 402, sign payment, retry with header.</p>
+
+        <p><strong>Response (201):</strong></p>
+        <pre><code>{
+  "id": "dpl-1709337600000-a1b2c3",
+  "name": "app-name",
+  "url": "https://dpl-1709337600000-a1b2c3.sites.run402.com",
+  "status": "READY",
+  "files_count": 3,
+  "total_size": 15234
+}</code></pre>
+
+        <h3>Important notes</h3>
+        <ul>
+          <li><strong>Max 50 MB</strong> per deployment. If files exceed this, reduce image sizes or split assets.</li>
+          <li><strong>Immutable deployments</strong> — each deploy creates a new URL. Previous deployments stay live.</li>
+          <li><strong>SPA support</strong> — paths without file extensions automatically serve <code>index.html</code>.</li>
+          <li>For binary files (images), use <code>"encoding": "base64"</code> and base64-encode the data.</li>
+        </ul>
+
+        <h3>Verify deployment</h3>
+        <p>Check deployment status (free, no auth):</p>
+        <pre><code>GET https://run402.com/v1/deployments/{deployment_id}</code></pre>
+        <p>Wait for <code>"status": "READY"</code> before sharing the URL.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>deployment_id</code> — The deployment identifier</li>
+          <li><code>deployment_url</code> — The live URL (e.g., https://dpl-xxx.sites.run402.com)</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at"],
+          "store": {
+            "deployment_id": "Current deployment ID",
+            "deployment_url": "Live URL — share this with the user"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/16">Continue to Step 16: Confirm Deployment &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

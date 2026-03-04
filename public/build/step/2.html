@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 2: Match Templates — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 2: Match Templates</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 2: Match Templates</h1>
+      <p class="muted small">Phase: spec</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>app_description</code> from Step 1. Now check if a pre-built template matches what the user wants.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Compare the user's description against the template library below. If one is a close match, suggest it to the user in plain language.</p>
+        <p>Example: "That sounds a lot like our Trivia Night template — it does most of what you described already. Want to start from that? We can customize it however you like."</p>
+        <p>If no template matches, that's fine. Say: "We'll build this from scratch — no problem!"</p>
+        <p>If a template is a partial match, mention it: "We have a [template] that covers part of what you want. Want to start from that and add the rest?"</p>
+
+        <h3>Available Templates</h3>
+
+        <h4>Utility Apps</h4>
+        <table>
+          <thead><tr><th>#</th><th>Template</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Shared Todo List</td><td>Collaborative task list with checkboxes and assignments</td></tr>
+            <tr><td>2</td><td>Landing Page + Waitlist</td><td>Product launch page with email signup</td></tr>
+            <tr><td>3</td><td>Expense Splitter</td><td>Split bills among friends, track who owes what</td></tr>
+            <tr><td>4</td><td>Event Scheduling Poll</td><td>Doodle-style availability picker</td></tr>
+            <tr><td>5</td><td>Recipe Book</td><td>Personal recipe collection with search and categories</td></tr>
+            <tr><td>6</td><td>Apartment Tracker</td><td>Compare rental listings with notes and ratings</td></tr>
+            <tr><td>7</td><td>Micro-Blog</td><td>Short-form posts with timestamps and reactions</td></tr>
+            <tr><td>8</td><td>Gift Registry</td><td>Wishlist sharing with "claimed" status</td></tr>
+            <tr><td>9</td><td>Workout Log</td><td>Track exercises, sets, reps with progress charts</td></tr>
+            <tr><td>10</td><td>Flash Cards</td><td>Create and study decks with spaced repetition</td></tr>
+            <tr><td>11</td><td>Voting Booth</td><td>Create a poll, share link, see live results</td></tr>
+            <tr><td>12</td><td>Photo Wall</td><td>Event photo sharing — everyone uploads, gallery view</td></tr>
+            <tr><td>13</td><td>Countdown Timer</td><td>Shared event countdown with comments</td></tr>
+            <tr><td>14</td><td>Potluck Organizer</td><td>Who's bringing what — claim items, avoid duplicates</td></tr>
+            <tr><td>15</td><td>Secret Santa</td><td>Anonymous gift exchange matcher</td></tr>
+          </tbody>
+        </table>
+
+        <h4>Games</h4>
+        <table>
+          <thead><tr><th>#</th><th>Template</th><th>Description</th></tr></thead>
+          <tbody>
+            <tr><td>16</td><td>Hangman</td><td>Classic word guessing — solo or pass-and-play</td></tr>
+            <tr><td>17</td><td>Trivia Night</td><td>Kahoot-style: host creates questions, players join via code, live scoring</td></tr>
+            <tr><td>18</td><td>Would You Rather</td><td>Vote on dilemmas, see results in real time</td></tr>
+            <tr><td>19</td><td>Two Truths and a Lie</td><td>Players submit statements, others guess the lie</td></tr>
+            <tr><td>20</td><td>Word Chain</td><td>Take turns adding words, timer-based, score tracking</td></tr>
+            <tr><td>21</td><td>Bingo Card Generator</td><td>Host calls items, players mark their cards</td></tr>
+            <tr><td>22</td><td>Scavenger Hunt</td><td>Team checklist with photo upload proof</td></tr>
+            <tr><td>23</td><td>Drawing Prompt Roulette</td><td>Get a prompt, draw it, others vote on results</td></tr>
+            <tr><td>24</td><td>Memory Match</td><td>Card flip game with difficulty levels and leaderboard</td></tr>
+            <tr><td>25</td><td>Quiz Maker</td><td>Create and share custom quizzes with scoring</td></tr>
+            <tr><td>26</td><td>Word Scramble</td><td>Unscramble words against the clock, shareable scores</td></tr>
+            <tr><td>27</td><td>Tic-Tac-Toe</td><td>Share a link, play a friend, win/loss tracking</td></tr>
+          </tbody>
+        </table>
+
+        <p>Browse full template details at <a href="/templates/">/templates/</a>.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>matched_template_or_null</code> — The template name and number if matched, or <code>null</code> if building from scratch. Include whether the user accepted or declined the suggestion.</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_description", "guardrail_flags"],
+          "store": {
+            "matched_template_or_null": "Template name/number if matched, or null"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/3">Continue to Step 3: Clarify Features &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

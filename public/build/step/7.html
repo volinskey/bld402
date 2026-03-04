@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 7: Select Template — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 7: Select Template</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 7: Select Template</h1>
+      <p class="muted small">Phase: plan</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>app_spec</code> and <code>matched_template_or_null</code> (from Step 2). Now finalize which code template(s) and common patterns to use.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Choose the starting point for the code. Three scenarios:</p>
+
+        <h3>1. Template matched (from Step 2)</h3>
+        <p>If a template was matched and accepted, use it. Fetch the template files from <code>/templates/{category}/{template-name}/</code>. Each template contains:</p>
+        <ul>
+          <li><code>schema.sql</code> — Database table definitions</li>
+          <li><code>rls.json</code> — RLS configuration</li>
+          <li><code>index.html</code> — Complete frontend app</li>
+          <li><code>README.md</code> — Template docs and customization points</li>
+        </ul>
+
+        <h3>2. No template — build from patterns</h3>
+        <p>If no template matched, assemble from common patterns. Available patterns at <code>/templates/patterns/</code>:</p>
+        <ul>
+          <li><code>db-connection.js</code> — run402 API connection setup</li>
+          <li><code>auth-flow.js</code> — Signup, login, session management</li>
+          <li><code>crud.js</code> — Create, read, update, delete operations</li>
+          <li><code>file-upload.js</code> — Storage API integration</li>
+          <li><code>responsive-layout.html</code> — Mobile-first page structure</li>
+          <li><code>polling.js</code> — Timed data refresh for near-real-time updates</li>
+        </ul>
+
+        <h3>3. Template + customizations</h3>
+        <p>Start from the template but plan modifications based on the user's feature answers from Step 3.</p>
+
+        <h3>What to tell the user</h3>
+        <p>If using a template: "Great news — I have a ready-made starting point that does most of what you want. I'll customize it for you."</p>
+        <p>If building from scratch: "I'll build this from our reusable building blocks. It'll be custom-made for exactly what you described."</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>selected_templates</code> — Template name(s) to use, or "custom" if building from patterns</li>
+          <li><code>selected_patterns</code> — List of common patterns to include (e.g., ["db-connection", "auth-flow", "crud", "responsive-layout"])</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "required_services", "selected_tier", "payment_network", "guardrail_flags"],
+          "store": {
+            "selected_templates": "Template name(s) or 'custom'",
+            "selected_patterns": "List of common patterns to use"
+          },
+          "discard": ["matched_template_or_null"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/8">Continue to Step 8: Finalize Build Plan &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

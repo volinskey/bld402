@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 17: Gather Feedback — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 17: Gather Feedback</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 17: Gather Feedback</h1>
+      <p class="muted small">Phase: iterate</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>The app is deployed at <code>deployment_url</code>. The user is trying it out.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Ask the user what they think and if they want changes. Keep it casual and encouraging.</p>
+
+        <h3>What to say</h3>
+        <blockquote>
+          <p>"Try it out! What do you think? Anything you'd like to change?"</p>
+        </blockquote>
+
+        <p>Accept feedback in any form:</p>
+        <ul>
+          <li>"Make the buttons bigger" — UI change</li>
+          <li>"Add a score counter" — new feature</li>
+          <li>"Change the colors to green" — styling change</li>
+          <li>"It doesn't work when I click X" — bug fix</li>
+          <li>"Can you add a way to share results?" — new feature</li>
+          <li>"It's perfect!" — done, go to Step 20</li>
+        </ul>
+
+        <h3>If the user is happy</h3>
+        <p>Go to <a href="/build/step/20">Step 20: Done</a>.</p>
+
+        <h3>If the user wants changes</h3>
+        <p>Before going to Step 18, check the feedback against the <a href="/build/guardrails">capability guardrails</a>. If a requested change isn't possible, explain in plain language and suggest an alternative.</p>
+
+        <p>Collect all feedback before moving on. Ask: "Anything else, or should I start making these changes?"</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>user_feedback</code> — List of requested changes in plain language, or "satisfied" if no changes wanted</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "deployment_url", "lease_expires_at"],
+          "store": {
+            "user_feedback": "List of changes requested, or 'satisfied'",
+            "iteration_count": "Increment by 1 each time through this step"
+          },
+          "discard": ["deployment_id"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p>If user wants changes: <a href="/build/step/18">Step 18: Apply Changes &rarr;</a></p>
+        <p>If user is satisfied: <a href="/build/step/20">Step 20: Done &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

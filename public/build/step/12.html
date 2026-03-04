@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 12: Configure Row-Level Security — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 12: Configure RLS</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 12: Configure Row-Level Security</h1>
+      <p class="muted small">Phase: implement</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>project_id</code>, <code>service_key</code>, and <code>tables_created</code>. Now set up access rules so the right people can see the right data.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Apply Row-Level Security (RLS) policies to your tables. This controls who can read and write data when using the <code>anon_key</code> (client-side).</p>
+
+        <h3>Available RLS templates</h3>
+        <table>
+          <thead><tr><th>Template</th><th>Who can read</th><th>Who can write</th><th>Use when</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><code>public_read</code></td>
+              <td>Everyone</td>
+              <td>No one (admin only via service_key)</td>
+              <td>Reference data, shared content that users shouldn't modify</td>
+            </tr>
+            <tr>
+              <td><code>public_read_write</code></td>
+              <td>Everyone</td>
+              <td>Everyone</td>
+              <td>Open collaboration (voting, public comments, shared lists without auth)</td>
+            </tr>
+            <tr>
+              <td><code>user_owns_rows</code></td>
+              <td>Only the row owner</td>
+              <td>Only the row owner</td>
+              <td>Personal data (my tasks, my profile, my scores). Requires <code>owner_column</code>.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Apply RLS</h3>
+        <pre><code>POST https://run402.com/admin/v1/projects/{project_id}/rls
+Content-Type: application/json
+Authorization: Bearer {service_key}
+
+{
+  "template": "user_owns_rows",
+  "tables": [
+    {"table": "todos", "owner_column": "user_id"},
+    {"table": "profiles", "owner_column": "id"}
+  ]
+}</code></pre>
+
+        <p><strong>Response:</strong></p>
+        <pre><code>{
+  "status": "ok",
+  "template": "user_owns_rows",
+  "tables": ["todos", "profiles"]
+}</code></pre>
+
+        <h3>Multiple templates</h3>
+        <p>You can apply different templates to different tables. Make separate API calls for each template:</p>
+        <ol>
+          <li>Apply <code>user_owns_rows</code> to personal data tables</li>
+          <li>Apply <code>public_read</code> to shared reference data tables</li>
+          <li>Apply <code>public_read_write</code> to open collaboration tables</li>
+        </ol>
+
+        <h3>Decision guide</h3>
+        <ul>
+          <li><strong>App has auth?</strong> Use <code>user_owns_rows</code> for personal data, <code>public_read</code> for shared data.</li>
+          <li><strong>App has no auth?</strong> Use <code>public_read_write</code> for everything. Anyone with the link can read and write.</li>
+          <li><strong>Mixed:</strong> Some tables <code>public_read</code> (everyone sees), some <code>user_owns_rows</code> (personal data).</li>
+        </ul>
+
+        <h3>Important notes</h3>
+        <ul>
+          <li>The <code>service_key</code> always bypasses RLS. Use it only for admin setup, never in frontend code.</li>
+          <li>The <code>anon_key</code> respects RLS. This is what goes in the frontend code.</li>
+          <li>For <code>user_owns_rows</code>, the <code>owner_column</code> must contain the user's UUID (from auth). The column must exist in the table.</li>
+        </ul>
+
+        <h3>What to tell the user</h3>
+        <blockquote>"I've set up the access rules for your app. [Everyone can see everything / Each person can only see their own stuff / Some things are shared, some are private]."</blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>rls_configured</code> — Map of table → RLS template applied:
+            <pre><code>{
+  "todos": "user_owns_rows",
+  "categories": "public_read"
+}</code></pre>
+          </li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_spec", "build_plan", "project_id", "anon_key", "service_key", "api_url", "tables_created", "selected_templates", "selected_patterns", "lease_expires_at"],
+          "store": {
+            "rls_configured": "Map of table names to RLS templates"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/13">Continue to Step 13: Generate Frontend Code &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

@@ -1,0 +1,9 @@
+{
+  "name": "bld402",
+  "version": "0.1.0",
+  "description": "Build web apps without code on run402 — an AI agent accessibility layer",
+  "private": true,
+  "scripts": {
+    "start": "npx serve public -l 3000"
+  }
+}

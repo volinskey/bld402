@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 3: Clarify Features — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 3: Clarify Features</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 3: Clarify Features</h1>
+      <p class="muted small">Phase: spec</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>You have <code>app_description</code> and <code>matched_template_or_null</code>. Now you need to fill in the details.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+        <p>Ask the user simple questions to clarify features. Rules:</p>
+        <ul>
+          <li><strong>One question at a time.</strong> Wait for the answer before asking the next.</li>
+          <li><strong>Plain language only.</strong> Never use words like: database, API, endpoint, schema, RLS, JWT, REST, backend, frontend, authentication, deployment, hosting, server.</li>
+          <li><strong>Yes/no or multiple choice.</strong> Don't ask open-ended technical questions.</li>
+          <li><strong>3-6 questions max.</strong> Don't overwhelm the user. Focus on what matters.</li>
+        </ul>
+
+        <h3>Question categories</h3>
+
+        <h4>Users &amp; access</h4>
+        <ul>
+          <li>"Should people need to sign in to use this, or is it open to anyone with the link?"</li>
+          <li>"Is this for just you, or will other people use it too?"</li>
+          <li>"Should each person see only their own stuff, or can everyone see everything?"</li>
+        </ul>
+
+        <h4>Content &amp; data</h4>
+        <ul>
+          <li>"What kind of things will people create or save? (e.g., tasks, messages, scores, photos)"</li>
+          <li>"Should there be categories or groups to organize things?"</li>
+          <li>"Do you want people to be able to search or filter?"</li>
+        </ul>
+
+        <h4>Interaction</h4>
+        <ul>
+          <li>"Should people be able to react, vote, or comment on things?"</li>
+          <li>"Does anything need to update automatically while people are using it, or is refreshing the page okay?"</li>
+          <li>"Is this a game? If so, is it solo, pass-and-play, or multiplayer over the internet?"</li>
+        </ul>
+
+        <h4>Look &amp; feel</h4>
+        <ul>
+          <li>"Do you have a color scheme in mind, or should I pick something?"</li>
+          <li>"Should it work well on phones, computers, or both?"</li>
+        </ul>
+
+        <p>Skip questions that are already answered by the <code>app_description</code> or the matched template. If using a template, focus on customizations: "The [template] includes [features]. Is there anything you'd like to add, remove, or change?"</p>
+
+        <p>After each answer, check against the <a href="/build/guardrails">capability guardrails</a>. If the user wants something that's not possible, flag it immediately with the plain-language explanation and alternative.</p>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>feature_answers</code> — A structured summary of the user's answers. For each question asked, record the answer. Format as key-value pairs:
+            <pre><code>{
+  "requires_signin": true,
+  "multiplayer": false,
+  "content_types": ["tasks", "notes"],
+  "needs_search": true,
+  "color_scheme": "blue and white",
+  "mobile_friendly": true
+}</code></pre>
+          </li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": ["app_description", "matched_template_or_null", "guardrail_flags"],
+          "store": {
+            "feature_answers": "Structured key-value pairs of clarified features"
+          },
+          "discard": []
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p><a href="/build/step/4">Continue to Step 4: Confirm Spec &rarr;</a></p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

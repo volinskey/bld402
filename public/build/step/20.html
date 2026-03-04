@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Step 20: Done — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/">bld402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 20: Done</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 20: Done!</h1>
+      <p class="muted small">Phase: iterate</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>The user is happy with their app! <code>deployment_url</code> is the final version.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>Congratulate the user</h3>
+        <blockquote>
+          <p>"Awesome! Your app is ready. Here's everything you need to know:</p>
+          <p><strong>Your app:</strong> {deployment_url}</p>
+          <p>Share this link with anyone — it works on phones and computers."</p>
+        </blockquote>
+
+        <h3>Lease reminder</h3>
+        <p>If the tier is "prototype":</p>
+        <blockquote>
+          <p>"One thing to keep in mind: your app will stay live for 7 days (until {lease_expires_at formatted as a friendly date}). After that, it'll go into read-only mode for another 7 days, then the data will be archived.</p>
+          <p>If you want to keep it running longer, just let me know and I'll help you upgrade — it starts at $5/month."</p>
+        </blockquote>
+
+        <h3>Upgrade options (if the user asks)</h3>
+        <table>
+          <thead><tr><th>Option</th><th>Price</th><th>Duration</th><th>How</th></tr></thead>
+          <tbody>
+            <tr>
+              <td>Renew prototype</td>
+              <td>$0.10</td>
+              <td>+7 days</td>
+              <td><code>POST /v1/projects/{project_id}/renew</code> (x402)</td>
+            </tr>
+            <tr>
+              <td>Upgrade to Hobby</td>
+              <td>$5.00</td>
+              <td>30 days</td>
+              <td><code>POST /v1/projects/{project_id}/renew {"tier": "hobby"}</code> (x402)</td>
+            </tr>
+            <tr>
+              <td>Upgrade to Team</td>
+              <td>$20.00</td>
+              <td>30 days</td>
+              <td><code>POST /v1/projects/{project_id}/renew {"tier": "team"}</code> (x402)</td>
+            </tr>
+            <tr>
+              <td>Stripe subscription</td>
+              <td>Varies</td>
+              <td>Monthly</td>
+              <td><code>POST /v1/stripe/checkout {"wallet": "...", "price_id": "..."}</code></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <h3>Future changes</h3>
+        <p>If the user comes back later wanting changes, they can point their agent to bld402.com again. The agent should:</p>
+        <ol>
+          <li>Restore memory from the final memory directive below</li>
+          <li>Go to <a href="/build/step/17">Step 17: Gather Feedback</a> to start a new iteration</li>
+        </ol>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>final_memory</code> — Complete memory snapshot for future reference (see memory directive below)</li>
+        </ul>
+      </div>
+
+      <div id="memory-directive">
+        <h2>Memory directive</h2>
+        <p>Store this complete snapshot. If context is lost, this is everything needed to resume work on this app.</p>
+        <script type="application/json" id="agent-memory">
+        {
+          "carry_forward": [],
+          "store": {
+            "bld402_project": {
+              "app_name": "From app_spec",
+              "app_spec": "Full app spec",
+              "project_id": "run402 project ID",
+              "anon_key": "Client API key",
+              "service_key": "Admin API key (never expose to user)",
+              "api_url": "https://run402.com",
+              "deployment_url": "Latest live URL",
+              "tables": "List of tables and columns",
+              "rls": "RLS configuration per table",
+              "lease_expires_at": "When the project expires",
+              "tier": "Current tier",
+              "iteration_count": "Number of iterations completed",
+              "resume_step": "/build/step/17"
+            }
+          },
+          "discard": ["app_files"]
+        }
+        </script>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p>None — the build is complete! If the user wants changes later, resume at <a href="/build/step/17">Step 17</a>.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

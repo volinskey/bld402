@@ -5,12 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>bld402 — For Humans</title>
   <meta name="description" content="Build web apps without code. Tell your AI what you want, point it to bld402.com, and get a shareable link in minutes.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
+
   <header class="site-header">
-    <a href="/humans/" class="logo">bld402</a>
+    <a href="/humans/" class="logo"><span class="accent">bld</span>402</a>
     <nav class="human-nav" aria-label="Main navigation">
       <a href="/humans/about.html">About</a>
       <a href="/humans/how-it-works.html">How It Works</a>
@@ -19,27 +24,28 @@
     </nav>
   </header>
 
-  <main id="main" style="text-align:center; padding:4rem 1.5rem;">
-    <h1 style="font-size:2.25rem; margin-bottom:1rem;">Build web apps without writing code.</h1>
-    <p style="font-size:1.2rem; max-width:32rem; margin:0 auto 2rem; color:#555;">
+  <main id="main" class="page" style="text-align: center; padding-top: 120px; padding-bottom: 80px;">
+    <h1 style="font-size: clamp(32px, 5vw, 50px); margin-bottom: 20px;">Build web apps<br>without writing code.</h1>
+    <p class="subtitle" style="font-size: 18px; color: #6B7280; max-width: 480px; margin: 0 auto 40px;">
       Tell your AI agent what you want. Point it to bld402.com. Get a working app with a shareable link in minutes.
     </p>
 
-    <div style="margin:2rem auto; max-width:28rem;">
-      <div style="background:#f0f0f0; padding:1.5rem; border-radius:8px; text-align:left;">
-        <p style="font-size:0.9rem; color:#888; margin-bottom:0.5rem;">Try saying this to your AI agent:</p>
-        <p style="font-size:1.1rem; font-style:italic;">"I want to build a trivia game for my friends. Go to bld402.com and build it for me."</p>
-      </div>
+    <div class="prompt-box">
+      <p class="label">Try saying this to your AI agent:</p>
+      <p class="text">"I want to build a trivia game for my friends. Go to bld402.com and build it for me."</p>
     </div>
 
-    <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap; margin-top:2rem;">
-      <a href="/humans/how-it-works.html" style="padding:0.75rem 2rem; background:#0066cc; color:#fff; border-radius:6px; text-decoration:none; font-weight:500;">How It Works</a>
-      <a href="/humans/showcase.html" style="padding:0.75rem 2rem; background:#e9ecef; color:#333; border-radius:6px; text-decoration:none; font-weight:500;">See Examples</a>
+    <div class="cta-group">
+      <a href="/humans/how-it-works.html" class="btn-primary">How It Works</a>
+      <a href="/humans/showcase.html" class="btn-secondary">See Examples</a>
     </div>
   </main>
 
   <footer class="site-footer">
-    <a href="/humans/terms.html">Terms</a> &middot; <a href="/humans/privacy.html">Privacy</a> &middot; <a href="/humans/legal.html">Legal</a> &middot; Powered by <a href="https://run402.com">run402</a>
+    <a href="/humans/terms.html">Terms</a> &middot;
+    <a href="/humans/privacy.html">Privacy</a> &middot;
+    <a href="/humans/legal.html">Legal</a> &middot;
+    Powered by <a href="https://run402.com">run402</a>
   </footer>
 </body>
 </html>

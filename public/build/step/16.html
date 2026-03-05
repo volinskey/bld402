@@ -21,7 +21,7 @@
 
       <div id="context">
         <h2>Context</h2>
-        <p>You have <code>deployment_url</code>. The app is live!</p>
+        <p>You have <code>deployment_url</code> and optionally <code>subdomain_url</code>. The app is live!</p>
       </div>
 
       <div id="instruction">
@@ -29,10 +29,20 @@
         <p>Share the good news with the user. Be enthusiastic! This is the payoff moment.</p>
 
         <h3>What to tell the user</h3>
+        <p><strong>If the user claimed a subdomain</strong> (you have <code>subdomain_url</code>):</p>
+        <blockquote>
+          <p>"Your app is live! Here's your link:</p>
+          <p><strong>{subdomain_url}</strong></p>
+          <p>Share it with anyone — they can use it right away, no sign-up needed.</p>
+          <p>Try it out and let me know what you think! I can make changes anytime."</p>
+        </blockquote>
+
+        <p><strong>If no subdomain was claimed:</strong></p>
         <blockquote>
           <p>"Your app is live! Here's your link:</p>
           <p><strong>{deployment_url}</strong></p>
           <p>Share it with anyone — they can use it right away, no sign-up needed.</p>
+          <p>Want a shorter, memorable URL like <strong>https://myapp.run402.com</strong>? I can set that up — just say the word.</p>
           <p>Try it out and let me know what you think! I can make changes anytime."</p>
         </blockquote>
 
@@ -40,6 +50,7 @@
         <ul>
           <li>The app will stay live for 7 days (prototype tier). If they love it, you can make it permanent.</li>
           <li>They can share the link with friends — it works on phones and computers.</li>
+          <li>If they claimed a subdomain, that name stays theirs as long as the project exists.</li>
         </ul>
       </div>
 
@@ -52,7 +63,7 @@
         <h2>Memory directive</h2>
         <script type="application/json" id="agent-memory">
         {
-          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "deployment_url", "deployment_id", "lease_expires_at"],
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "deployment_url", "deployment_id", "lease_expires_at", "subdomain", "subdomain_url"],
           "store": {},
           "discard": []
         }

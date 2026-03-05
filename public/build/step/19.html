@@ -39,7 +39,29 @@ Content-Type: application/json
 
         <p>This creates a <strong>new URL</strong>. The old deployment stays live too.</p>
 
+        <h3>Reassign subdomain (if claimed)</h3>
+        <p>If the user claimed a subdomain in Step 15, reassign it to the new deployment so the same memorable URL points to the updated version:</p>
+
+        <pre><code>POST https://run402.com/v1/subdomains
+Content-Type: application/json
+Authorization: Bearer {service_key}
+
+{
+  "name": "{subdomain}",
+  "deployment_id": "{new_deployment_id}"
+}</code></pre>
+
+        <p>This is an upsert — it updates the existing subdomain to point to the new deployment. The <code>subdomain_url</code> stays the same.</p>
+
         <h3>What to tell the user</h3>
+        <p><strong>If subdomain exists:</strong></p>
+        <blockquote>
+          <p>"Your app has been updated! Same link as before:</p>
+          <p><strong>{subdomain_url}</strong></p>
+          <p>Try the changes and let me know what you think!"</p>
+        </blockquote>
+
+        <p><strong>If no subdomain:</strong></p>
         <blockquote>
           <p>"Here's your updated app:</p>
           <p><strong>{new_deployment_url}</strong></p>
@@ -53,6 +75,7 @@ Content-Type: application/json
         <h2>Expected output</h2>
         <ul>
           <li><code>new_deployment_url</code> — The new live URL for the updated app</li>
+          <li><code>subdomain_url</code> — Unchanged if subdomain was reassigned</li>
         </ul>
       </div>
 
@@ -60,7 +83,7 @@ Content-Type: application/json
         <h2>Memory directive</h2>
         <script type="application/json" id="agent-memory">
         {
-          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at", "iteration_count"],
+          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at", "iteration_count", "subdomain", "subdomain_url"],
           "store": {
             "deployment_url": "REPLACE with new_deployment_url — always keep the latest"
           },

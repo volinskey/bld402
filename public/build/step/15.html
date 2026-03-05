@@ -77,6 +77,41 @@ Content-Type: application/json
         <p>Check deployment status (free, no auth):</p>
         <pre><code>GET https://run402.com/v1/deployments/{deployment_id}</code></pre>
         <p>Wait for <code>"status": "READY"</code> before sharing the URL.</p>
+
+        <h3>Claim a subdomain (optional but recommended)</h3>
+        <p>Give your app a memorable URL like <code>https://myapp.run402.com</code> instead of the raw deployment URL.</p>
+
+        <pre><code>POST https://run402.com/v1/subdomains
+Content-Type: application/json
+Authorization: Bearer {service_key}
+
+{
+  "name": "myapp",
+  "deployment_id": "{deployment_id}"
+}</code></pre>
+
+        <p><strong>Response (201):</strong></p>
+        <pre><code>{
+  "name": "myapp",
+  "deployment_id": "dpl-1709337600000-a1b2c3",
+  "url": "https://myapp.run402.com",
+  "deployment_url": "https://dpl-1709337600000-a1b2c3.sites.run402.com",
+  "project_id": "prj-abc123",
+  "created_at": "2026-03-05T12:00:00Z",
+  "updated_at": "2026-03-05T12:00:00Z"
+}</code></pre>
+
+        <h4>Subdomain rules</h4>
+        <ul>
+          <li><strong>3-63 characters</strong>, lowercase letters, numbers, and hyphens only</li>
+          <li>Must <strong>start and end</strong> with a letter or number (no leading/trailing hyphens)</li>
+          <li>No consecutive hyphens (<code>--</code>)</li>
+          <li><strong>Reserved words</strong> are blocked: api, www, admin, app, dashboard, docs, help, support, cdn, static, dev, staging, test, demo, run402, and others</li>
+          <li>Each subdomain is <strong>owned by the project</strong> that created it — other projects cannot claim it</li>
+          <li><strong>Free</strong> — no x402 payment required, but needs <code>service_key</code> auth</li>
+        </ul>
+
+        <p><strong>If the user does not want a subdomain,</strong> skip this step — the raw deployment URL works fine.</p>
       </div>
 
       <div id="expected-output">
@@ -84,6 +119,8 @@ Content-Type: application/json
         <ul>
           <li><code>deployment_id</code> — The deployment identifier</li>
           <li><code>deployment_url</code> — The live URL (e.g., https://dpl-xxx.sites.run402.com)</li>
+          <li><code>subdomain</code> — The claimed subdomain name (if any)</li>
+          <li><code>subdomain_url</code> — The memorable URL (e.g., https://myapp.run402.com)</li>
         </ul>
       </div>
 
@@ -94,7 +131,9 @@ Content-Type: application/json
           "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at"],
           "store": {
             "deployment_id": "Current deployment ID",
-            "deployment_url": "Live URL — share this with the user"
+            "deployment_url": "Live URL — share this with the user",
+            "subdomain": "Claimed subdomain name (if any)",
+            "subdomain_url": "Subdomain URL like https://myapp.run402.com (if claimed)"
           },
           "discard": []
         }

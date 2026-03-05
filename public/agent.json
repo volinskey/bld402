@@ -155,9 +155,9 @@
       "phase": "deploy",
       "title": "Deploy to run402",
       "url": "/build/step/15",
-      "instruction": "Deploy the static site by calling POST /v1/deployments with all app files. Store the deployment URL.",
+      "instruction": "Deploy the static site by calling POST /v1/deployments with all app files. Optionally claim a subdomain via POST /v1/subdomains for a memorable URL like myapp.run402.com.",
       "inputs": ["app_files", "project_id"],
-      "outputs": ["deployment_id", "deployment_url"],
+      "outputs": ["deployment_id", "deployment_url", "subdomain", "subdomain_url"],
       "next": 16
     },
     {
@@ -165,8 +165,8 @@
       "phase": "deploy",
       "title": "Confirm deployment",
       "url": "/build/step/16",
-      "instruction": "Tell the user their app is live. Share the deployment URL in plain, excited language: 'Your app is live! Share this link: ...'",
-      "inputs": ["deployment_url"],
+      "instruction": "Tell the user their app is live. Share the subdomain URL (if claimed) or deployment URL. Be excited: 'Your app is live! Share this link: ...'",
+      "inputs": ["deployment_url", "subdomain_url"],
       "outputs": [],
       "next": 17
     },
@@ -200,9 +200,9 @@
       "phase": "iterate",
       "title": "Redeploy",
       "url": "/build/step/19",
-      "instruction": "Deploy the updated app. Each deployment creates a new immutable URL. Share the new URL with the user.",
-      "inputs": ["updated_app_files", "project_id"],
-      "outputs": ["new_deployment_url"],
+      "instruction": "Deploy the updated app. Each deployment creates a new immutable URL. If subdomain exists, reassign it to the new deployment. Share the subdomain URL (or new deployment URL) with the user.",
+      "inputs": ["updated_app_files", "project_id", "subdomain"],
+      "outputs": ["new_deployment_url", "subdomain_url"],
       "next": 17
     },
     {

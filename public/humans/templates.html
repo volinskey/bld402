@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>Templates — bld402</title>
+  <meta name="description" content="Browse app templates you can build with any AI agent. Each one is a complete, working app.">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    .how-to-use { display: none; margin-top: 0.75rem; }
+    .how-to-use.open { display: block; }
+    .how-to-use-toggle {
+      background: none; border: 1px solid #E5E7EB; border-radius: 6px;
+      padding: 6px 14px; font-size: 13px; font-weight: 500; color: #374151;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      font-family: 'Inter', sans-serif; margin-top: 0.5rem;
+    }
+    .how-to-use-toggle:hover { border-color: #0066cc; background: rgba(0,102,204,0.04); }
+    .how-to-use code {
+      display: block; font-size: 12px; line-height: 1.5;
+      background: #F9FAFB; border: 1px solid #E5E7EB; border-radius: 6px;
+      padding: 10px 14px; word-break: break-word; white-space: normal;
+    }
+  </style>
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <p class="top-banner"><a href="/">&larr; Back to bld402.com</a></p>
+  <header class="site-header">
+    <a href="/humans/" class="logo"><span class="accent">bld</span>402</a>
+    <nav class="human-nav" aria-label="Main navigation">
+      <a href="/humans/about.html">About</a>
+      <a href="/humans/how-it-works.html">How It Works</a>
+      <a href="/humans/showcase.html">Showcase</a>
+      <a href="/humans/templates.html">Templates</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page">
+    <h1>Templates</h1>
+    <p>Each template is a complete, working app. Pick one, point your AI agent to the link, and it builds a customized version for you in minutes.</p>
+
+    <div class="card-grid" style="margin-top:2rem;">
+
+      <div class="card">
+        <h3>Shared Todo List</h3>
+        <p>A collaborative task list where everyone can add, complete, and manage tasks together. Share the link and start collaborating instantly.</p>
+        <p style="margin-top:0.75rem;"><a href="https://todo.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=shared-todo and build me a shared todo list</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Landing Page + Waitlist</h3>
+        <p>A beautiful product launch page with email signup. Collect interest before you build. Customizable hero, features section, and call-to-action.</p>
+        <p style="margin-top:0.75rem;"><a href="https://waitlist.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=landing-waitlist and build me a landing page with waitlist</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Hangman</h3>
+        <p>Classic word guessing game with a visual hangman drawing. Solo play or pass-and-play with friends. Built-in word list with categories.</p>
+        <p style="margin-top:0.75rem;"><a href="https://hangman.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=hangman and build me a hangman game</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Trivia Night</h3>
+        <p>Host creates questions, friends join with a code, everyone answers in real time. Live scoring and final leaderboard. Like Kahoot, but yours.</p>
+        <p style="margin-top:0.75rem;"><a href="https://trivia.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=trivia-night and build me a trivia night game</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Voting Booth</h3>
+        <p>Create a poll in seconds, share the link, and watch votes come in with live results. Great for group decisions, event planning, or just for fun.</p>
+        <p style="margin-top:0.75rem;"><a href="https://vote.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=voting-booth and build me a voting booth</code>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Paste Locker</h3>
+        <p>A secure pastebin with password protection and burn-after-read. Uses server-side functions for bcrypt hashing — your password never touches the browser.</p>
+        <p style="margin-top:0.75rem;"><a href="https://paste.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <code>Go to bld402.com/build/step/1?template=paste-locker and build me a paste locker</code>
+        </div>
+      </div>
+
+    </div>
+
+    <h2 style="margin-top:2.5rem;">Coming Soon</h2>
+    <div class="card-grid">
+      <div class="card" style="opacity:0.5;">
+        <h3>Expense Splitter</h3>
+        <p>Split bills among friends, track who owes what.</p>
+      </div>
+      <div class="card" style="opacity:0.5;">
+        <h3>Event Scheduling Poll</h3>
+        <p>Doodle-style availability picker for group scheduling.</p>
+      </div>
+      <div class="card" style="opacity:0.5;">
+        <h3>Recipe Book</h3>
+        <p>Personal recipe collection with search and categories.</p>
+      </div>
+      <div class="card" style="opacity:0.5;">
+        <h3>Would You Rather</h3>
+        <p>Vote on dilemmas, see results in real time.</p>
+      </div>
+      <div class="card" style="opacity:0.5;">
+        <h3>Memory Match</h3>
+        <p>Card flip game with difficulty levels and leaderboard.</p>
+      </div>
+    </div>
+
+    <div style="text-align:center; margin-top:3rem; padding:2rem; background:#F9FAFB; border: 1px solid #E5E7EB; border-radius:8px;">
+      <p>Don't see what you need? Describe your idea to any AI agent and point them to <strong>bld402.com</strong>.</p>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <a href="/humans/terms.html">Terms</a> &middot; <a href="/humans/privacy.html">Privacy</a> &middot; <a href="/humans/legal.html">Legal</a> &middot; Powered by <a href="https://run402.com">run402</a>
+  </footer>
+</body>
+</html>

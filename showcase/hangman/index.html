@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{APP_NAME}} — Hangman</title>
+  <title>Hangman — bld402 Demo</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23FFF' stroke='%23E5E7EB'/%3E%3Ctext x='2' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%230066cc'%3E%3E%3C/text%3E%3Cg transform='translate(16,6) rotate(35,8,10)'%3E%3Crect x='7' y='10' width='3' height='14' rx='1' fill='%23374151'/%3E%3Crect x='2' y='5' width='13' height='7' rx='2' fill='%230066cc'/%3E%3C/g%3E%3C/svg%3E">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -22,7 +23,6 @@
       border-bottom: 1px solid #e0e0e0;
       padding: 0.5rem 1rem;
       text-align: center;
-      flex-shrink: 0;
     }
     header h1 { font-size: 1.1rem; }
     main {
@@ -35,6 +35,34 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+    }
+
+    /* Difficulty filters */
+    .filters {
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    .filters button {
+      padding: 0.35rem 0.75rem;
+      border: 1px solid #ccc;
+      border-radius: 16px;
+      background: #fff;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+    .filters button.active {
+      background: #0066cc;
+      color: #fff;
+      border-color: #0066cc;
+    }
+
+    /* Category hint */
+    .category-hint {
+      font-size: 0.9rem;
+      color: #555;
+      margin-bottom: 0.5rem;
     }
 
     /* Hangman drawing */
@@ -58,6 +86,9 @@
       font-size: 1.5rem;
       font-weight: 700;
       text-transform: uppercase;
+    }
+    .letter-slot.lost-reveal {
+      color: #dc3545;
     }
 
     /* Keyboard */
@@ -117,7 +148,6 @@
       padding: 0.35rem;
       font-size: 0.75rem;
       color: #888;
-      flex-shrink: 0;
     }
     footer a { color: #0066cc; text-decoration: none; }
 
@@ -128,9 +158,22 @@
   </style>
 </head>
 <body>
-  <header><h1>{{APP_NAME}}</h1></header>
+  <div style="background:#fff3cd; color:#856404; text-align:center; padding:0.3rem; font-size:0.8rem; width:100%;">
+    Live demo — guess the word! 6 wrong guesses and you're out.
+  </div>
+
+  <header><h1>Hangman</h1></header>
 
   <main>
+    <div class="filters" id="difficulty-filters">
+      <button class="active" data-difficulty="all">All</button>
+      <button data-difficulty="easy">Easy</button>
+      <button data-difficulty="medium">Medium</button>
+      <button data-difficulty="hard">Hard</button>
+    </div>
+
+    <div class="category-hint" id="category-hint"></div>
+
     <svg class="hangman-svg" width="150" height="150" viewBox="0 0 200 200" id="hangman-drawing">
       <!-- Base -->
       <line x1="20" y1="180" x2="100" y2="180" stroke="#333" stroke-width="3"/>
@@ -164,16 +207,18 @@
 
   <script>
     const CONFIG = {
-      API_URL: '{{API_URL}}',
-      ANON_KEY: '{{ANON_KEY}}'
+      API_URL: 'https://api.run402.com',
+      ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsInByb2plY3RfaWQiOiJwcmpfMTc3MjcwNzIzOTY5OV8wMDEzIiwiaXNzIjoiYWdlbnRkYiIsImlhdCI6MTc3MjcwNzIzOSwiZXhwIjoxNzczMzEyMDM5fQ.d2MtbzAlABm1rFSIVdAzR1WlvXkU9AavAatIL3gkHAQ'
     };
 
     const PARTS = ['h-head', 'h-body', 'h-larm', 'h-rarm', 'h-lleg', 'h-rleg'];
     const ALPHABET = 'abcdefghijklmnopqrstuvwxyz'.split('');
 
     let word = '';
+    let category = '';
     let guesses = [];
     let gameOver = false;
+    let activeDifficulty = 'all';
 
     async function api(path, options = {}) {
       const res = await fetch(CONFIG.API_URL + path, {
@@ -185,9 +230,15 @@
       return res.json();
     }
 
-    async function getRandomWord() {
-      const words = await api('/rest/v1/word_lists?select=word&limit=50');
-      return words[Math.floor(Math.random() * words.length)].word.toLowerCase();
+    async function getRandomWord(difficulty) {
+      let path = '/rest/v1/word_lists?select=word,category&limit=50';
+      if (difficulty && difficulty !== 'all') {
+        path += '&difficulty=eq.' + difficulty;
+      }
+      const words = await api(path);
+      if (!words || words.length === 0) throw new Error('No words found.');
+      const pick = words[Math.floor(Math.random() * words.length)];
+      return { word: pick.word.toLowerCase(), category: pick.category || 'unknown' };
     }
 
     function buildKeyboard() {
@@ -200,12 +251,21 @@
     function render() {
       // Word display
       const display = document.getElementById('word-display');
-      display.innerHTML = word.split('').map(ch =>
-        `<div class="letter-slot">${guesses.includes(ch) ? ch : ''}</div>`
-      ).join('');
+      const wrongGuesses = guesses.filter(g => !word.includes(g));
+      const won = word.split('').every(ch => guesses.includes(ch));
+      const lost = wrongGuesses.length >= PARTS.length;
+
+      display.innerHTML = word.split('').map(ch => {
+        if (guesses.includes(ch)) {
+          return `<div class="letter-slot">${ch}</div>`;
+        } else if (lost) {
+          return `<div class="letter-slot lost-reveal">${ch}</div>`;
+        } else {
+          return `<div class="letter-slot"></div>`;
+        }
+      }).join('');
 
       // Wrong count
-      const wrongGuesses = guesses.filter(g => !word.includes(g));
       document.getElementById('wrong-count').textContent =
         `Wrong guesses: ${wrongGuesses.length} / ${PARTS.length}`;
 
@@ -215,9 +275,6 @@
       });
 
       // Check win/lose
-      const won = word.split('').every(ch => guesses.includes(ch));
-      const lost = wrongGuesses.length >= PARTS.length;
-
       if (won) {
         document.getElementById('status').textContent = 'You won!';
         document.getElementById('status').className = 'status win';
@@ -225,10 +282,6 @@
       } else if (lost) {
         document.getElementById('status').textContent = `Game over! The word was "${word}"`;
         document.getElementById('status').className = 'status lose';
-        // Reveal the word
-        display.innerHTML = word.split('').map(ch =>
-          `<div class="letter-slot">${ch}</div>`
-        ).join('');
         gameOver = true;
       }
 
@@ -252,15 +305,34 @@
     }
 
     async function newGame() {
-      word = await getRandomWord();
+      try {
+        const result = await getRandomWord(activeDifficulty);
+        word = result.word;
+        category = result.category;
+      } catch (err) {
+        console.error('Failed to fetch word:', err);
+        word = 'hangman';
+        category = 'default';
+      }
       guesses = [];
       gameOver = false;
       document.getElementById('status').textContent = '';
       document.getElementById('status').className = 'status';
       document.getElementById('new-game').style.display = 'none';
+      document.getElementById('category-hint').textContent = 'Category: ' + category;
       buildKeyboard();
       render();
     }
+
+    // Difficulty filter buttons
+    document.querySelectorAll('.filters button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelector('.filters .active').classList.remove('active');
+        btn.classList.add('active');
+        activeDifficulty = btn.dataset.difficulty;
+        newGame();
+      });
+    });
 
     // Keyboard input
     document.addEventListener('keydown', (e) => {

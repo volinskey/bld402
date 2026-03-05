@@ -1,0 +1,8 @@
+-- Seed note is created via the create-note function, then updated with code 'demo1234'.
+-- This ensures the bcrypt hash is generated correctly at runtime.
+--
+-- Steps (run manually after deploying functions):
+--   1. Call create-note function with { title, content, password: "demo" }
+--   2. UPDATE notes SET code = 'demo1234' WHERE code = '<returned-code>';
+--
+-- The cleanup trigger in schema.sql protects this note (code != 'demo1234').

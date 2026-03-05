@@ -2,7 +2,8 @@
 
 **Owner:** unassigned
 **Created:** 2026-03-04
-**Status:** In Progress
+**Status:** Complete
+**Completed:** 2026-03-05
 **Spec:** docs/products/bld402/bld402-spec.md
 **Spec-Version:** 0.2.0
 **Source:** spec
@@ -25,8 +26,10 @@
 - **Common pattern templates:** Auth flow, CRUD operations, file upload, responsive layout, navigation — built as reusable snippets agents compose into full apps.
 - **Subdomain support (v0.2.0):** run402 now supports `POST /v1/subdomains` to claim memorable URLs like `hangman.run402.com`. Free, requires `service_key` auth. Step pages 15-16 need updating. Guardrails need updating (subdomains are no longer impossible).
 - **Live showcase apps (v0.2.0):** 5 demo apps deployed to run402 on Hobby tier. Each gets its own subdomain, its own run402 project, and is individually validated. The showcase page links directly to the live apps.
-- **Hobby tier for showcases:** Showcase apps use Hobby ($5/month) instead of Prototype (7-day expiry) so they stay live permanently. Each app is a separate run402 project.
+- **Pinned prototype for showcases:** Showcase apps use Prototype tier (free, testnet) but are pinned so lease never expires. Each app is a separate run402 project.
 - **Validation per app:** Each showcase app is validated individually via `/validate` red team testing against its live URL. This is a requirement in the spec (F12).
+- **Template-first showcase build:** Showcase apps MUST be built FROM their templates. The showcase HTML starts as a copy of the template index.html, then demo-specific modifications (banner, footer, cleanup, seed protection) are layered on top. This validates that templates actually work end-to-end.
+- **Showcase specs:** Each app has a detailed spec at `docs/products/showcase/{app}-spec.md` documenting exact behavior for red team validation.
 
 ### `/agent.json` Schema
 
@@ -117,6 +120,10 @@ Every step page follows this structure inside `<section id="agent-instructions">
 - **RLS templates are limited:** Only 3 templates available (user_owns_rows, public_read, public_read_write). Complex permission models need manual SQL policies.
 - **Subdomain reserved words:** run402 blocks: api, www, mail, ftp, admin, blog, shop, store, app, dashboard, portal, status, docs, help, support, sites, cdn, static, assets, media, images, img, ns1-4, mx, smtp, pop, imap, dev, staging, test, demo, beta, alpha, preview, run402, agentdb. Our chosen names (todo, waitlist, hangman, trivia, vote) are all safe.
 - **Showcase app provisioning requires x402:** Each `POST /v1/projects` costs $5 (Hobby tier) paid via x402 USDC on Base mainnet. Need to ensure the wallet has sufficient USDC before provisioning.
+- **run402 API routing is JWT-based:** Schema is determined by the ANON_KEY JWT's `project_id` claim, NOT by URL path prefix. Correct: `https://api.run402.com/rest/v1/...` with JWT apikey header. Wrong: `https://api.run402.com/p00XX/rest/v1/...`.
+- **RLS API format:** Tables must be array of objects, not strings: `{"template":"public_read_write","tables":[{"table":"tablename"}]}`.
+- **Admin key for pin/faucet:** run402 requires `X-Admin-Key` header for `/admin/v1/projects/:id/pin` and `/admin/v1/faucet`. Key stored in AWS Secrets Manager (`agentdb/admin-key`, us-east-1, kychee profile). Fetch at runtime, never store locally.
+- **Viewport fitting pattern:** All apps use `height: 100dvh`, `display: flex`, `flex-direction: column`, `overflow: hidden` on body; `flex: 1; overflow: auto` on main; `flex-shrink: 0` on header/footer. This prevents page-level scroll while allowing content to scroll within main.
 
 ---
 
@@ -205,56 +212,69 @@ Every step page follows this structure inside `<section id="agent-instructions">
 - [x] Update guardrails page — change "Custom domain names" entry from "not possible" to "run402 subdomains (myapp.run402.com) are supported; fully custom domains are not."
 - [x] Update `/agent.json` — add subdomain_url to deploy phase step outputs; update step 15/16 instructions to reference subdomain claiming.
 
-### Phase 11: Build & Deploy Showcase App 1 — Shared Todo List (`todo.run402.com`)
+### Phase 11: Showcase Specs & Template Validation
 
-- [ ] Provision a run402 project on Hobby tier for the todo app — create project via API, get credentials (project_id, anon_key, service_key, api_url)
-- [ ] Create database schema — `todos` table (id serial PK, task text NOT NULL, done boolean DEFAULT false, assigned_to text, user_id uuid, created_at timestamptz DEFAULT now()). Apply `public_read_write` RLS.
-- [ ] Build frontend (HTML/CSS/JS) from the shared-todo template — customize with real API URL and credentials, add "Built with bld402" branding, polling every 5 seconds, mobile-responsive layout
-- [ ] Insert seed data — 3 example tasks: "Buy groceries for the party" (Alex), "Set up the playlist" (Jordan, done), "Send invites to everyone" (Sam)
-- [ ] Deploy to run402 via `POST /v1/deployments`, claim subdomain `todo` via `POST /v1/subdomains`
-- [ ] Verify app loads at https://todo.run402.com — all CRUD operations work, seed data visible, mobile responsive
+Each showcase app MUST be built FROM its template, then modified for pinned demo use.
+Specs: `docs/products/showcase/{app}-spec.md` — detailed enough for red team validation.
 
-### Phase 12: Build & Deploy Showcase App 2 — Landing Page + Waitlist (`waitlist.run402.com`)
+- [x] Write spec for Landing Page + Waitlist (Cosmic Coffee theme, hash storage, counter)
+- [x] Write spec for Shared Todo List (global list, nicknames, seed protection, 1h+20cap cleanup)
+- [x] Write spec for Hangman (word list only, difficulty filter, no game state in DB)
+- [x] Write spec for Trivia Night (host+join, demo auto-reset, blue theme, 2h room cleanup)
+- [x] Write spec for Voting Booth (vote-only, vote-first-then-results, 28 seed votes)
 
-- [ ] Provision a run402 project on Hobby tier — get credentials
-- [ ] Create database schema — `signups` table (id serial PK, email text UNIQUE NOT NULL, created_at timestamptz DEFAULT now()). Apply `public_read_write` RLS for inserts.
-- [ ] Build frontend from landing-waitlist template — hero section with "Something Amazing is Coming", email signup form, position counter, duplicate email handling, "Built with bld402" branding
-- [ ] Insert seed data — 15-20 fake email signups so first real visitor sees "#21 on the waitlist"
-- [ ] Deploy and claim subdomain `waitlist`
-- [ ] Verify app loads at https://waitlist.run402.com — signup works, position counter shows, duplicate email handled
+### Phase 12: Archive Old Projects & Rebuild All 5 From Templates
 
-### Phase 13: Build & Deploy Showcase App 3 — Hangman (`hangman.run402.com`)
+Old showcase projects (prj_0011-0015) used scratch-built code, not templates.
+Archive them and provision fresh projects with template-based schemas.
 
-- [ ] Provision a run402 project on Hobby tier — get credentials
-- [ ] Create database schema — `words` table (id, word, category, difficulty) and `games` table (id, word_id, guesses text[], status, created_at). Apply `public_read` for words, `public_read_write` for games.
-- [ ] Build frontend from hangman template — SVG hangman drawing (6 stages), word blanks, A-Z letter grid, win/loss counter (session), play again, "Built with bld402" branding, mobile-responsive
-- [ ] Insert seed data — 50+ words across 3 difficulty levels (easy: 4-5 letters, medium: 6-7, hard: 8+)
-- [ ] Deploy and claim subdomain `hangman`
-- [ ] Verify app loads at https://hangman.run402.com — game plays through win and loss scenarios, word list loads from DB
+- [x] Archive old projects (5 existing projects)
+- [x] Rebuild shared-todo: template schema + is_seed column + cleanup trigger + seed.sql
+- [x] Rebuild landing-waitlist: template schema modified for email_hash + cleanup trigger
+- [x] Rebuild hangman: template schema as-is (no modifications needed)
+- [x] Rebuild trivia-night: template schema as-is + cleanup trigger + seed.sql (3 demo rooms)
+- [x] Rebuild voting-booth: template schema as-is + seed.sql (pizza topping poll + 28 votes)
 
-### Phase 14: Build & Deploy Showcase App 4 — Trivia Night (`trivia.run402.com`)
+### Phase 13: Build Showcase HTML From Templates + Demo Modifications
 
-- [ ] Provision a run402 project on Hobby tier — get credentials
-- [ ] Create database schema — `rooms` (id, code, host_name, status, current_question, created_at), `questions` (id, room_id, question_text, options jsonb, correct_index, time_limit, order_num), `players` (id, room_id, name, score, joined_at), `answers` (id, player_id, question_id, selected_index, answered_at, unique on player_id+question_id). Apply RLS: `public_read` rooms/questions, `public_read_write` players/answers.
-- [ ] Build frontend from trivia-night template — host flow (create room → get code → start game), player flow (enter code → pick name → answer), question screen with 4 color-coded buttons + countdown timer, scoreboard, polling every 2 seconds, "Built with bld402" branding, mobile-first
-- [ ] Insert seed data — 3 question sets (10 questions each): General Knowledge, Movies & TV, Food & Drink
-- [ ] Deploy and claim subdomain `trivia`
-- [ ] Verify app loads at https://trivia.run402.com — host can create room, players can join, game plays through full cycle
+Each app's index.html starts from the template, then adds demo-specific features per spec.
 
-### Phase 15: Build & Deploy Showcase App 5 — Voting Booth (`vote.run402.com`)
+- [x] shared-todo: template HTML + nickname field + is_seed badges + fade effect + demo banner + footer
+- [x] landing-waitlist: template HTML + SHA-256 hashing + counter + Cosmic Coffee theme + demo banner + footer
+- [x] hangman: template HTML + difficulty filter + category display + demo banner + footer
+- [x] trivia-night: template HTML + demo room cards + auto-reset + color change (purple→blue) + demo banner + footer
+- [x] voting-booth: template HTML + remove create-poll UI + vote-first-then-results + demo banner + footer
 
-- [ ] Provision a run402 project on Hobby tier — get credentials
-- [ ] Create database schema — `polls` (id, question, slug, is_open, admin_token, created_at), `options` (id, poll_id, label, order_num), `votes` (id, option_id, voter_token, created_at, unique on poll+voter). Apply RLS: `public_read` polls/options, `public_read_write` votes.
-- [ ] Build frontend from voting-booth template — create poll screen (question + 2-6 options), poll view with vote buttons, horizontal bar chart results with percentages, polling every 3 seconds, one-vote-per-browser via localStorage, admin close poll, "Built with bld402" branding, mobile-responsive
-- [ ] Insert seed data — 1 example poll: "What's the best pizza topping?" (Pepperoni, Mushrooms, Pineapple, Extra Cheese, Olives) with 25-30 random votes
-- [ ] Deploy and claim subdomain `vote`
-- [ ] Verify app loads at https://vote.run402.com — create poll works, voting works, results chart updates, duplicate vote prevented
+### Phase 14: Provision, Deploy & Pin All 5 Apps
 
-### Phase 16: Update Showcase Page & Final Integration
+- [x] Provision 5 new projects (reuse existing wallet)
+- [x] Run schema + seed SQL for each project
+- [x] Apply RLS per template rls.json for each project
+- [x] Deploy HTML + claim subdomains (todo, waitlist, hangman, trivia, vote)
+- [x] Pin all 5 projects
 
-- [ ] Update `public/humans/showcase.html` — replace SVG placeholder screenshots with real screenshots of the live apps; add clickable links to each app's `*.run402.com` URL on every card
-- [ ] Update `public/humans/how-it-works.html` — verify the example URL (`https://trivia.run402.com`) still makes sense now that it's a real live app
-- [ ] Smoke test all 5 live apps from the showcase page — click each link, verify it loads, interact briefly
+### Phase 15: Update Showcase Page & Final Integration
+
+- [x] Update `public/humans/showcase.html` — add live links to each app's `*.run402.com` URL
+- [x] Smoke test all 5 live apps from the showcase page
+
+### Phase 16: Paste Locker — 6th Showcase App (Server-Side Functions)
+
+First showcase app to use run402 server-side functions. Demonstrates bcrypt password hashing that can't be done client-side.
+
+- [x] Write spec: `docs/products/showcase/paste-locker-spec.md`
+- [x] Create template: `templates/utility/paste-locker/` (schema.sql, rls.json, create-note.js, read-note.js, index.html, README.md)
+- [x] Create showcase: `showcase/paste-locker/` (schema.sql with cleanup trigger, seed.sql, index.html with demo banner + how-it-works, deploy-functions.mjs)
+- [x] Create screenshot: `public/humans/images/screenshot-paste-locker.svg`
+- [x] Add 6th card to `public/humans/showcase.html`
+- [x] Update spec: add paste-locker to F9 templates list + F12 showcase table + update guardrails for functions
+- [x] Provision project: `node showcase/provision.mjs paste-locker` → prj_1772728652516_0019
+- [x] Run schema: `node showcase/run-sql.mjs paste-locker showcase/paste-locker/schema.sql`
+- [x] Run seed: created demo note via create-note function, then updated code to `demo1234`
+- [x] Deploy functions: `node showcase/paste-locker/deploy-functions.mjs` — both create-note and read-note deployed
+- [x] Deploy HTML + claim subdomain: `node showcase/deploy.mjs paste-locker paste` → paste.run402.com
+- [x] Pin project — pinned: true
+- [x] Smoke test at paste.run402.com — verified: password protection, wrong password rejection, no-password notes, burn-after-read, 404 for missing notes
 
 ---
 
@@ -290,3 +310,12 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-04: Phase 9 complete — All 5 fix cycle tasks resolved. F-001: schema.sql verified correct. F-002: 4 READMEs created. F-003: 5 build workflow links added to template gallery. F-004: 5 SVG mockup screenshots created and embedded. F-005: legal.html created, Legal link added to all page footers.
 - 2026-03-05: Plan continued — Spec updated to v0.2.0 with F12 (Live Showcase Apps) and subdomain support. Added Phases 10-16: subdomain step page updates, 5 showcase app build/deploy phases, final showcase page integration. 38 new tasks total.
 - 2026-03-05: Completed Phase 10 "Subdomain Support" — Updated step 15 (deploy with subdomain claiming), step 16 (present subdomain URL as primary), step 19 (reassign subdomain on redeploy), guardrails (custom domains → subdomains supported), step 3 (domain question updated), and agent.json (subdomain fields in deploy/iterate steps).
+- 2026-03-05: Restructured Phases 11-16 — Old approach built showcase apps from scratch, ignoring templates. New approach: write detailed specs → build FROM templates → modify for pinned demo use → validate with red team. Archived old Phases 11-15 tasks. 5 showcase specs written at `docs/products/showcase/`.
+- 2026-03-05: Completed Phase 11 "Showcase Specs" — All 5 specs written with user input on behavior decisions (email hashing, cleanup rules, difficulty filter, host+join, vote-first-then-results).
+- 2026-03-05: Completed Phase 12 "Rebuild All 5 From Templates" — Schema SQL rewritten from templates for all 5 projects (fixed voting-booth column names: title/voter_id/sort_order). Seed SQL for shared-todo, trivia-night, voting-booth. RLS applied to all 5.
+- 2026-03-05: Completed Phase 13 "Build Showcase HTML From Templates" — All 5 HTML files built from template source with demo modifications. Fixed API URL routing (JWT-based, not URL-prefix), real ANON_KEYs, bld402 favicon, form-hiding bug in waitlist (also fixed template source). Added viewport fitting (100dvh, flex layout) and responsive design to all 5 apps + all 5 templates. Created DESIGN-RULES.md.
+- 2026-03-05: Completed Phase 14 "Provision, Deploy & Pin" — All 5 apps deployed via deploy.mjs with x402 payment. Subdomains claimed (todo, waitlist, hangman, trivia, vote). Projects pinned via admin key from AWS Secrets Manager. deploy.mjs updated to fetch admin key at runtime (no local secrets).
+- 2026-03-05: Completed Phase 15 "Update Showcase Page & Final Integration" — Added "Try it live" links and clickable headings to all 5 showcase cards on humans/showcase.html. Fixed voting-booth spec schema to match actual template column names. Added viewport fitting + responsive acceptance criteria to all 5 showcase specs.
+- 2026-03-05: **Plan complete.** All 15 phases implemented across 2 cycles. 5 live showcase apps at todo/waitlist/hangman/trivia/vote.run402.com. All templates updated with viewport fitting. Ready for Red Team validation.
+- 2026-03-05: Phase 16 complete — Paste Locker (6th showcase app) fully deployed at paste.run402.com. First app to use run402 server-side functions (bcrypt password hashing). All smoke tests passed: password protection, burn-after-read, expiry, demo note (code: demo1234, password: demo).
+- 2026-03-05: Phase 17 complete — Templates page redesign + human/agent separation. Created `/humans/templates.html` (human-facing gallery with 6 active cards, "See example" links, "How to use" initiation strings, coming-soon cards). Simplified `/templates/index.html` to agent-only catalog (no nav chrome). Updated nav links in all 6 human pages. Updated showcase CTA link. Updated spec F10.

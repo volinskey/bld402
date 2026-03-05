@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{APP_NAME}} — Trivia Night</title>
+  <title>Trivia Night — bld402 Demo</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23FFF' stroke='%23E5E7EB'/%3E%3Ctext x='2' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%230066cc'%3E%3E%3C/text%3E%3Cg transform='translate(16,6) rotate(35,8,10)'%3E%3Crect x='7' y='10' width='3' height='14' rx='1' fill='%23374151'/%3E%3Crect x='2' y='5' width='13' height='7' rx='2' fill='%230066cc'/%3E%3C/g%3E%3C/svg%3E">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -16,7 +17,7 @@
       overflow: hidden;
     }
     header {
-      background: #5b21b6;
+      background: #0066cc;
       color: #fff;
       padding: 0.5rem 1rem;
       text-align: center;
@@ -53,7 +54,7 @@
       font-size: 1rem;
       margin-bottom: 0.75rem;
     }
-    input:focus { outline: none; border-color: #5b21b6; }
+    input:focus { outline: none; border-color: #0066cc; }
     .btn {
       width: 100%;
       padding: 0.75rem;
@@ -63,8 +64,8 @@
       cursor: pointer;
       font-weight: 600;
     }
-    .btn-primary { background: #5b21b6; color: #fff; }
-    .btn-primary:hover { background: #4c1d95; }
+    .btn-primary { background: #0066cc; color: #fff; }
+    .btn-primary:hover { background: #0055aa; }
     .btn-secondary { background: #e9ecef; color: #333; }
     .btn-secondary:hover { background: #dee2e6; }
 
@@ -74,7 +75,7 @@
       font-size: 2.5rem;
       font-weight: 700;
       letter-spacing: 0.5rem;
-      color: #5b21b6;
+      color: #0066cc;
       margin: 1rem 0;
     }
 
@@ -117,8 +118,8 @@
       background: #fff;
       transition: all 0.15s;
     }
-    .option:hover { border-color: #5b21b6; background: #f5f0ff; }
-    .option.selected { border-color: #5b21b6; background: #ede9fe; }
+    .option:hover { border-color: #0066cc; background: #f0f7ff; }
+    .option.selected { border-color: #0066cc; background: #e6f0ff; }
     .option.correct { border-color: #28a745; background: #d4edda; }
     .option.wrong { border-color: #dc3545; background: #f8d7da; }
 
@@ -151,14 +152,33 @@
       content: counter(rank) ".";
       font-weight: 700;
       margin-right: 0.75rem;
-      color: #5b21b6;
+      color: #0066cc;
     }
-    .score { font-weight: 700; color: #5b21b6; }
+    .score { font-weight: 700; color: #0066cc; }
 
     .text-center { text-align: center; }
     .mt-1 { margin-top: 0.5rem; }
     .mt-2 { margin-top: 1rem; }
     .muted { color: #888; }
+
+    /* Demo room cards */
+    .demo-card {
+      background: #fff;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 0.75rem;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .demo-card:hover { border-color: #0066cc; background: #f0f7ff; }
+    .demo-card-code {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #0066cc;
+    }
+    .demo-card-topic { color: #555; margin-top: 0.25rem; }
+    .demo-card-players { color: #888; font-size: 0.85rem; margin-top: 0.25rem; }
 
     footer {
       text-align: center;
@@ -167,7 +187,7 @@
       color: #888;
       flex-shrink: 0;
     }
-    footer a { color: #5b21b6; text-decoration: none; }
+    footer a { color: #0066cc; text-decoration: none; }
 
     @media (max-width: 600px) {
       .options { grid-template-columns: 1fr; }
@@ -176,7 +196,11 @@
   </style>
 </head>
 <body>
-  <header><h1>{{APP_NAME}}</h1></header>
+  <div style="background:#fff3cd; color:#856404; text-align:center; padding:0.3rem; font-size:0.8rem; width:100%; flex-shrink:0;">
+    Live demo — join a room and answer trivia! Rooms auto-delete after 2 hours.
+  </div>
+
+  <header><h1>Trivia Night</h1></header>
 
   <main>
     <!-- Home Screen -->
@@ -186,6 +210,8 @@
         <button class="btn btn-primary" onclick="showScreen('screen-create')">Host a Game</button>
         <button class="btn btn-secondary" onclick="showScreen('screen-join')">Join a Game</button>
       </div>
+      <h3 class="text-center mt-2">Or Try a Demo Room</h3>
+      <div id="demo-rooms" style="margin-top:1rem"></div>
     </div>
 
     <!-- Create Game -->
@@ -260,6 +286,7 @@
     <div class="screen" id="screen-scoreboard">
       <h2 class="text-center">Final Scores</h2>
       <ol class="scoreboard" id="final-scores"></ol>
+      <p class="text-center muted mt-1" id="demo-reset-msg" style="display:none"></p>
       <button class="btn btn-primary mt-2" onclick="location.reload()">Play Again</button>
     </div>
   </main>
@@ -270,8 +297,14 @@
 
   <script>
     const CONFIG = {
-      API_URL: '{{API_URL}}',
-      ANON_KEY: '{{ANON_KEY}}'
+      API_URL: 'https://api.run402.com',
+      ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsInByb2plY3RfaWQiOiJwcmpfMTc3MjcwNzI3MTc5OF8wMDE0IiwiaXNzIjoiYWdlbnRkYiIsImlhdCI6MTc3MjcwNzI3MSwiZXhwIjoxNzczMzEyMDcxfQ.WUwLtVPkHJ1ca_0Us1wt0brdlQjCZZ0b0tDP_pYHPTg'
+    };
+
+    const DEMO_ROOMS = {
+      DEMO1: 'General Knowledge',
+      DEMO2: 'Movies & TV',
+      DEMO3: 'Food & Drink'
     };
 
     let state = {
@@ -282,8 +315,11 @@
       questions: [],
       currentQ: 0,
       timer: null,
-      poller: null
+      poller: null,
+      timeLeft: 0
     };
+
+    let keyboardHandler = null;
 
     async function api(path, options = {}) {
       const res = await fetch(CONFIG.API_URL + path, {
@@ -302,6 +338,40 @@
 
     function generateCode() {
       return Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    /* Demo rooms loader (FR-1) */
+    async function loadDemoRooms() {
+      const container = document.getElementById('demo-rooms');
+      try {
+        const rooms = await api('/rest/v1/rooms?code=in.(DEMO1,DEMO2,DEMO3)');
+        if (!rooms || rooms.length === 0) {
+          container.innerHTML = '<p class="text-center muted">No demo rooms available right now.</p>';
+          return;
+        }
+        let html = '';
+        for (const room of rooms) {
+          let playerCount = 0;
+          try {
+            const players = await api('/rest/v1/players?room_id=eq.' + room.id + '&select=id');
+            playerCount = players.length;
+          } catch (e) { /* ignore */ }
+          const topic = DEMO_ROOMS[room.code] || 'Trivia';
+          html += `<div class="demo-card" onclick="joinDemoRoom('${esc(room.code)}')">
+            <div class="demo-card-code">${esc(room.code)}</div>
+            <div class="demo-card-topic">${esc(topic)}</div>
+            <div class="demo-card-players">${playerCount} player${playerCount !== 1 ? 's' : ''} in room</div>
+          </div>`;
+        }
+        container.innerHTML = html;
+      } catch (e) {
+        container.innerHTML = '<p class="text-center muted">Could not load demo rooms.</p>';
+      }
+    }
+
+    function joinDemoRoom(code) {
+      document.getElementById('join-code').value = code;
+      showScreen('screen-join');
     }
 
     let questionCount = 1;
@@ -446,17 +516,17 @@
         `<div class="option" data-index="${i}" onclick="selectAnswer(${i})">${letters[i]}. ${esc(opt)}</div>`
       ).join('');
 
-      let timeLeft = q.time_limit || 20;
+      state.timeLeft = q.time_limit || 20;
       const timerEl = document.getElementById('q-timer');
-      timerEl.textContent = timeLeft;
+      timerEl.textContent = state.timeLeft;
       timerEl.className = 'timer';
 
       if (state.timer) clearInterval(state.timer);
       state.timer = setInterval(() => {
-        timeLeft--;
-        timerEl.textContent = timeLeft;
-        if (timeLeft <= 5) timerEl.className = 'timer urgent';
-        if (timeLeft <= 0) {
+        state.timeLeft--;
+        timerEl.textContent = state.timeLeft;
+        if (state.timeLeft <= 5) timerEl.className = 'timer urgent';
+        if (state.timeLeft <= 0) {
           clearInterval(state.timer);
           if (state.isHost) {
             showResults(index);
@@ -468,6 +538,14 @@
         }
       }, 1000);
 
+      /* Keyboard input for answers (1/2/3/4 or A/B/C/D) */
+      if (keyboardHandler) document.removeEventListener('keydown', keyboardHandler);
+      keyboardHandler = (e) => {
+        const map = {'a':0,'b':1,'c':2,'d':3,'1':0,'2':1,'3':2,'4':3};
+        if (map[e.key.toLowerCase()] !== undefined && !state.isHost) selectAnswer(map[e.key.toLowerCase()]);
+      };
+      document.addEventListener('keydown', keyboardHandler);
+
       showScreen('screen-question');
     }
 
@@ -476,9 +554,16 @@
 
       const q = state.questions[state.currentQ];
       const isCorrect = index === q.correct_index;
+      const points = isCorrect ? 100 + Math.round(state.timeLeft * 5) : 0;
 
       document.querySelectorAll('.option').forEach(o => o.style.pointerEvents = 'none');
       document.querySelector(`[data-index="${index}"]`).classList.add('selected');
+
+      /* Remove keyboard handler after answer */
+      if (keyboardHandler) {
+        document.removeEventListener('keydown', keyboardHandler);
+        keyboardHandler = null;
+      }
 
       try {
         await api('/rest/v1/answers', {
@@ -500,7 +585,7 @@
       if (isCorrect) {
         await api('/rest/v1/rpc/increment_score', {
           method: 'POST',
-          body: JSON.stringify({ p_player_id: state.playerId, p_points: 100 })
+          body: JSON.stringify({ p_player_id: state.playerId, p_points: points })
         });
       }
 
@@ -560,11 +645,51 @@
     async function showFinalScores() {
       if (state.timer) clearInterval(state.timer);
       if (state.poller) clearInterval(state.poller);
+      if (keyboardHandler) {
+        document.removeEventListener('keydown', keyboardHandler);
+        keyboardHandler = null;
+      }
+
       const players = await api('/rest/v1/players?room_id=eq.' + state.roomId + '&order=score.desc');
       document.getElementById('final-scores').innerHTML = players.map(p =>
         `<li>${esc(p.name)}<span class="score">${p.score}</span></li>`
       ).join('');
       showScreen('screen-scoreboard');
+
+      /* Demo room auto-reset (FR-11) */
+      if (state.roomCode && state.roomCode.startsWith('DEMO')) {
+        const msgEl = document.getElementById('demo-reset-msg');
+        let countdown = 30;
+        msgEl.textContent = `This demo room will reset in ${countdown} seconds...`;
+        msgEl.style.display = '';
+
+        const resetTimer = setInterval(() => {
+          countdown--;
+          if (countdown > 0) {
+            msgEl.textContent = `This demo room will reset in ${countdown} seconds...`;
+          } else {
+            clearInterval(resetTimer);
+            msgEl.textContent = 'Resetting demo room...';
+            resetDemoRoom();
+          }
+        }, 1000);
+      }
+    }
+
+    async function resetDemoRoom() {
+      try {
+        await api('/rest/v1/rooms?id=eq.' + state.roomId, {
+          method: 'PATCH',
+          body: JSON.stringify({ status: 'lobby', current_question: 0 })
+        });
+        await api('/rest/v1/players?room_id=eq.' + state.roomId, { method: 'DELETE' });
+        await api('/rest/v1/answers?room_id=eq.' + state.roomId, { method: 'DELETE' });
+        const msgEl = document.getElementById('demo-reset-msg');
+        msgEl.textContent = 'Demo room has been reset. Reload to play again!';
+      } catch (e) {
+        const msgEl = document.getElementById('demo-reset-msg');
+        msgEl.textContent = 'Could not reset demo room.';
+      }
     }
 
     function esc(text) {
@@ -572,6 +697,9 @@
       d.textContent = text;
       return d.innerHTML;
     }
+
+    /* Load demo rooms on page init */
+    loadDemoRooms();
   </script>
 </body>
 </html>

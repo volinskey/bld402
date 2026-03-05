@@ -101,7 +101,7 @@ At any point in the workflow, clearly flag when a request is NOT possible on run
 
 - Maintain a definitive list of what run402 CANNOT do:
   - Fully custom domain names (but run402 subdomains like `myapp.run402.com` ARE supported — see F5)
-  - Server-side compute / backend logic / lambdas / edge functions
+  - Server-side compute beyond run402 functions (run402 functions ARE supported — see Paste Locker template)
   - Real-time WebSocket connections (polling is the alternative)
   - Email sending / SMS / push notifications
   - Payment processing (beyond x402 for run402 itself)
@@ -130,7 +130,7 @@ A comprehensive library of ready-to-use code templates that agents use as starti
 - Templates are parameterized (project_id, API URL, table names) so the agent fills in project-specific values.
 - Common pattern templates (not full apps): database connection, auth flow, file upload, CRUD operations, responsive layout, navigation.
 
-#### Template Library — Utility Apps (13)
+#### Template Library — Utility Apps (16)
 
 | # | Template | Description |
 |---|----------|-------------|
@@ -149,23 +149,24 @@ A comprehensive library of ready-to-use code templates that agents use as starti
 | 13 | Countdown Timer | Shared event countdown with comments |
 | 14 | Potluck Organizer | Who's bringing what — claim items, avoid duplicates |
 | 15 | Secret Santa | Anonymous gift exchange matcher |
+| 16 | Paste Locker | Secure pastebin with server-side password hashing |
 
 #### Template Library — Games (12)
 
 | # | Template | Description |
 |---|----------|-------------|
-| 16 | Hangman | Classic word guessing — solo or pass-and-play |
-| 17 | Trivia Night | Kahoot-style: host creates questions, players join via code, live scoring |
-| 18 | Would You Rather | Vote on dilemmas, see results in real time |
-| 19 | Two Truths and a Lie | Players submit statements, others guess the lie |
-| 20 | Word Chain | Take turns adding words, timer-based, score tracking |
-| 21 | Bingo Card Generator | Host calls items, players mark their cards |
-| 22 | Scavenger Hunt | Team checklist with photo upload proof |
-| 23 | Drawing Prompt Roulette | Get a prompt, draw it, others vote on results |
-| 24 | Memory Match | Card flip game with difficulty levels and leaderboard |
-| 25 | Quiz Maker | Create and share custom quizzes with scoring |
-| 26 | Word Scramble | Unscramble words against the clock, shareable scores |
-| 27 | Tic-Tac-Toe | Share a link, play a friend, win/loss tracking |
+| 17 | Hangman | Classic word guessing — solo or pass-and-play |
+| 18 | Trivia Night | Kahoot-style: host creates questions, players join via code, live scoring |
+| 19 | Would You Rather | Vote on dilemmas, see results in real time |
+| 20 | Two Truths and a Lie | Players submit statements, others guess the lie |
+| 21 | Word Chain | Take turns adding words, timer-based, score tracking |
+| 22 | Bingo Card Generator | Host calls items, players mark their cards |
+| 23 | Scavenger Hunt | Team checklist with photo upload proof |
+| 24 | Drawing Prompt Roulette | Get a prompt, draw it, others vote on results |
+| 25 | Memory Match | Card flip game with difficulty levels and leaderboard |
+| 26 | Quiz Maker | Create and share custom quizzes with scoring |
+| 27 | Word Scramble | Unscramble words against the clock, shareable scores |
+| 28 | Tic-Tac-Toe | Share a link, play a friend, win/loss tracking |
 
 ### F10: Human-Facing Pages
 
@@ -173,6 +174,7 @@ The `/humans` section provides everything a human visitor needs.
 
 - **About** — What bld402 is, how it works in plain language, the relationship to run402.
 - **Showcase** — Gallery of live demo apps running on run402 with screenshots. Each card links to the live app at its `*.run402.com` subdomain. "Want to build one of these? Point your agent here: bld402.com"
+- **Templates** (`/humans/templates.html`) — Human-friendly template gallery with 6 active cards (description, "See example" link to live showcase, "How to use" initiation string) plus coming-soon cards. Separate from the agent-facing `/templates/` catalog.
 - **How It Works** — Step-by-step explanation: 1) Talk to your AI agent, 2) Describe what you want, 3) Point the agent to bld402.com, 4) Get a working app with a shareable link.
 - **Terms & Conditions** — Service terms for bld402 (free layer, no warranty, run402 T&C apply for infrastructure).
 - **Privacy Policy** — bld402 stores nothing. run402's privacy policy governs data stored there.
@@ -189,7 +191,7 @@ bld402 guides agents through run402's payment flow without adding any fees.
 
 ### F12: Live Showcase Apps
 
-Five fully functional demo apps, each built using the bld402 workflow and deployed to run402 with a memorable subdomain. These are the proof that bld402 works — a visitor clicks a showcase card and lands on a real, working app. Each app is built from its MVP template, deployed to run402, and validated individually via red team system testing.
+Six fully functional demo apps, each built using the bld402 workflow and deployed to run402 with a memorable subdomain. These are the proof that bld402 works — a visitor clicks a showcase card and lands on a real, working app. Each app is built from its MVP template, deployed to run402, and validated individually via red team system testing.
 
 #### Shared Subdomain Convention
 
@@ -202,6 +204,7 @@ All showcase apps live at `{app-name}.run402.com`:
 | Hangman | `hangman` | https://hangman.run402.com |
 | Trivia Night | `trivia` | https://trivia.run402.com |
 | Voting Booth | `vote` | https://vote.run402.com |
+| Paste Locker | `paste` | https://paste.run402.com |
 
 #### Build Process
 
@@ -343,9 +346,9 @@ Create a poll, share the link, see live results.
 - Poll creator can close the poll (no more votes)
 
 **Database schema:**
-- `polls` table: `id` (serial PK), `question` (text, not null), `slug` (text, unique), `is_open` (boolean, default true), `admin_token` (text), `created_at` (timestamptz)
-- `options` table: `id` (serial PK), `poll_id` (integer, references polls), `label` (text, not null), `order_num` (integer)
-- `votes` table: `id` (serial PK), `option_id` (integer, references options), `voter_token` (text, not null), `created_at` (timestamptz), unique constraint on (option_id's poll, voter_token)
+- `polls` table: `id` (uuid PK), `title` (text, not null), `description` (text, nullable), `created_by` (text, nullable), `multiple_choice` (boolean, default false), `closed` (boolean, default false), `created_at` (timestamptz)
+- `options` table: `id` (uuid PK), `poll_id` (uuid, references polls), `label` (text, not null), `sort_order` (integer)
+- `votes` table: `id` (uuid PK), `poll_id` (uuid, references polls), `option_id` (uuid, references options), `voter_id` (text, not null), `voted_at` (timestamptz), unique constraint on (poll_id, voter_id)
 
 **RLS policy:** `public_read` for polls and options, `public_read_write` for votes (with unique constraint enforcing one vote per token per poll)
 
@@ -431,8 +434,8 @@ The system test for each app should verify:
 
 ### Human Pages (F10)
 - [ ] `/humans` contains: about, showcase, how-it-works, terms, privacy, legal sections.
-- [ ] The showcase links to 5 live demo apps at their `*.run402.com` subdomains.
-- [ ] The showcase includes screenshots of the 5 live apps.
+- [ ] The showcase links to 6 live demo apps at their `*.run402.com` subdomains.
+- [ ] The showcase includes screenshots of the 6 live apps.
 - [ ] The "how it works" section is understandable by a non-technical person.
 
 ### Payment Pass-Through (F11)
@@ -442,7 +445,7 @@ The system test for each app should verify:
 - [ ] bld402 adds zero fees to any transaction.
 
 ### Live Showcase Apps (F12)
-- [ ] All 5 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, hangman.run402.com, trivia.run402.com, vote.run402.com.
+- [ ] All 6 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, hangman.run402.com, trivia.run402.com, vote.run402.com, paste.run402.com.
 - [ ] Each app was built using the bld402 workflow and its corresponding MVP template.
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.
@@ -454,7 +457,7 @@ The system test for each app should verify:
 ## Constraints & Dependencies
 
 - **run402.com** — bld402 depends entirely on run402 for backend infrastructure (Postgres, REST API, auth, storage, static hosting). Any run402 outage or API change directly affects bld402.
-- **No server-side compute** — All app logic runs client-side (browser JavaScript). bld402 must design all templates and workflows around this constraint.
+- **Server-side compute via run402 functions** — run402 supports serverless functions (Node.js) for logic that can't run client-side (e.g., password hashing, secret verification). Most app logic still runs client-side, but templates can use functions when needed.
 - **No real-time** — run402 has no WebSocket support. Multiplayer features use database polling (refresh-based or timed polling).
 - **Deployment size limit** — 50 MB per static site deployment on run402.
 - **Rate limit** — 100 requests/second per run402 project.

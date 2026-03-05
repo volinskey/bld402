@@ -3,121 +3,76 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>Templates — bld402</title>
-  <meta name="description" content="Browse app templates. Each one is a complete, working app you can customize.">
-  <link rel="stylesheet" href="/src/style.css">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <title>Template Catalog — bld402</title>
+  <meta name="description" content="Agent-readable catalog of bld402 app templates with source paths and build links.">
 </head>
 <body>
-  <p class="top-banner"><a href="/">&larr; Back to bld402.com</a></p>
-  <header style="display:flex; justify-content:space-between; align-items:center; padding:0.75rem 1rem; border-bottom:1px solid #e0e0e0; background:#fff;">
-    <a href="/humans/" style="font-weight:700; font-size:1.1rem; text-decoration:none; color:#1a1a1a;"><span class="accent">bld</span>402</a>
-    <nav class="human-nav" style="border:none; padding:0; margin:0;">
-      <a href="/humans/about.html">About</a>
-      <a href="/humans/how-it-works.html">How It Works</a>
-      <a href="/humans/showcase.html">Showcase</a>
-      <a href="/templates/">Templates</a>
-    </nav>
-  </header>
+  <h1>bld402 Template Catalog</h1>
+  <p>This page lists all available templates for AI agents. Each template includes a complete database schema, access rules, and frontend code. To start building with a template, navigate to the build link.</p>
 
-  <main>
-    <h1>App Templates</h1>
-    <p>Each template is a complete, working app with database schema, access rules, and frontend code. Tell your AI agent which one you want, or describe your idea and it will pick the best match.</p>
+  <h2>Active Templates</h2>
 
-    <h2 style="margin-top:2rem;">Utility Apps</h2>
-    <div class="card-grid">
-      <div class="card">
-        <h3>Shared Todo List</h3>
-        <p>Collaborative task list with checkboxes and assignments. Add, complete, filter, and delete tasks together.</p>
-        <p class="small muted">No auth required &middot; Real-time via polling</p>
-        <p style="margin-top:0.75rem;"><a href="/build/step/1?template=shared-todo">Build with this template &rarr;</a></p>
-      </div>
-      <div class="card">
-        <h3>Landing Page + Waitlist</h3>
-        <p>Product launch page with email signup form. Hero section, features grid, and call-to-action.</p>
-        <p class="small muted">Email capture &middot; Gradient design</p>
-        <p style="margin-top:0.75rem;"><a href="/build/step/1?template=landing-waitlist">Build with this template &rarr;</a></p>
-      </div>
-      <div class="card">
-        <h3>Voting Booth</h3>
-        <p>Create polls, share links, vote, and see live results with bar charts. One vote per person.</p>
-        <p class="small muted">Shareable polls &middot; Live results</p>
-        <p style="margin-top:0.75rem;"><a href="/build/step/1?template=voting-booth">Build with this template &rarr;</a></p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Expense Splitter</h3>
-        <p>Split bills among friends, track who owes what.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Event Scheduling Poll</h3>
-        <p>Doodle-style availability picker for group scheduling.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Recipe Book</h3>
-        <p>Personal recipe collection with search and categories.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Micro-Blog</h3>
-        <p>Short-form posts with timestamps and reactions.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Flash Cards</h3>
-        <p>Create and study decks with spaced repetition.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-    </div>
+  <h3>Shared Todo List</h3>
+  <ul>
+    <li>Template ID: <code>shared-todo</code></li>
+    <li>Source: <code>/templates/utility/shared-todo/</code></li>
+    <li>Build link: <code>/build/step/1?template=shared-todo</code></li>
+    <li>Description: Collaborative task list with checkboxes and assignments. Add, complete, filter, and delete tasks together. No auth required, real-time via polling.</li>
+  </ul>
 
-    <h2 style="margin-top:2rem;">Games</h2>
-    <div class="card-grid">
-      <div class="card">
-        <h3>Hangman</h3>
-        <p>Classic word guessing with SVG hangman drawing. Solo or pass-and-play. Built-in word list with categories.</p>
-        <p class="small muted">Keyboard input &middot; Solo/multiplayer</p>
-        <p style="margin-top:0.75rem;"><a href="/build/step/1?template=hangman">Build with this template &rarr;</a></p>
-      </div>
-      <div class="card">
-        <h3>Trivia Night</h3>
-        <p>Kahoot-style: host creates questions, players join via code, answer in real time, live scoring.</p>
-        <p class="small muted">Multiplayer &middot; Room codes &middot; Timers</p>
-        <p style="margin-top:0.75rem;"><a href="/build/step/1?template=trivia-night">Build with this template &rarr;</a></p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Would You Rather</h3>
-        <p>Vote on dilemmas, see results in real time.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Memory Match</h3>
-        <p>Card flip game with difficulty levels and leaderboard.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Word Scramble</h3>
-        <p>Unscramble words against the clock, shareable scores.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-      <div class="card" style="opacity:0.5;">
-        <h3>Tic-Tac-Toe</h3>
-        <p>Share a link, play a friend, win/loss tracking.</p>
-        <p class="small muted">Coming soon</p>
-      </div>
-    </div>
+  <h3>Landing Page + Waitlist</h3>
+  <ul>
+    <li>Template ID: <code>landing-waitlist</code></li>
+    <li>Source: <code>/templates/utility/landing-waitlist/</code></li>
+    <li>Build link: <code>/build/step/1?template=landing-waitlist</code></li>
+    <li>Description: Product launch page with email signup form. Hero section, features grid, and call-to-action. Email capture with gradient design.</li>
+  </ul>
 
-    <div style="text-align:center; margin-top:3rem; padding:2rem; background:#f0f0f0; border-radius:8px;">
-      <p>Don't see what you need? No problem. Your AI agent can build custom apps from scratch using our building blocks.</p>
-      <p style="margin-top:0.5rem;">Just describe what you want and point your agent to <strong>bld402.com</strong>.</p>
-    </div>
-  </main>
+  <h3>Voting Booth</h3>
+  <ul>
+    <li>Template ID: <code>voting-booth</code></li>
+    <li>Source: <code>/templates/utility/voting-booth/</code></li>
+    <li>Build link: <code>/build/step/1?template=voting-booth</code></li>
+    <li>Description: Create polls, share links, vote, and see live results with bar charts. One vote per person, shareable polls.</li>
+  </ul>
 
-  <footer style="text-align:center; padding:2rem; font-size:0.8rem; color:#888; border-top:1px solid #e0e0e0;">
-    <a href="/humans/terms.html">Terms</a> &middot; <a href="/humans/privacy.html">Privacy</a> &middot; <a href="/humans/legal.html">Legal</a> &middot; Powered by <a href="https://run402.com">run402</a>
-  </footer>
+  <h3>Paste Locker</h3>
+  <ul>
+    <li>Template ID: <code>paste-locker</code></li>
+    <li>Source: <code>/templates/utility/paste-locker/</code></li>
+    <li>Build link: <code>/build/step/1?template=paste-locker</code></li>
+    <li>Description: Secure pastebin with password protection and burn-after-read. Uses server-side functions for bcrypt hashing.</li>
+  </ul>
+
+  <h3>Hangman</h3>
+  <ul>
+    <li>Template ID: <code>hangman</code></li>
+    <li>Source: <code>/templates/games/hangman/</code></li>
+    <li>Build link: <code>/build/step/1?template=hangman</code></li>
+    <li>Description: Classic word guessing with SVG hangman drawing. Solo or pass-and-play. Built-in word list with categories.</li>
+  </ul>
+
+  <h3>Trivia Night</h3>
+  <ul>
+    <li>Template ID: <code>trivia-night</code></li>
+    <li>Source: <code>/templates/games/trivia-night/</code></li>
+    <li>Build link: <code>/build/step/1?template=trivia-night</code></li>
+    <li>Description: Kahoot-style multiplayer trivia. Host creates questions, players join via room code, answer in real time, live scoring and leaderboard.</li>
+  </ul>
+
+  <h2>Coming Soon</h2>
+  <ul>
+    <li>Expense Splitter — Split bills among friends, track who owes what.</li>
+    <li>Event Scheduling Poll — Doodle-style availability picker for group scheduling.</li>
+    <li>Recipe Book — Personal recipe collection with search and categories.</li>
+    <li>Micro-Blog — Short-form posts with timestamps and reactions.</li>
+    <li>Flash Cards — Create and study decks with spaced repetition.</li>
+    <li>Would You Rather — Vote on dilemmas, see results in real time.</li>
+    <li>Memory Match — Card flip game with difficulty levels and leaderboard.</li>
+    <li>Word Scramble — Unscramble words against the clock, shareable scores.</li>
+    <li>Tic-Tac-Toe — Share a link, play a friend, win/loss tracking.</li>
+  </ul>
+
+  <p>If none of these templates fit, agents can build custom apps from scratch using bld402 building blocks. Start at <code>/build/step/1</code>.</p>
 </body>
 </html>

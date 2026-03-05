@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{APP_NAME}}</title>
+  <title>Cosmic Coffee Delivery</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23FFF' stroke='%23E5E7EB'/%3E%3Ctext x='2' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%230066cc'%3E%3E%3C/text%3E%3Cg transform='translate(16,6) rotate(35,8,10)'%3E%3Crect x='7' y='10' width='3' height='14' rx='1' fill='%23374151'/%3E%3Crect x='2' y='5' width='13' height='7' rx='2' fill='%230066cc'/%3E%3C/g%3E%3C/svg%3E">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     html { font-size: 16px; line-height: 1.6; scroll-behavior: smooth; }
@@ -66,6 +67,11 @@
       margin-top: 0.5rem;
       font-size: 0.9rem;
     }
+    .waitlist-count {
+      margin-top: 1rem;
+      font-size: 0.95rem;
+      opacity: 0.85;
+    }
 
     /* Features */
     .features {
@@ -125,34 +131,39 @@
   </style>
 </head>
 <body>
+  <div style="background:#fff3cd; color:#856404; text-align:center; padding:0.5rem; font-size:0.85rem;">
+    This is a live demo built with <a href="https://bld402.com" style="color:#856404; font-weight:600">bld402</a> — try signing up!
+  </div>
+
   <section class="hero">
-    <h1>{{HEADLINE}}</h1>
-    <p>{{SUBHEADLINE}}</p>
+    <h1>Cosmic Coffee Delivery is Coming</h1>
+    <p>Fresh-roasted beans delivered from orbit. Be the first to taste the future of coffee.</p>
     <form class="signup-form" id="signup-form">
       <input type="email" id="email-input" placeholder="Enter your email" required>
-      <button type="submit">{{CTA_TEXT}}</button>
+      <button type="submit">Join the Waitlist</button>
     </form>
-    <p class="signup-success" id="signup-success">You're on the list! We'll be in touch.</p>
+    <p class="signup-success" id="signup-success">Thank you for registering for this demo!</p>
     <p class="signup-error" id="signup-error"></p>
+    <p class="waitlist-count" id="waitlist-count"></p>
   </section>
 
   <section class="features">
-    <h2>{{FEATURES_HEADING}}</h2>
+    <h2>Why You'll Love It</h2>
     <div class="feature-grid">
       <div class="feature">
-        <div class="feature-icon">{{FEATURE_1_ICON}}</div>
-        <h3>{{FEATURE_1_TITLE}}</h3>
-        <p>{{FEATURE_1_DESC}}</p>
+        <div class="feature-icon">&#x1F680;</div>
+        <h3>Orbital Roasting</h3>
+        <p>Beans roasted at the edge of space for a zero-gravity flavor profile.</p>
       </div>
       <div class="feature">
-        <div class="feature-icon">{{FEATURE_2_ICON}}</div>
-        <h3>{{FEATURE_2_TITLE}}</h3>
-        <p>{{FEATURE_2_DESC}}</p>
+        <div class="feature-icon">&#x23F1;&#xFE0F;</div>
+        <h3>30-Minute Delivery</h3>
+        <p>From orbit to your doorstep in under 30 minutes. Seriously.</p>
       </div>
       <div class="feature">
-        <div class="feature-icon">{{FEATURE_3_ICON}}</div>
-        <h3>{{FEATURE_3_TITLE}}</h3>
-        <p>{{FEATURE_3_DESC}}</p>
+        <div class="feature-icon">&#x2728;</div>
+        <h3>AI Barista</h3>
+        <p>Your personal AI learns your taste and picks the perfect roast every time.</p>
       </div>
     </div>
   </section>
@@ -161,7 +172,7 @@
     <h2>Ready to get started?</h2>
     <form class="signup-form" id="signup-form-bottom">
       <input type="email" id="email-input-bottom" placeholder="Enter your email" required>
-      <button type="submit">{{CTA_TEXT}}</button>
+      <button type="submit">Join the Waitlist</button>
     </form>
   </section>
 
@@ -171,11 +182,40 @@
 
   <script>
     const CONFIG = {
-      API_URL: '{{API_URL}}',
-      ANON_KEY: '{{ANON_KEY}}'
+      API_URL: 'https://api.run402.com',
+      ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsInByb2plY3RfaWQiOiJwcmpfMTc3MjcwNzIwNjk4NF8wMDEyIiwiaXNzIjoiYWdlbnRkYiIsImlhdCI6MTc3MjcwNzIwNiwiZXhwIjoxNzczMzEyMDA2fQ.fJjyp1XipRrVexzpRaOUJNcv1soEShx3_JBEfI1RhEw'
     };
 
+    async function sha256(message) {
+      const msgBuffer = new TextEncoder().encode(message);
+      const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    async function fetchWaitlistCount() {
+      try {
+        const res = await fetch(CONFIG.API_URL + '/rest/v1/signups', {
+          method: 'HEAD',
+          headers: {
+            'apikey': CONFIG.ANON_KEY,
+            'Prefer': 'count=exact'
+          }
+        });
+        const range = res.headers.get('content-range');
+        if (range) {
+          const total = range.split('/')[1];
+          if (total && total !== '*') {
+            document.getElementById('waitlist-count').textContent = total + ' people on the waitlist';
+          }
+        }
+      } catch (e) {
+        // silently ignore count fetch errors
+      }
+    }
+
     async function submitEmail(email) {
+      const emailHash = await sha256(email.toLowerCase().trim());
       const res = await fetch(CONFIG.API_URL + '/rest/v1/signups', {
         method: 'POST',
         headers: {
@@ -183,7 +223,7 @@
           'Content-Type': 'application/json',
           'Prefer': 'return=minimal'
         },
-        body: JSON.stringify({ email })
+        body: JSON.stringify({ email_hash: emailHash })
       });
 
       if (res.status === 409) throw new Error('already_signed_up');
@@ -212,11 +252,12 @@
 
       try {
         await submitEmail(email);
-        showMessage('success', "You're on the list! We'll be in touch.");
+        showMessage('success', 'Thank you for registering for this demo!');
         input.value = '';
+        fetchWaitlistCount();
       } catch (err) {
         if (err.message === 'already_signed_up') {
-          showMessage('error', "You're already on the list!");
+          showMessage('error', "You're already on the waitlist!");
         } else {
           showMessage('error', 'Something went wrong. Please try again.');
         }
@@ -225,6 +266,9 @@
 
     document.getElementById('signup-form').addEventListener('submit', (e) => handleSignup(e, 'email-input'));
     document.getElementById('signup-form-bottom').addEventListener('submit', (e) => handleSignup(e, 'email-input-bottom'));
+
+    // Load waitlist count on page load
+    fetchWaitlistCount();
   </script>
 </body>
 </html>

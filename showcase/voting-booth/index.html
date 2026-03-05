@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Voting Booth — bld402 Demo</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23FFF' stroke='%23E5E7EB'/%3E%3Ctext x='2' y='23' font-family='monospace' font-size='20' font-weight='bold' fill='%230066cc'%3E%3E%3C/text%3E%3Cg transform='translate(16,6) rotate(35,8,10)'%3E%3Crect x='7' y='10' width='3' height='14' rx='1' fill='%23374151'/%3E%3Crect x='2' y='5' width='13' height='7' rx='2' fill='%230066cc'/%3E%3C/g%3E%3C/svg%3E">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; line-height: 1.5; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a1a;
+      background: #f8f9fa;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    .demo-notice {
+      background: #fff3cd;
+      color: #856404;
+      text-align: center;
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0.5rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.1rem; }
+    main {
+      max-width: 38rem;
+      margin: 0 auto;
+      padding: 0.75rem 1rem;
+      flex: 1;
+      overflow: auto;
+      width: 100%;
+    }
+
+    /* Poll card */
+    .poll-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 2rem;
+    }
+    .poll-question {
+      font-size: 1.4rem;
+      font-weight: 700;
+      margin-bottom: 0.25rem;
+    }
+    .poll-meta {
+      font-size: 0.85rem;
+      color: #888;
+      margin-bottom: 1.5rem;
+    }
+
+    /* Vote buttons */
+    .vote-options { display: flex; flex-direction: column; gap: 0.5rem; }
+    .vote-btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem 1rem;
+      background: #fff;
+      border: 2px solid #d0dbe5;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: left;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .vote-btn:hover {
+      border-color: #0066cc;
+      background: #f0f6ff;
+    }
+    .vote-btn:active {
+      background: #dbeafe;
+    }
+    .vote-btn:disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    /* Results bar chart */
+    .results { margin-top: 0.25rem; }
+    .results-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    .results-header h3 {
+      font-size: 1rem;
+      color: #444;
+    }
+    .total-votes {
+      font-size: 0.85rem;
+      color: #888;
+    }
+    .result-row {
+      margin-bottom: 0.85rem;
+    }
+    .result-label {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.3rem;
+    }
+    .result-label .option-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .result-label .option-stats {
+      font-size: 0.85rem;
+      color: #666;
+    }
+    .bar-track {
+      width: 100%;
+      height: 28px;
+      background: #eef2f7;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+    }
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #0066cc, #3399ff);
+      border-radius: 6px;
+      transition: width 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+      min-width: 0;
+      position: relative;
+    }
+    .bar-fill.my-vote {
+      background: linear-gradient(90deg, #198754, #28a745);
+    }
+    .bar-fill.winner {
+      background: linear-gradient(90deg, #0066cc, #0088ff);
+    }
+    .bar-fill.winner.my-vote {
+      background: linear-gradient(90deg, #198754, #28a745);
+    }
+    .bar-percent {
+      position: absolute;
+      right: 8px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #fff;
+      text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+    }
+    .bar-percent.outside {
+      position: relative;
+      right: auto;
+      top: auto;
+      transform: none;
+      color: #666;
+      text-shadow: none;
+      margin-left: 8px;
+      line-height: 28px;
+      display: inline-block;
+    }
+    .your-vote-badge {
+      display: inline-block;
+      background: #d4edda;
+      color: #198754;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 0.1rem 0.4rem;
+      border-radius: 10px;
+      margin-left: 0.4rem;
+      vertical-align: middle;
+    }
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #198754;
+      border-radius: 50%;
+      margin-right: 0.4rem;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Shared */
+    .loading { text-align: center; padding: 3rem; color: #888; }
+    .error-msg {
+      text-align: center;
+      padding: 2rem;
+      color: #dc3545;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    footer {
+      text-align: center;
+      padding: 0.35rem;
+      font-size: 0.75rem;
+      color: #888;
+      flex-shrink: 0;
+    }
+    footer a { color: #0066cc; text-decoration: none; }
+    @media (max-width: 600px) {
+      main { padding: 1.25rem 0.75rem; }
+      .poll-card { padding: 1.25rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-notice" style="flex-shrink:0;">
+    Live demo — cast your vote! One vote per person.
+  </div>
+
+  <header>
+    <h1>Voting Booth</h1>
+  </header>
+
+  <main>
+    <!-- Vote screen -->
+    <div class="screen active" id="screen-vote">
+      <div class="poll-card">
+        <div id="poll-loading" class="loading">Loading poll...</div>
+        <div id="poll-error" class="error-msg" style="display:none"></div>
+        <div id="poll-content" style="display:none">
+          <div class="poll-question" id="poll-question"></div>
+          <div class="poll-meta" id="poll-meta"></div>
+          <div id="poll-voting">
+            <div class="vote-options" id="vote-options"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results screen -->
+    <div class="screen" id="screen-results">
+      <div class="poll-card">
+        <div class="poll-question" id="results-question"></div>
+        <div class="poll-meta" id="results-meta"></div>
+        <div class="results" id="results-container"></div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Built with <a href="https://bld402.com">bld402</a> &middot; Powered by <a href="https://run402.com">run402</a>
+  </footer>
+
+  <script>
+    const CONFIG = {
+      API_URL: 'https://api.run402.com',
+      ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsInByb2plY3RfaWQiOiJwcmpfMTc3MjcwNzMwNTA3MF8wMDE1IiwiaXNzIjoiYWdlbnRkYiIsImlhdCI6MTc3MjcwNzMwNSwiZXhwIjoxNzczMzEyMTA1fQ.7aJW5BnB_h1WirkvcnzvelcEDHRYDG5zQ4Rzsu-2l8U',
+      POLL_INTERVAL: 4000
+    };
+
+    const DEMO_POLL_ID = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+
+    // ---- API helper ----
+    async function api(path, options = {}) {
+      const res = await fetch(CONFIG.API_URL + path, {
+        ...options,
+        headers: {
+          'apikey': CONFIG.ANON_KEY,
+          'Content-Type': 'application/json',
+          ...options.headers
+        }
+      });
+      if (!res.ok) {
+        const err = new Error(await res.text());
+        err.status = res.status;
+        throw err;
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    // ---- Voter identity ----
+    let voterId = localStorage.getItem('voter_id');
+    if (!voterId) {
+      voterId = crypto.randomUUID();
+      localStorage.setItem('voter_id', voterId);
+    }
+
+    let myVotedOptionId = null;
+    let pollInterval = null;
+    let cachedOptions = null;
+
+    // ---- Utility ----
+    function escapeHtml(text) {
+      const d = document.createElement('div');
+      d.textContent = text;
+      return d.innerHTML;
+    }
+
+    function getTimeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return mins + 'm ago';
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return hours + 'h ago';
+      const days = Math.floor(hours / 24);
+      return days + 'd ago';
+    }
+
+    function showScreen(id) {
+      document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+      document.getElementById('screen-' + id).classList.add('active');
+    }
+
+    // ---- Load and display the demo poll ----
+    async function loadPoll() {
+      const loading = document.getElementById('poll-loading');
+      const error = document.getElementById('poll-error');
+      const content = document.getElementById('poll-content');
+
+      loading.style.display = '';
+      error.style.display = 'none';
+      content.style.display = 'none';
+
+      try {
+        const polls = await api('/rest/v1/polls?id=eq.' + DEMO_POLL_ID + '&limit=1');
+        if (!polls || polls.length === 0) {
+          loading.style.display = 'none';
+          error.style.display = '';
+          error.textContent = 'Demo poll not found.';
+          return;
+        }
+        const poll = polls[0];
+
+        const options = await api('/rest/v1/options?poll_id=eq.' + poll.id + '&order=sort_order.asc');
+        cachedOptions = options;
+
+        // Check if this voter already voted
+        const myVotes = await api('/rest/v1/votes?poll_id=eq.' + DEMO_POLL_ID + '&voter_id=eq.' + voterId + '&limit=1');
+        if (myVotes && myVotes.length > 0) {
+          myVotedOptionId = myVotes[0].option_id;
+          showResults(poll);
+          return;
+        }
+
+        // Show vote screen
+        loading.style.display = 'none';
+        content.style.display = '';
+
+        document.getElementById('poll-question').textContent = poll.title;
+        document.getElementById('poll-meta').innerHTML = 'Created ' + getTimeAgo(poll.created_at);
+
+        document.getElementById('vote-options').innerHTML = options.map(o =>
+          `<button class="vote-btn" onclick="castVote('${o.id}')">${escapeHtml(o.label)}</button>`
+        ).join('');
+
+      } catch (err) {
+        loading.style.display = 'none';
+        error.style.display = '';
+        error.textContent = 'Failed to load poll.';
+        console.error('Load poll error:', err);
+      }
+    }
+
+    // ---- Cast a vote (click-to-submit, no confirmation) ----
+    async function castVote(optionId) {
+      // Disable all vote buttons immediately
+      document.querySelectorAll('.vote-btn').forEach(b => { b.disabled = true; });
+
+      try {
+        await api('/rest/v1/votes', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=representation' },
+          body: JSON.stringify({
+            poll_id: DEMO_POLL_ID,
+            option_id: optionId,
+            voter_id: voterId
+          })
+        });
+        myVotedOptionId = optionId;
+      } catch (err) {
+        // 409 or duplicate — silently show results
+        if (err.status === 409 || (err.message && err.message.includes('duplicate'))) {
+          myVotedOptionId = optionId;
+        } else {
+          console.error('Vote error:', err);
+          document.querySelectorAll('.vote-btn').forEach(b => { b.disabled = false; });
+          return;
+        }
+      }
+
+      // Fetch poll data and transition to results
+      try {
+        const polls = await api('/rest/v1/polls?id=eq.' + DEMO_POLL_ID + '&limit=1');
+        if (polls && polls.length > 0) {
+          showResults(polls[0]);
+        }
+      } catch (err) {
+        console.error('Failed to load results:', err);
+      }
+    }
+
+    // ---- Render results screen ----
+    async function showResults(poll) {
+      const options = cachedOptions || await api('/rest/v1/options?poll_id=eq.' + poll.id + '&order=sort_order.asc');
+      cachedOptions = options;
+
+      const votes = await api('/rest/v1/votes?poll_id=eq.' + poll.id + '&select=option_id');
+
+      document.getElementById('results-question').textContent = poll.title;
+
+      const totalVotes = votes.length;
+      document.getElementById('results-meta').innerHTML =
+        totalVotes + ' vote' + (totalVotes !== 1 ? 's' : '') + ' &middot; Created ' + getTimeAgo(poll.created_at);
+
+      // Count votes per option
+      const voteCounts = {};
+      options.forEach(o => { voteCounts[o.id] = 0; });
+      votes.forEach(v => {
+        if (voteCounts[v.option_id] !== undefined) voteCounts[v.option_id]++;
+      });
+
+      renderBars(options, voteCounts, totalVotes);
+      showScreen('results');
+      startPolling(poll);
+    }
+
+    function renderBars(options, voteCounts, totalVotes) {
+      const maxVotes = Math.max(...Object.values(voteCounts), 1);
+      const container = document.getElementById('results-container');
+
+      let html = `
+        <div class="results-header">
+          <h3><span class="live-dot"></span>Live Results</h3>
+          <span class="total-votes">${totalVotes} total vote${totalVotes !== 1 ? 's' : ''}</span>
+        </div>`;
+
+      options.forEach(o => {
+        const count = voteCounts[o.id] || 0;
+        const pct = totalVotes > 0 ? Math.round((count / totalVotes) * 100) : 0;
+        const widthPct = totalVotes > 0 ? (count / maxVotes) * 100 : 0;
+        const isWinner = count === maxVotes && count > 0;
+        const isMyVote = myVotedOptionId === o.id;
+        const pctInside = widthPct > 15;
+
+        html += `
+          <div class="result-row">
+            <div class="result-label">
+              <span class="option-name">
+                ${escapeHtml(o.label)}${isMyVote ? '<span class="your-vote-badge">Your vote</span>' : ''}
+              </span>
+              <span class="option-stats">${count} vote${count !== 1 ? 's' : ''}</span>
+            </div>
+            <div style="display:flex;align-items:center">
+              <div class="bar-track">
+                <div class="bar-fill${isMyVote ? ' my-vote' : ''}${isWinner ? ' winner' : ''}" style="width:${widthPct}%">
+                  ${pctInside ? `<span class="bar-percent">${pct}%</span>` : ''}
+                </div>
+              </div>
+              ${!pctInside ? `<span class="bar-percent outside">${pct}%</span>` : ''}
+            </div>
+          </div>`;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // ---- Auto-refresh results every 4 seconds ----
+    function startPolling(poll) {
+      if (pollInterval) clearInterval(pollInterval);
+      pollInterval = setInterval(async () => {
+        try {
+          const votes = await api('/rest/v1/votes?poll_id=eq.' + poll.id + '&select=option_id');
+          const options = cachedOptions || await api('/rest/v1/options?poll_id=eq.' + poll.id + '&order=sort_order.asc');
+
+          const totalVotes = votes.length;
+          const voteCounts = {};
+          options.forEach(o => { voteCounts[o.id] = 0; });
+          votes.forEach(v => {
+            if (voteCounts[v.option_id] !== undefined) voteCounts[v.option_id]++;
+          });
+
+          document.getElementById('results-meta').innerHTML =
+            totalVotes + ' vote' + (totalVotes !== 1 ? 's' : '') + ' &middot; Created ' + getTimeAgo(poll.created_at);
+
+          renderBars(options, voteCounts, totalVotes);
+        } catch (err) {
+          console.error('Polling error:', err);
+        }
+      }, CONFIG.POLL_INTERVAL);
+    }
+
+    // ---- Init: load the demo poll ----
+    loadPoll();
+  </script>
+</body>
+</html>

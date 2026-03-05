@@ -4,6 +4,9 @@ frontend:
     preBuild:
       commands:
         - cp -r src public/src
+        - cp -r templates/utility public/templates/utility
+        - cp -r templates/games public/templates/games
+        - cp -r templates/patterns public/templates/patterns
     build:
       commands:
         - echo "Static site — no build step needed"

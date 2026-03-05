@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="4" fill="#FFFFFF" stroke="#E5E7EB" stroke-width="1"/>
+  <!-- > prompt -->
+  <text x="2" y="23" font-family="monospace" font-size="20" font-weight="bold" fill="#0066cc">&gt;</text>
+  <!-- hammer -->
+  <g transform="translate(16, 6) rotate(35, 8, 10)">
+    <!-- handle -->
+    <rect x="7" y="10" width="3" height="14" rx="1" fill="#374151"/>
+    <!-- head -->
+    <rect x="2" y="5" width="13" height="7" rx="2" fill="#0066cc"/>
+  </g>
+</svg>

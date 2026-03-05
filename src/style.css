@@ -214,6 +214,26 @@ td {
 
 tr:hover td { background: rgba(0, 102, 204, 0.03); }
 
+/* ---- Top banner (back to AI page) ---- */
+.top-banner {
+  text-align: center;
+  padding: 10px 16px;
+  margin: 0;
+  background: #F3F4F6;
+  font-size: 13px;
+  font-family: 'JetBrains Mono', monospace;
+  border-bottom: 1px solid #E5E7EB;
+}
+
+.top-banner a {
+  color: #0066cc;
+  text-decoration: none;
+}
+
+.top-banner a:hover {
+  text-decoration: underline;
+}
+
 /* ---- Site header ---- */
 .site-header {
   display: flex;

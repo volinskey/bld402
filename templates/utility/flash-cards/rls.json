@@ -3,9 +3,9 @@
     {
       "template": "user_owns_rows",
       "tables": [
-        { "table": "decks" },
-        { "table": "cards" },
-        { "table": "progress" }
+        { "table": "decks", "owner_column": "user_id" },
+        { "table": "cards", "owner_column": "deck_id" },
+        { "table": "progress", "owner_column": "user_id" }
       ]
     }
   ],

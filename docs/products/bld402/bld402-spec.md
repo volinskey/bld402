@@ -191,7 +191,7 @@ All showcase apps live at `{app-name}.run402.com`:
 | Trivia Night | `trivia` | https://trivia.run402.com | Live |
 | Voting Booth | `vote` | https://vote.run402.com | Live |
 | Paste Locker | `paste` | https://paste.run402.com | Live |
-| Micro-Blog | `blog` | https://blog.run402.com | To build |
+| Micro-Blog | `microblog` | https://microblog.run402.com | To build |
 | Photo Wall | `wall` | https://wall.run402.com | To build |
 | Secret Santa | `santa` | https://santa.run402.com | To build |
 | AI Sticker Maker | `stickers` | https://stickers.run402.com | To build |
@@ -385,7 +385,7 @@ Secure pastebin with server-side password hashing via Lambda function.
 
 **Seed data:** 3 example notes pre-created: one public code snippet, one public plain text, one password-protected (password: "demo")
 
-#### App 7: Micro-Blog (`blog.run402.com`)
+#### App 7: Micro-Blog (`microblog.run402.com`)
 
 Short-form posts with optional image attachments — public feed, authenticated posting. The Micro-Blog template prominently offers vanity subdomain selection during deployment — "Pick a name for your blog: `yourname.run402.com`" — because a blog URL is your identity.
 
@@ -745,7 +745,7 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - [ ] bld402 adds zero fees to any transaction.
 
 ### Live Showcase Apps (F12)
-- [ ] All 13 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, vote.run402.com, paste.run402.com, hangman.run402.com, trivia.run402.com, blog.run402.com, wall.run402.com, santa.run402.com, stickers.run402.com, cards.run402.com, bingo.run402.com, memory.run402.com.
+- [ ] All 13 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, vote.run402.com, paste.run402.com, hangman.run402.com, trivia.run402.com, microblog.run402.com, wall.run402.com, santa.run402.com, stickers.run402.com, cards.run402.com, bingo.run402.com, memory.run402.com.
 - [ ] Each app was built using the bld402 workflow and its corresponding template.
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.

@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="400" height="260">
+  <!-- Browser chrome -->
+  <rect width="400" height="260" rx="8" fill="#f8f9fa" stroke="#e0e0e0"/>
+  <rect width="400" height="28" rx="8" fill="#fff" stroke="#e0e0e0"/>
+  <circle cx="16" cy="14" r="5" fill="#ff5f57"/>
+  <circle cx="32" cy="14" r="5" fill="#febc2e"/>
+  <circle cx="48" cy="14" r="5" fill="#28c840"/>
+  <!-- Header -->
+  <rect y="28" width="400" height="30" fill="#fff"/>
+  <text x="16" y="48" font-family="sans-serif" font-size="13" font-weight="bold" fill="#1a1a1a">Flash Cards</text>
+  <text x="320" y="48" font-family="sans-serif" font-size="10" fill="#888">Deck: Spanish</text>
+  <!-- Progress bar -->
+  <rect x="16" y="66" width="368" height="6" rx="3" fill="#e0e0e0"/>
+  <rect x="16" y="66" width="180" height="6" rx="3" fill="#0066cc"/>
+  <text x="200" y="64" font-family="sans-serif" font-size="8" fill="#888">7 / 15</text>
+  <!-- Main card -->
+  <rect x="60" y="84" width="280" height="120" rx="12" fill="#fff" stroke="#d0dbe5" stroke-width="2"/>
+  <text x="200" y="140" font-family="sans-serif" font-size="16" fill="#1a1a1a" text-anchor="middle">Buenos dias</text>
+  <text x="200" y="160" font-family="sans-serif" font-size="10" fill="#aaa" text-anchor="middle">Tap to flip</text>
+  <!-- Action buttons -->
+  <rect x="80" y="216" width="80" height="30" rx="6" fill="#ffebee" stroke="#ef5350"/>
+  <text x="120" y="235" font-family="sans-serif" font-size="10" fill="#c62828" text-anchor="middle">Again</text>
+  <rect x="170" y="216" width="60" height="30" rx="6" fill="#fff3e0" stroke="#ffa726"/>
+  <text x="200" y="235" font-family="sans-serif" font-size="10" fill="#e65100" text-anchor="middle">Hard</text>
+  <rect x="240" y="216" width="80" height="30" rx="6" fill="#e8f5e9" stroke="#66bb6a"/>
+  <text x="280" y="235" font-family="sans-serif" font-size="10" fill="#2e7d32" text-anchor="middle">Easy</text>
+</svg>

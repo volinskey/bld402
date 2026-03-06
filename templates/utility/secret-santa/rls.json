@@ -3,7 +3,7 @@
     {
       "template": "user_owns_rows",
       "tables": [
-        { "table": "members" }
+        { "table": "members", "owner_column": "user_id" }
       ]
     },
     {

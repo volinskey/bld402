@@ -9,7 +9,7 @@
     {
       "template": "user_owns_rows",
       "tables": [
-        { "table": "photos" }
+        { "table": "photos", "owner_column": "user_id" }
       ]
     }
   ],

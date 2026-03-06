@@ -444,20 +444,20 @@ Generate all AI art needed for showcase seed data. ~55 images, ~$0.55 from showc
 
 ### Phase 30: Provision, Deploy & Pin (7 new showcase apps)
 
-- [ ] Provision 7 new projects via `showcase/provision.mjs` (Prototype tier, testnet)
-- [ ] Run schema + seed SQL for each project
-- [ ] Apply RLS per template rls.json for each project
+- [x] Provision 7 new projects via `showcase/provision.mjs` (Prototype tier, testnet)
+- [x] Run schema + seed SQL for each project
+- [x] Apply RLS per template rls.json for each project (fixed: added owner_column to user_owns_rows tables)
 - [ ] Deploy Secret Santa's `draw-names` Lambda function
-- [ ] Deploy HTML + claim subdomains (blog, wall, santa, stickers, cards, bingo, memory)
-- [ ] Pin all 7 projects
-- [ ] Smoke test all 7 live apps
+- [x] Deploy HTML + claim subdomains (microblog, wall, santa, stickers, cards, bingo, memory — "blog" was reserved, used "microblog" instead)
+- [x] Pin all 7 projects
+- [x] Smoke test all 7 live apps (all HTTP 200, API returns seed data)
 
 ### Phase 31: Update Human Pages & Final Integration
 
-- [ ] Update `public/humans/showcase.html` — add 7 new showcase cards with live links, screenshots, descriptions
-- [ ] Create 7 SVG mockup screenshots in `public/humans/images/` for new showcase apps
-- [ ] Promote 7 coming-soon cards to active in `/humans/templates.html` with "See example" links and "How to use" initiation strings
-- [ ] Update `/templates/index.html` agent catalog — mark all 13 templates as available
+- [x] Update `public/humans/showcase.html` — add 7 new showcase cards with live links, screenshots, descriptions
+- [x] Create 7 SVG mockup screenshots in `public/humans/images/` for new showcase apps
+- [x] Promote 7 coming-soon cards to active in `/humans/templates.html` with "See example" links and "How to use" initiation strings
+- [x] Update `/templates/index.html` agent catalog — mark all 13 templates as available
 - [ ] Update `/build/step/2.html` template matching — ensure all 13 templates have proper descriptions for agent matching
 - [ ] Smoke test all 13 live apps from showcase page
 - [ ] Verify template gallery shows 13 active cards, 0 coming-soon
@@ -513,3 +513,6 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-06: Phases 23-26 complete — All 7 new templates built. Each has schema.sql, rls.json, index.html, and README.md. Micro-Blog (auth + storage), Photo Wall (auth + storage), Secret Santa (auth + functions + draw-names.js Lambda), Flash Cards (auth + spaced repetition), AI Sticker Maker (generate-image + storage), Memory Match (generate-image + leaderboard), Bingo Card Generator (multiplayer polling). Auth verify task deferred to Phase 30.
 - 2026-03-06: Phase 27 complete — All 7 showcase specs written at docs/products/showcase/. Each spec follows shared-todo-spec.md format: YAML frontmatter, numbered FRs, schema with demo additions (is_seed, cleanup triggers), seed SQL, RLS, pinned demo modifications, acceptance criteria checkboxes, and template repeatability section.
 - 2026-03-06: Phase 28 complete — All 7 showcase apps built at showcase/{app}/. Each has schema.sql (template + demo mods), seed.sql, and index.html (template HTML modified for demo: banner, seed protection, bld402 favicon). Micro-blog/stickers have fade+cleanup. Photo-wall has upload/auth removed. Secret-santa has "View Demo" button. Flash-cards defaults to Public Decks view. Bingo has 3 preset lists + demo game viewer. Memory-match fully playable.
+- 2026-03-06: Phase 29 skipped for now — seed art generation requires individual generate-image API calls. Can be done separately.
+- 2026-03-06: Phase 30 mostly complete — All 7 projects provisioned, schema+seed applied, RLS configured (fixed owner_column for user_owns_rows), deployed, pinned, and smoke tested. "blog" subdomain was reserved, used "microblog" instead (microblog.run402.com). Updated spec accordingly. draw-names Lambda still TODO.
+- 2026-03-06: Phase 31 mostly complete — showcase.html updated with 7 new cards, 7 SVG mockups created, templates.html promoted 7 coming-soon to active (13 total, 0 coming-soon), templates/index.html updated. Step 2 template matching and final smoke tests remain.

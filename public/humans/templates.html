@@ -159,38 +159,104 @@
         </div>
       </div>
 
-    </div>
-
-    <h2 style="margin-top:2.5rem;">Coming Soon</h2>
-    <div class="card-grid">
-      <div class="card" style="opacity:0.5;">
+      <div class="card">
         <h3>Micro-Blog</h3>
-        <p>Short-form posts with image attachments. Public feed, authenticated posting. Pick a vanity URL like yourname.run402.com.</p>
+        <p>Short-form posts with image uploads. Public feed, authenticated posting, vanity subdomain.</p>
+        <p style="margin-top:0.75rem;"><a href="https://blog.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=micro-blog and build me a micro-blog</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>Photo Wall</h3>
-        <p>Event photo sharing with a gallery grid. Upload photos, add captions, browse in a lightbox. Auth-gated uploads.</p>
+        <p>Curated photo gallery with lightbox. AI-generated art wall. Auth-gated uploads.</p>
+        <p style="margin-top:0.75rem;"><a href="https://wall.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=photo-wall and build me a photo wall</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>Secret Santa</h3>
-        <p>Anonymous gift exchange. Create a group, share a join code, draw names server-side so nobody can peek.</p>
+        <p>Anonymous gift exchange with server-side matching and in-app reveal. Create a group, share a join code, draw names.</p>
+        <p style="margin-top:0.75rem;"><a href="https://santa.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=secret-santa and build me a secret santa app</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>AI Sticker Maker</h3>
-        <p>Type a prompt, get an AI-generated sticker. Save to a public gallery and browse everyone's creations.</p>
+        <p>Generate AI sticker images from text prompts. Public gallery with likes. Browse everyone's creations.</p>
+        <p style="margin-top:0.75rem;"><a href="https://stickers.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=ai-sticker-maker and build me an AI sticker maker</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>Flash Cards</h3>
-        <p>Create and study decks with spaced repetition. Personal decks with optional public sharing.</p>
+        <p>Study decks with spaced repetition. Create, share, and clone decks. Personal decks with optional public sharing.</p>
+        <p style="margin-top:0.75rem;"><a href="https://cards.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=flash-cards and build me a flash cards app</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>Bingo Card Generator</h3>
-        <p>Host a bingo game with custom items. Players get unique cards, mark items as they're called, auto-detect bingo.</p>
+        <p>Host custom bingo games. Players join with a code and get unique cards. Auto-detect bingo.</p>
+        <p style="margin-top:0.75rem;"><a href="https://bingo.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=bingo-card-generator and build me a bingo card generator</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
-      <div class="card" style="opacity:0.5;">
+
+      <div class="card">
         <h3>Memory Match</h3>
-        <p>Card flip matching game with AI-generated art, difficulty levels, and a leaderboard.</p>
+        <p>Card flip matching game with AI-generated art and leaderboard. Multiple difficulty levels.</p>
+        <p style="margin-top:0.75rem;"><a href="https://memory.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
+        <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
+        <div class="how-to-use">
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
+          <div class="copy-wrap">
+            <code>Fetch https://bld402.com/build/step/1?template=memory-match and build me a memory match game</code>
+            <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+          </div>
+        </div>
       </div>
+
     </div>
 
     <div style="text-align:center; margin-top:3rem; padding:2rem; background:#F9FAFB; border: 1px solid #E5E7EB; border-radius:8px;">

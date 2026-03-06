@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 260" width="400" height="260">
+  <!-- Browser chrome -->
+  <rect width="400" height="260" rx="8" fill="#f8f9fa" stroke="#e0e0e0"/>
+  <rect width="400" height="28" rx="8" fill="#fff" stroke="#e0e0e0"/>
+  <circle cx="16" cy="14" r="5" fill="#ff5f57"/>
+  <circle cx="32" cy="14" r="5" fill="#febc2e"/>
+  <circle cx="48" cy="14" r="5" fill="#28c840"/>
+  <!-- Header -->
+  <rect y="28" width="400" height="30" fill="#1565c0"/>
+  <text x="16" y="48" font-family="sans-serif" font-size="13" font-weight="bold" fill="#fff">Bingo Card Generator</text>
+  <text x="330" y="48" font-family="sans-serif" font-size="9" fill="#bbdefb">Room: FUN-42</text>
+  <!-- BINGO header row -->
+  <text x="104" y="74" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="middle">B</text>
+  <text x="152" y="74" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="middle">I</text>
+  <text x="200" y="74" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="middle">N</text>
+  <text x="248" y="74" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="middle">G</text>
+  <text x="296" y="74" font-family="sans-serif" font-size="11" font-weight="bold" fill="#1565c0" text-anchor="middle">O</text>
+  <!-- Bingo grid 5x5 -->
+  <rect x="80" y="80" width="240" height="168" rx="4" fill="#fff" stroke="#ccc"/>
+  <!-- Row lines -->
+  <line x1="80" y1="114" x2="320" y2="114" stroke="#e0e0e0"/>
+  <line x1="80" y1="147" x2="320" y2="147" stroke="#e0e0e0"/>
+  <line x1="80" y1="180" x2="320" y2="180" stroke="#e0e0e0"/>
+  <line x1="80" y1="214" x2="320" y2="214" stroke="#e0e0e0"/>
+  <!-- Col lines -->
+  <line x1="128" y1="80" x2="128" y2="248" stroke="#e0e0e0"/>
+  <line x1="176" y1="80" x2="176" y2="248" stroke="#e0e0e0"/>
+  <line x1="224" y1="80" x2="224" y2="248" stroke="#e0e0e0"/>
+  <line x1="272" y1="80" x2="272" y2="248" stroke="#e0e0e0"/>
+  <!-- Some marked cells -->
+  <circle cx="104" cy="97" r="12" fill="#e3f2fd"/>
+  <text x="104" y="101" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle">3</text>
+  <circle cx="200" cy="130" r="12" fill="#e3f2fd"/>
+  <text x="200" y="134" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle">15</text>
+  <!-- Marked (stamped) cells -->
+  <circle cx="152" cy="97" r="12" fill="#4caf50" opacity="0.3"/>
+  <text x="152" y="101" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle">22</text>
+  <circle cx="200" cy="164" r="12" fill="#4caf50" opacity="0.3"/>
+  <text x="200" y="168" font-family="sans-serif" font-size="7" fill="#333" text-anchor="middle">FREE</text>
+  <circle cx="248" cy="97" r="12" fill="#e3f2fd"/>
+  <text x="248" y="101" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle">48</text>
+  <circle cx="296" cy="130" r="12" fill="#4caf50" opacity="0.3"/>
+  <text x="296" y="134" font-family="sans-serif" font-size="9" fill="#333" text-anchor="middle">61</text>
+</svg>

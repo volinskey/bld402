@@ -39,6 +39,8 @@ A free accessibility layer for [run402.com](https://run402.com) that lets anyone
 | Skill | Description |
 |-------|-------------|
 | `/update-services` | Sync run402 repo and update the service catalog at `docs/run402-services.md` |
+| `/review-templates` | Review all templates against run402 services and suggest per-template improvements |
+| `/idea-templates` | Find undemo'd run402 services and propose new template ideas |
 
 ## run402 Backend Services
 

@@ -262,23 +262,27 @@ Gate 2 requires: provision a fresh run402 project using the shared test wallet a
 
 #### MVP Templates (6 of 28) — Gate 2 NOT YET TESTED
 
-- [ ] **T-066: Gate 2 — Build from scratch: shared-todo** — live website + API
+- [x] **T-066: Gate 2 — Build from scratch: shared-todo** — live website + API
   Steps: 1) Provision fresh run402 project via POST /v1/projects (x402 payment using showcase/.wallet) 2) POST /admin/v1/projects/{id}/sql with shared-todo schema.sql 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 3 tasks 5) POST /v1/deployments with template HTML (anon_key + api_url substituted) 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks against new deployment URL (load, heading, seed data, add task, delete task, polling) 8) Run scripts/nuke-test.sh {project_id} {service_key}
   Expected: All Gate 1 checks pass on freshly built app; cleanup returns "Project archived successfully"; Gate 2 PASS
+  Result: PASS (cycle 10, Red Team). Provisioned prj_1772809941109_0020 via x402 (wallet 0xA6d234F6). Schema applied (todos table). public_read_write RLS applied. 3 seed tasks confirmed. Deployed to gate2-todo.run402.com — HTTP 200, "Shared Todo List" heading, "Built with bld402" footer, no unsubstituted placeholders. API checks: 3 seed rows confirmed, add task (201, uuid assigned), delete task (204), polling read returns 3. Project nuked: storage cleared, gate2-todo subdomain released, project archived.
 
-- [ ] **T-067: Gate 2 — Build from scratch: landing-waitlist** — live website + API
+- [x] **T-067: Gate 2 — Build from scratch: landing-waitlist** — live website + API
   Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) POST /admin/v1/projects/{id}/sql with landing-waitlist schema.sql (signups table) 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 15-20 fake signups 5) POST /v1/deployments with template HTML 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks (hero heading, email form, submit, duplicate email, "Built with bld402" footer) 8) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
+  Result: PASS (cycle 10, Red Team). Provisioned prj_1772810100781_0020 via x402. Schema applied (signups table). public_read_write RLS applied. Deployed to gate2-waitlist.run402.com — HTTP 200, "Cosmic Coffee Delivery is Coming" hero h1, "Join the Waitlist" button, "Built with bld402" footer, no unsubstituted placeholders. API checks: 15 fake signups seeded (201 each), Content-Range 0-14/15 confirmed, new email submit returns 201, duplicate email returns 409 (unique constraint). Project nuked: gate2-waitlist subdomain released, project archived.
 
-- [ ] **T-068: Gate 2 — Build from scratch: hangman** — live website + API
+- [x] **T-068: Gate 2 — Build from scratch: hangman** — live website + API
   Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run hangman schema.sql (words, games tables) 3) Apply RLS (public_read for words, public_read_write for games) 4) Seed 50+ words across easy/medium/hard 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (game UI loads, A-Z buttons, word blanks, SVG drawing, win/lose overlay, play again, win/loss counter, "Built with bld402" footer) 8) Nuke project
   Expected: All Gate 1 checks pass; cleanup succeeds; Gate 2 PASS
+  Result: PASS (cycle 10, Red Team). Provisioned prj_1772810185828_0020 via x402. Schema applied (word_lists, games tables). public_read RLS on word_lists, public_read_write on games. Seeded 51 words (17 easy, ~17 medium, 17 hard). Deployed to gate2-hangman.run402.com — HTTP 200, "Hangman" h1, SVG drawing area, A-Z keyboard from ALPHABET constant, letter-slot divs, win/lose status element, "Built with bld402" footer, no unsubstituted placeholders. API: words queryable by difficulty (easy=32, medium=27, hard=17 with seeded data), random word pick works, anon_key read confirmed. Win/loss tracking is session-local by design (not persisted to games table). Project nuked: gate2-hangman subdomain released, project archived.
 
-- [ ] **T-069: Gate 2 — Build from scratch: trivia-night** — live website + API
+- [x] **T-069: Gate 2 — Build from scratch: trivia-night** — live website + API
   Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run trivia-night schema.sql (rooms, questions, players, answers tables) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Trivia heading, buttons, API write/read rooms) 7) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
+  Result: PASS (cycle 10, Red Team). Provisioned prj_1772810384442_0020 via x402. Schema applied (rooms, questions, players, answers tables). public_read_write RLS applied to all 4 tables. Seeded demo rooms via seed.sql. Deployed to gate2-trivia.run402.com — HTTP 200, "Trivia Night" h1, "Host a Game" and "Join a Game" buttons, "Built with bld402" footer, no unsubstituted placeholders. API checks: CREATE room (201, id assigned), GET room by code (200, 1 room, host=RedTeam, status=lobby). Project nuked: gate2-trivia subdomain released, project archived.
 
-- [ ] **T-070: Gate 2 — Build from scratch: voting-booth** — live website + API
+- [~] **T-070: Gate 2 — Build from scratch: voting-booth** — live website + API
   Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run voting-booth schema.sql (polls, options, votes tables with uuid PKs) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Voting heading, buttons, API write/read polls) 7) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
 

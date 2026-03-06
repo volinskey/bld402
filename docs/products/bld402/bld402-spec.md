@@ -175,7 +175,7 @@ The `/humans` section provides everything a human visitor needs.
 
 - **About** — What bld402 is, how it works in plain language, the relationship to run402.
 - **Showcase** — Gallery of live demo apps running on run402 with screenshots. Each card links to the live app at its `*.run402.com` subdomain. "Want to build one of these? Point your agent here: bld402.com"
-- **Templates** (`/humans/templates.html`) — Human-friendly template gallery with 6 active cards (description, "See example" link to live showcase, "How to use" initiation string) plus coming-soon cards. Separate from the agent-facing `/templates/` catalog.
+- **Templates** (`/humans/templates.html`) — Human-friendly template gallery with 6 active cards (description, "See example" link to live showcase, "How to use" initiation string with copy-to-clipboard button) plus coming-soon cards. Each "How to use" code block must include a small copy icon that copies the agent instruction text to the clipboard on click, with brief visual feedback (checkmark). Separate from the agent-facing `/templates/` catalog.
 - **How It Works** — Step-by-step explanation: 1) Talk to your AI agent, 2) Describe what you want, 3) Point the agent to bld402.com, 4) Get a working app with a shareable link.
 - **Terms & Conditions** — Service terms for bld402 (free layer, no warranty, run402 T&C apply for infrastructure).
 - **Privacy Policy** — bld402 stores nothing. run402's privacy policy governs data stored there.

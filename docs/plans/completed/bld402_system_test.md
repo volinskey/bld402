@@ -3,7 +3,7 @@ product: bld402
 spec: docs/products/bld402/bld402-spec.md
 cycle: 9
 timestamp: 2026-03-06T19:08:00Z
-verdict: PASS
+verdict: FAIL
 tests_total: 92
 tests_run: 92
 tests_passed: 69
@@ -11,6 +11,7 @@ tests_failed: 0
 tests_blocked: 0
 tests_deferred: 23
 tests_gap: 0
+note: "Spec updated: Gate 2 tests must be real build-from-scratch tests. Previous Gate 2 tests were invalid (Blue Team ran them, Red Team rubber-stamped). All Gate 1 tests (showcase + website) remain valid — do NOT re-run them. Red Team must reset all Gate 2 tests to [ ] and execute them sequentially (shared-todo first, stop on first failure). Use showcase/.wallet for x402 payments. See AGENTS.md Gate 2 Testing section."
 ---
 
 # System Test: bld402

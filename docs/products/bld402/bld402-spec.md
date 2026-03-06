@@ -363,22 +363,39 @@ Create a poll, share the link, see live results.
 
 **Seed data:** Create 1 example poll pre-loaded: "What's the best pizza topping?" with options: Pepperoni, Mushrooms, Pineapple, Extra Cheese, Olives. Pre-populate with 25-30 random votes so the results chart looks active.
 
-#### Validation Requirement
+#### Template Validation — Two-Gate Process
 
-Each showcase app MUST be individually validated using the `/validate` red team process:
-1. Build the app using the bld402 workflow (following the templates)
-2. Deploy to run402 and claim the subdomain
-3. Run `/validate` against the app — red team tests the live deployed app at its `*.run402.com` URL
-4. Fix any failures found by the red team
-5. App is only considered complete when validation passes
+Every template in the spec (all 28) requires **two gates** to be considered fully validated. Both gates must pass.
 
-The system test for each app should verify:
-- The app loads at its subdomain URL
-- All described functionality works (CRUD operations, game logic, polling, etc.)
-- UI matches the spec (layout, responsiveness, branding)
-- Seed data is present
-- Edge cases are handled (empty states, duplicate submissions, invalid input)
-- Mobile viewport works
+**Gate 1: Showcase Test** — Test the existing live showcase deployment at its `*.run402.com` URL.
+- Verify the app loads at its subdomain
+- Verify all described functionality works (CRUD, game logic, polling, etc.)
+- Verify UI matches the spec (layout, responsiveness, branding)
+- Verify seed data is present
+- Verify edge cases (empty states, duplicate submissions, invalid input)
+- Verify mobile viewport works
+
+**Gate 2: Build-from-Scratch Test** — Provision a fresh run402 project, follow the bld402 step pages (steps 1-16) using the template, deploy, and run the **same tests** from Gate 1 against the freshly built app. When both gates pass, nuke the test project via `scripts/nuke-test.sh`. This validates that the template actually works end-to-end when an agent follows the workflow.
+
+**Rules:**
+1. Gate 2 cannot start until Gate 1 passes. If the showcase is broken, fix it first.
+2. A template is only "validated" when BOTH gates pass in the same test cycle.
+3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files (22 of 28 are currently deferred), the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
+4. **Any Blue Team change to a template or its showcase resets both gates to untested.** If the Blue Team modifies any file in `templates/{category}/{name}/` or `showcase/{name}/`, both Gate 1 and Gate 2 for that template must be re-run in the next Red Team cycle. Same applies when a new template is added to the spec.
+5. **Cleanup is mandatory.** Gate 2 projects MUST be nuked after testing. Report the project_id and cleanup status in the system test results. See AGENTS.md for cleanup rules.
+
+**Test plan format for each template:**
+```
+### Template: {name}
+
+- [ ] **T-XXX: Gate 1 — Showcase test ({name}.run402.com)** — live website
+  Steps: ...
+  Expected: ...
+
+- [ ] **T-XXX: Gate 2 — Build from scratch using {name} template** — live website + API
+  Steps: 1) Provision project 2) Run schema.sql 3) Apply RLS 4) Deploy HTML 5) Run Gate 1 tests against new URL 6) Nuke project
+  Expected: Same as Gate 1, plus successful cleanup
+```
 
 ## Acceptance Criteria
 
@@ -431,6 +448,7 @@ The system test for each app should verify:
 - [ ] Each template includes: SQL schema, RLS config, and frontend code (HTML/CSS/JS).
 - [ ] Templates are parameterized so the agent fills in project-specific values.
 - [ ] Common pattern templates (auth, CRUD, file upload, layout) are available separately.
+- [ ] Every built template passes the two-gate validation process (see "Template Validation — Two-Gate Process" in F12).
 
 ### Human Pages (F10)
 - [ ] `/humans` contains: about, showcase, how-it-works, terms, privacy, legal sections.
@@ -450,9 +468,11 @@ The system test for each app should verify:
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.
 - [ ] Each app works on mobile and desktop.
-- [ ] Each app has been individually validated via `/validate` red team testing against its live URL.
+- [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, nuke).
 - [ ] The showcase page links to each live app.
 - [ ] Showcase apps use Hobby tier (not Prototype) so they don't expire.
+- [ ] All 28 templates have lines in the system test plan for both gates. Unbuilt templates are marked blocked, not omitted.
+- [ ] Any Blue Team change to a template or showcase resets it to untested in the test plan.
 
 ## Constraints & Dependencies
 

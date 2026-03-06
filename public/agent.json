@@ -3,6 +3,8 @@
   "product": "bld402",
   "product_url": "https://bld402.com",
   "description": "bld402 is a free accessibility layer for run402.com. It enables anyone to build and deploy a complete web application by describing what they want in plain language. You (the AI agent) navigate this structured workflow to spec, plan, build, deploy, and iterate on the app using run402 infrastructure.",
+  "coding_agent_required": true,
+  "coding_agent_gate": "This workflow requires a coding agent that can create files, run shell commands, and make HTTP requests. If you are a chat-only agent that cannot do these things, STOP and tell the user: 'I'm not a coding agent, so I can't build this for you directly. Please open this link in a coding agent such as Claude Code (claude.ai/code), ChatGPT Codex, Cursor, or Windsurf.'",
   "run402_url": "https://run402.com",
   "guardrails_url": "/build/guardrails",
   "templates_url": "/templates/",

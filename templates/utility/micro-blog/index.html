@@ -111,6 +111,7 @@
     .post-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .post-image {
       margin-top: 0.5rem; border-radius: 8px; max-width: 100%; cursor: pointer;
+      background: #e9ecef; min-height: 100px;
     }
     .post-footer {
       display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;
@@ -220,6 +221,32 @@
     let likedPosts = JSON.parse(localStorage.getItem('liked_posts') || '{}');
 
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // Load storage images with apikey auth (img tags can't send headers)
+    const _blobCache = {};
+    function storageUrl(bucket, path) {
+      return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
+    }
+    async function loadAuthImage(imgEl, bucket, path) {
+      const key = bucket + '/' + path;
+      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
+      try {
+        const res = await fetch(storageUrl(bucket, path), {
+          headers: { 'apikey': CONFIG.ANON_KEY }
+        });
+        if (!res.ok) return;
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        _blobCache[key] = url;
+        imgEl.src = url;
+      } catch(e) { /* image load failed silently */ }
+    }
+    function loadAllStorageImages() {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
+        loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
+      });
+    }
 
     // ---- API helpers ----
     async function api(path, options = {}) {
@@ -434,6 +461,7 @@
         }
 
         feed.innerHTML = posts.map(post => renderPost(post)).join('');
+        loadAllStorageImages();
       } catch (err) {
         feed.innerHTML = '<div class="empty-state"><p>Failed to load posts.</p></div>';
       }
@@ -449,8 +477,7 @@
 
       let imageHtml = '';
       if (post.image_path) {
-        const imgUrl = CONFIG.API_URL + '/storage/v1/object/posts/' + post.image_path;
-        imageHtml = `<img class="post-image" src="${esc(imgUrl)}" alt="Post image" loading="lazy">`;
+        imageHtml = `<img class="post-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image">`;
       }
 
       return `

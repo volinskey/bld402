@@ -208,7 +208,7 @@
   </style>
 </head>
 <body>
-  <div class="demo-banner">This is a live demo — generate your own stickers! Each costs $0.01 in crypto.</div>
+  <div class="demo-banner">This is a showcase demo. Build your own with <a href="https://bld402.com">bld402</a>!</div>
 
   <header>
     <h1>AI Sticker Maker</h1>
@@ -224,7 +224,7 @@
           </div>
           <input type="text" id="prompt-input" placeholder="A cute cat astronaut eating pizza..." maxlength="200" oninput="updateCharCount()">
         </div>
-        <button class="btn btn-primary" id="generate-btn" onclick="generate()">Generate ($0.01)</button>
+        <button class="btn btn-primary" id="generate-btn" onclick="generate()">Generate</button>
       </div>
       <div class="preview" id="preview">
         <img id="preview-img" src="" alt="Generated sticker">
@@ -332,25 +332,7 @@
     }
 
     async function generate() {
-      const prompt = document.getElementById('prompt-input').value.trim();
-      if (!prompt) return;
-
-      const btn = document.getElementById('generate-btn');
-      btn.disabled = true;
-      btn.textContent = 'Generating...';
-      discardPreview();
-
-      try {
-        const result = await generateSticker(prompt);
-        generatedImageUrl = result.image_url;
-        document.getElementById('preview-img').src = generatedImageUrl;
-        document.getElementById('preview').classList.add('visible');
-      } catch (err) {
-        alert('Failed to generate: ' + (err.message || 'Unknown error'));
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Generate ($0.01)';
-      }
+      alert('This is a showcase demo! Build your own AI sticker generator at bld402.com :-)');
     }
 
     function discardPreview() {

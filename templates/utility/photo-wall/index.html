@@ -112,6 +112,7 @@
     }
     .photo-card img {
       width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; display: block;
+      background: #e9ecef;
     }
     .photo-card-info { padding: 0.5rem 0.75rem; }
     .photo-caption {
@@ -254,6 +255,32 @@
     let selectedImage = null;
 
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // Load storage images with apikey auth (img tags can't send headers)
+    const _blobCache = {};
+    function storageUrl(bucket, path) {
+      return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
+    }
+    async function loadAuthImage(imgEl, bucket, path) {
+      const key = bucket + '/' + path;
+      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
+      try {
+        const res = await fetch(storageUrl(bucket, path), {
+          headers: { 'apikey': CONFIG.ANON_KEY }
+        });
+        if (!res.ok) return;
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        _blobCache[key] = url;
+        imgEl.src = url;
+      } catch(e) { /* image load failed silently */ }
+    }
+    function loadAllStorageImages() {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
+        loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
+      });
+    }
 
     // ---- API helpers ----
     async function api(path, options = {}) {
@@ -467,6 +494,7 @@
         }
 
         gallery.innerHTML = '<div class="photo-grid">' + photos.map(photo => renderPhoto(photo)).join('') + '</div>';
+        loadAllStorageImages();
       } catch (err) {
         gallery.innerHTML = '<div class="empty-state"><p>Failed to load photos.</p></div>';
       }
@@ -477,13 +505,12 @@
         month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'
       });
       const isOwner = currentUser && currentUser.id === photo.user_id;
-      const imgUrl = CONFIG.API_URL + '/storage/v1/object/photos/' + photo.image_path;
       const captionText = photo.caption ? esc(photo.caption) : '';
 
       return `
         <div class="photo-card" id="photo-${photo.id}">
-          <img src="${esc(imgUrl)}" alt="${captionText}" loading="lazy"
-               onclick="openLightbox('${esc(imgUrl)}', '${captionText.replace(/'/g, "\\'")}')">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="photos" data-storage-path="${esc(photo.image_path)}" alt="${captionText}"
+               onclick="openLightbox('photos', '${esc(photo.image_path).replace(/'/g, "\\'")}', '${captionText.replace(/'/g, "\\'")}')">
           <div class="photo-card-info">
             ${captionText ? `<div class="photo-caption">${captionText}</div>` : ''}
             <div class="photo-meta">
@@ -495,8 +522,10 @@
     }
 
     // ---- Lightbox ----
-    function openLightbox(src, caption) {
-      document.getElementById('lightbox-img').src = src;
+    function openLightbox(bucket, path, caption) {
+      const imgEl = document.getElementById('lightbox-img');
+      imgEl.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      loadAuthImage(imgEl, bucket, path);
       document.getElementById('lightbox-caption').textContent = caption;
       document.getElementById('lightbox').classList.add('open');
     }

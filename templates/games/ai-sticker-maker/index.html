@@ -135,6 +135,7 @@
       aspect-ratio: 1;
       object-fit: cover;
       display: block;
+      background: #e9ecef;
     }
     .sticker-info {
       padding: 0.5rem 0.65rem;
@@ -237,6 +238,32 @@
     let likedStickers = JSON.parse(localStorage.getItem('liked_stickers') || '{}');
 
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // Load storage images with apikey auth (img tags can't send headers)
+    const _blobCache = {};
+    function storageUrl(bucket, path) {
+      return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
+    }
+    async function loadAuthImage(imgEl, bucket, path) {
+      const key = bucket + '/' + path;
+      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
+      try {
+        const res = await fetch(storageUrl(bucket, path), {
+          headers: { 'apikey': CONFIG.ANON_KEY }
+        });
+        if (!res.ok) return;
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        _blobCache[key] = url;
+        imgEl.src = url;
+      } catch(e) { /* image load failed silently */ }
+    }
+    function loadAllStorageImages() {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
+        loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
+      });
+    }
 
     // ---- API helpers ----
     async function api(path, options = {}) {
@@ -370,19 +397,19 @@
         }
 
         gallery.innerHTML = '<div class="gallery">' + stickers.map(s => renderSticker(s)).join('') + '</div>';
+        loadAllStorageImages();
       } catch (err) {
         gallery.innerHTML = '<div class="empty-state"><p>Failed to load stickers.</p></div>';
       }
     }
 
     function renderSticker(sticker) {
-      const imgUrl = CONFIG.API_URL + '/storage/v1/object/stickers/' + sticker.image_path;
       const isLiked = likedStickers[sticker.id];
       const likeCount = sticker.likes || 0;
 
       return `
         <div class="sticker-card">
-          <img src="${esc(imgUrl)}" alt="${esc(sticker.prompt)}" loading="lazy">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="stickers" data-storage-path="${esc(sticker.image_path)}" alt="${esc(sticker.prompt)}">
           <div class="sticker-info">
             <div class="sticker-prompt">${esc(sticker.prompt)}</div>
             <div class="sticker-meta">

@@ -63,6 +63,33 @@ Full catalog: [`docs/run402-services.md`](docs/run402-services.md)
 | hosting | Marketing Site (S3 + CloudFront) | No |
 | x402 | x402 Payment Gateway | N/A |
 
+## Gate 2 Testing — Build From Scratch
+
+Red Team agents performing Gate 2 template validation (build-from-scratch tests) need to provision run402 projects. This requires x402 payment, which requires a wallet.
+
+### Wallet for Testing
+
+A shared test wallet exists at `showcase/.wallet` (gitignored). It contains a private key for a Base Sepolia testnet wallet with "endless" USDC from the admin faucet. **Red Team agents MAY use this wallet** — this is the only exception to the Red Team's "no source code" rule. The wallet is equivalent to a user bringing their own wallet.
+
+**How to use it:**
+```bash
+# The wallet private key is at:
+showcase/.wallet
+
+# Use it with the existing provisioning scripts:
+node showcase/provision.mjs <app-name>    # Provision a project
+node showcase/run-sql.mjs <app-name> <sql-file>  # Run SQL
+node showcase/deploy.mjs <app-name> <subdomain>  # Deploy + claim subdomain
+```
+
+Or use the key directly with x402 fetch for manual API calls.
+
+### Sequential Testing — Stop on First Failure
+
+Gate 2 tests MUST run **one template at a time, sequentially**. If a template fails Gate 2, STOP. Do not proceed to the next template. Fix the failing template first, then continue. This prevents wasting time building 5 more apps when the first one is broken.
+
+**Order:** shared-todo → landing-waitlist → hangman → trivia-night → voting-booth → paste-locker
+
 ## Testing Cleanup — MANDATORY
 
 **Every test that provisions a run402 project MUST clean it up before the session ends.** No orphaned projects.

@@ -383,6 +383,8 @@ Every template in the spec (all 28) requires **two gates** to be considered full
 3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files (22 of 28 are currently deferred), the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
 4. **Any Blue Team change to a template or its showcase resets both gates to untested.** If the Blue Team modifies any file in `templates/{category}/{name}/` or `showcase/{name}/`, both Gate 1 and Gate 2 for that template must be re-run in the next Red Team cycle. Same applies when a new template is added to the spec.
 5. **Cleanup is mandatory.** Gate 2 projects MUST be nuked after testing. Report the project_id and cleanup status in the system test results. See AGENTS.md for cleanup rules.
+6. **Sequential, stop on first failure.** Gate 2 tests run one template at a time. If a template fails, STOP — do not proceed to the next template. Fix the failure first, then continue. Order: shared-todo → landing-waitlist → hangman → trivia-night → voting-booth → paste-locker.
+7. **Wallet for Gate 2.** The Red Team uses the shared test wallet at `showcase/.wallet` for x402 payments. This is the only exception to the "no source code" rule — the wallet is equivalent to a user's own wallet. See AGENTS.md for usage details.
 
 **Test plan format for each template:**
 ```

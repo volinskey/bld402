@@ -150,7 +150,6 @@
       width: 100%; height: 100%; object-fit: cover;
       background: #e9ecef;
     }
-    .card-back img:not([src]) { color: transparent; }
     .card-cell.matched { cursor: default; }
     .card-cell.matched .card-back { border-color: #28a745; }
 
@@ -375,7 +374,8 @@
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -507,7 +507,7 @@
         <div class="card-cell" data-index="${i}" onclick="flipCard(${i})">
           <div class="card-inner">
             <div class="card-front">?</div>
-            <div class="card-back"><img data-storage-bucket="memory-match" data-storage-path="${esc(card.imagePath)}" alt="Card"></div>
+            <div class="card-back"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="memory-match" data-storage-path="${esc(card.imagePath)}" alt="Card"></div>
           </div>
         </div>
       `).join('');

@@ -51,7 +51,6 @@
       width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; display: block;
       background: #e9ecef;
     }
-    .photo-card img:not([src]) { color: transparent; }
     .photo-card-info { padding: 0.5rem 0.75rem; }
     .photo-caption {
       font-size: 0.85rem; line-height: 1.4; word-break: break-word;
@@ -164,7 +163,8 @@
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -215,7 +215,7 @@
 
       return `
         <div class="photo-card" id="photo-${photo.id}">
-          <img data-storage-bucket="photos" data-storage-path="${esc(photo.image_path)}" alt="${captionText}"
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="photos" data-storage-path="${esc(photo.image_path)}" alt="${captionText}"
                onclick="openLightbox(${index})">
           <div class="photo-card-info">
             ${captionText ? `<div class="photo-caption">${captionText}</div>` : ''}

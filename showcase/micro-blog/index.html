@@ -122,7 +122,6 @@
       margin-top: 0.5rem; border-radius: 8px; max-width: 100%; cursor: pointer;
       background: #e9ecef; min-height: 100px;
     }
-    .post-image:not([src]) { color: transparent; }
     .post-footer {
       display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;
       padding-top: 0.5rem; border-top: 1px solid #f0f0f0;
@@ -263,7 +262,8 @@
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -507,7 +507,7 @@
 
       let imageHtml = '';
       if (post.image_path) {
-        imageHtml = `<img class="post-image" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image">`;
+        imageHtml = `<img class="post-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image">`;
       }
 
       // Demo badge for seed posts

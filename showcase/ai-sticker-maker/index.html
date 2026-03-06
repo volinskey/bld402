@@ -145,7 +145,6 @@
       display: block;
       background: #e9ecef;
     }
-    .sticker-card img:not([src]) { color: transparent; }
     .sticker-info {
       padding: 0.5rem 0.65rem;
       display: flex;
@@ -279,7 +278,8 @@
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+        if (img.src && !img.src.startsWith('data:')) return;
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -450,7 +450,7 @@
 
       return `
         <div class="sticker-card"${fadeStyle}>
-          <img data-storage-bucket="stickers" data-storage-path="${esc(sticker.image_path)}" alt="${esc(sticker.prompt)}">
+          <img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="stickers" data-storage-path="${esc(sticker.image_path)}" alt="${esc(sticker.prompt)}">
           <div class="sticker-info">
             <div class="sticker-prompt">${esc(sticker.prompt)}${badgeHtml}</div>
             <div class="sticker-meta">

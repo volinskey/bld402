@@ -368,17 +368,17 @@ Wallet credentials from `showcase/.wallet`. Admin key from AWS Secrets Manager.
 
 Two new reusable pattern snippets for services not yet covered by patterns.
 
-- [ ] Build pattern: `functions.js` — invoke a deployed Lambda function from the client: `callFunction(name, body, serviceKey)` helper with error handling, timeout, and retry on 5xx. Reference: Paste Locker's function calls.
-- [ ] Build pattern: `generate-image.js` — generate an image from a text prompt via `POST /v1/generate-image`, handle x402 payment flow (402 → pay → retry), display result. Include helper for saving generated image to storage bucket.
+- [x] Build pattern: `functions.js` — invoke a deployed Lambda function from the client: `callFunction(name, body, serviceKey)` helper with error handling, timeout, and retry on 5xx. Reference: Paste Locker's function calls.
+- [x] Build pattern: `generate-image.js` — generate an image from a text prompt via `POST /v1/generate-image`, handle x402 payment flow (402 → pay → retry), display result. Include helper for saving generated image to storage bucket.
 
 ### Phase 22: Clean Up Dropped Templates from Website
 
 Remove the 17 dropped templates from the website. Update template counts and galleries.
 
-- [ ] Update `/humans/templates.html` — remove coming-soon cards for all 17 dropped templates. Keep 6 existing active cards. Add 7 new coming-soon cards (Micro-Blog, Photo Wall, Secret Santa, AI Sticker Maker, Flash Cards, Bingo Card Generator, Memory Match) to be promoted to active as each is built.
-- [ ] Update `/templates/index.html` (agent-facing catalog) — remove 17 dropped templates from the listing. Update to show 13 total (6 active + 7 coming soon).
-- [ ] Update `/build/step/2.html` — update the template matching tables from 28 to 13 templates (8 utility + 5 games).
-- [ ] Update `/agent.json` — update template references if any mention the removed templates.
+- [x] Update `/humans/templates.html` — remove coming-soon cards for all 17 dropped templates. Keep 6 existing active cards. Add 7 new coming-soon cards (Micro-Blog, Photo Wall, Secret Santa, AI Sticker Maker, Flash Cards, Bingo Card Generator, Memory Match) to be promoted to active as each is built.
+- [x] Update `/templates/index.html` (agent-facing catalog) — remove 17 dropped templates from the listing. Update to show 13 total (6 active + 7 coming soon).
+- [x] Update `/build/step/2.html` — update the template matching tables from 28 to 13 templates (8 utility + 5 games).
+- [x] Update `/agent.json` — no changes needed, agent.json had no references to dropped templates.
 
 ### Phase 23: Build Templates — Auth Proving Ground (Micro-Blog)
 

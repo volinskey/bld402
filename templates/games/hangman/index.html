@@ -186,7 +186,7 @@
     }
 
     async function getRandomWord() {
-      const words = await api('/rest/v1/word_lists?select=word&limit=50');
+      const words = await api('/rest/v1/words?select=word&limit=50');
       return words[Math.floor(Math.random() * words.length)].word.toLowerCase();
     }
 

@@ -5,7 +5,7 @@ Secure pastebin with server-side password hashing via run402 functions.
 ## Customization Points
 
 - `{{APP_NAME}}` — App title
-- `{{API_URL}}` — run402 API URL (https://api.run402.com)
+- `{{API_URL}}` — run402 API URL (https://run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 
 ## Features

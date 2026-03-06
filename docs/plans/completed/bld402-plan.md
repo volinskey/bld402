@@ -3,11 +3,11 @@
 **Owner:** unassigned
 **Created:** 2026-03-04
 **Status:** Complete
-**Completed:** 2026-03-05
+**Completed:** 2026-03-06
 **Spec:** docs/products/bld402/bld402-spec.md
 **Spec-Version:** 0.2.0
 **Source:** spec
-**Cycle:** 2
+**Cycle:** 3
 
 ## Legend
 - `[ ]` Todo | `[~]` In Progress | `[x]` Done
@@ -276,12 +276,33 @@ First showcase app to use run402 server-side functions. Demonstrates bcrypt pass
 - [x] Pin project — pinned: true
 - [x] Smoke test at paste.run402.com — verified: password protection, wrong password rejection, no-password notes, burn-after-read, 404 for missing notes
 
+### Phase 18: Fix Cycle 2 — System Test Cycle 3 Fixes
+
+System test cycle 3: 74 tests, 62 passed, 8 failed, 1 blocked, 4 gaps.
+Findings triaged: 6 accepted, 1 won't-fix (F-004), 1 auto-resolved by another fix (F-008).
+
+- [x] Fix F-001 (P2): Root page "Humans go here" link text and placement — Changed link text from "Humans &mdash; click here" to "Humans go here." and moved it above the hero badge to be the first visible line in the hero div. Verified: link text is exactly "Humans go here.", links to /humans/, precedes hero badge and h1.
+
+- [x] Fix F-002 + F-008 (P1): Step 2 missing Paste Locker from utility template list — Added Paste Locker as row #16 in the utility templates table. Renumbered games table from #17 (Hangman) through #28 (Tic-Tac-Toe). Verified: utility table has 16 rows ending with Paste Locker, games table has 12 rows numbered 17-28, total is 28.
+
+- [x] Fix F-003 (P1): Guardrails page incorrectly states server-side compute is impossible — Updated "Not Possible" row to "Server-side compute beyond run402 functions" with accurate user/agent guidance acknowledging run402 functions are supported. Added "run402 serverless functions (Node.js)" to the CAN do list. Verified: page no longer claims everything runs in the browser; correctly states run402 functions are supported.
+
+- [x] Fix F-004 (Won't Fix): Only 6 of 28 templates have implementation files — No code change. 22 templates deferred to post-MVP per plan. Accepted scope boundary.
+
+- [x] Fix F-005 (P2): Hangman template schema does not match spec — Rewrote schema.sql: renamed `word_lists` to `words` with serial PK, added `word_id` FK to games table, removed `max_wrong`, added `hard` difficulty level, expanded to 54 seed words (17 easy, 17 medium, 20 hard). Updated index.html API path from `/rest/v1/word_lists` to `/rest/v1/words`. Updated rls.json table reference. Rewrote README.md to reflect new schema. Verified: schema matches spec exactly, 54 seed words across 3 difficulty levels.
+
+- [x] Fix F-006 (P2): Paste Locker README has wrong API URL — Changed `https://api.run402.com` to `https://run402.com` in README.md. Verified: URL now matches all other templates.
+
+- [x] Fix F-007 (P3): Spec template count inconsistency (27 vs 28) — Updated spec AC from "All 27 templates" to "All 28 templates". Verified: AC count matches F9 table count (16 utility + 12 games = 28).
+
+- [x] Fix TR-001 (Blocked): ?template= query parameter not handled by step 1 — Added inline script to step 1 that reads `?template=` query parameter and displays a visible "Pre-selected template: {name}" banner in the agent-instructions section. Verified: banner div is hidden by default, shown with template name when parameter is present.
+
 ---
 
 ## Deferred
 
 ### Remaining 22 Templates (post-MVP)
-Templates 3-15 (utility) and 18-27 (games) per the spec. To be added in a future plan cycle after MVP validation.
+Templates 3-15 (utility) and 19-28 (games) per the spec. To be added in a future plan cycle after MVP validation.
 
 ### MCP Server Integration
 Per spec open question: only if installation can be made seamless. Deferred until agent testing reveals whether it's needed.
@@ -319,3 +340,5 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-05: **Plan complete.** All 15 phases implemented across 2 cycles. 5 live showcase apps at todo/waitlist/hangman/trivia/vote.run402.com. All templates updated with viewport fitting. Ready for Red Team validation.
 - 2026-03-05: Phase 16 complete — Paste Locker (6th showcase app) fully deployed at paste.run402.com. First app to use run402 server-side functions (bcrypt password hashing). All smoke tests passed: password protection, burn-after-read, expiry, demo note (code: demo1234, password: demo).
 - 2026-03-05: Phase 17 complete — Templates page redesign + human/agent separation. Created `/humans/templates.html` (human-facing gallery with 6 active cards, "See example" links, "How to use" initiation strings, coming-soon cards). Simplified `/templates/index.html` to agent-only catalog (no nav chrome). Updated nav links in all 6 human pages. Updated showcase CTA link. Updated spec F10.
+- 2026-03-06: System test cycle 3 returned FAIL (74 tests: 62 passed, 8 failed, 1 blocked, 4 gaps). Triaged 8 failures: accepted 6 for fix (F-001, F-002, F-003, F-005, F-006, F-007), won't-fix 1 (F-004 — 22 deferred templates are accepted scope), auto-resolved 1 (F-008 — fixed by F-002). Accepted 1 blocked test (TR-001). 4 gaps (GAP-001 live app testing) deferred — requires live HTTP access. Added Phase 18: Fix Cycle 2 with 8 tasks.
+- 2026-03-06: Phase 18 complete — Fix Cycle 2: 6 fixes implemented, 1 won't-fix documented, 1 testability improvement (TR-001). Files changed: public/index.html, public/build/step/1.html, public/build/step/2.html, public/build/guardrails.html, templates/games/hangman/schema.sql, templates/games/hangman/index.html, templates/games/hangman/README.md, templates/games/hangman/rls.json, templates/utility/paste-locker/README.md, docs/products/bld402/bld402-spec.md.

@@ -9,7 +9,7 @@
     {
       "template": "public_read",
       "tables": [
-        { "table": "word_lists" }
+        { "table": "words" }
       ]
     }
   ]

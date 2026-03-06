@@ -1,46 +1,82 @@
 -- Hangman — Database Schema
--- Stores game state for solo or pass-and-play hangman
+-- Stores word list and game state for solo or pass-and-play hangman
+
+CREATE TABLE words (
+  id serial PRIMARY KEY,
+  word text NOT NULL,
+  category text,
+  difficulty text DEFAULT 'medium'
+);
 
 CREATE TABLE games (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  word text NOT NULL,
+  id serial PRIMARY KEY,
+  word_id integer REFERENCES words(id),
   guesses text[] DEFAULT '{}',
-  max_wrong integer DEFAULT 6,
   status text DEFAULT 'playing',
   created_at timestamptz DEFAULT now()
 );
 
-CREATE TABLE word_lists (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  word text NOT NULL,
-  category text DEFAULT 'general',
-  difficulty text DEFAULT 'medium'
-);
+-- Seed with 50+ words across easy/medium/hard difficulty levels
 
--- Seed with default words
-INSERT INTO word_lists (word, category, difficulty) VALUES
-  ('elephant', 'animals', 'easy'),
-  ('butterfly', 'animals', 'medium'),
-  ('crocodile', 'animals', 'medium'),
-  ('penguin', 'animals', 'easy'),
-  ('adventure', 'general', 'medium'),
-  ('birthday', 'general', 'easy'),
-  ('chocolate', 'food', 'medium'),
-  ('dinosaur', 'animals', 'easy'),
-  ('fireworks', 'general', 'medium'),
-  ('giraffe', 'animals', 'easy'),
-  ('hamburger', 'food', 'easy'),
-  ('icecream', 'food', 'easy'),
-  ('jellyfish', 'animals', 'medium'),
-  ('keyboard', 'objects', 'easy'),
-  ('lemonade', 'food', 'easy'),
-  ('mountain', 'nature', 'easy'),
-  ('notebook', 'objects', 'easy'),
-  ('octopus', 'animals', 'easy'),
-  ('pineapple', 'food', 'medium'),
-  ('rainbow', 'nature', 'easy'),
-  ('sandwich', 'food', 'easy'),
-  ('telescope', 'objects', 'medium'),
-  ('umbrella', 'objects', 'easy'),
-  ('volcano', 'nature', 'medium'),
-  ('waterfall', 'nature', 'medium');
+-- Easy (4-5 letters)
+INSERT INTO words (word, category, difficulty) VALUES
+  ('cat', 'animals', 'easy'),
+  ('dog', 'animals', 'easy'),
+  ('fish', 'animals', 'easy'),
+  ('bird', 'animals', 'easy'),
+  ('book', 'objects', 'easy'),
+  ('tree', 'nature', 'easy'),
+  ('star', 'nature', 'easy'),
+  ('moon', 'nature', 'easy'),
+  ('cake', 'food', 'easy'),
+  ('rain', 'nature', 'easy'),
+  ('frog', 'animals', 'easy'),
+  ('lamp', 'objects', 'easy'),
+  ('door', 'objects', 'easy'),
+  ('bear', 'animals', 'easy'),
+  ('milk', 'food', 'easy'),
+  ('ship', 'objects', 'easy'),
+  ('wolf', 'animals', 'easy');
+
+-- Medium (6-7 letters)
+INSERT INTO words (word, category, difficulty) VALUES
+  ('garden', 'nature', 'medium'),
+  ('puzzle', 'objects', 'medium'),
+  ('rocket', 'objects', 'medium'),
+  ('castle', 'objects', 'medium'),
+  ('bridge', 'objects', 'medium'),
+  ('planet', 'nature', 'medium'),
+  ('sunset', 'nature', 'medium'),
+  ('monkey', 'animals', 'medium'),
+  ('dragon', 'animals', 'medium'),
+  ('turtle', 'animals', 'medium'),
+  ('pirate', 'general', 'medium'),
+  ('basket', 'objects', 'medium'),
+  ('cheese', 'food', 'medium'),
+  ('desert', 'nature', 'medium'),
+  ('frozen', 'general', 'medium'),
+  ('hammer', 'objects', 'medium'),
+  ('jungle', 'nature', 'medium');
+
+-- Hard (8+ letters)
+INSERT INTO words (word, category, difficulty) VALUES
+  ('elephant', 'animals', 'hard'),
+  ('dinosaur', 'animals', 'hard'),
+  ('fireworks', 'general', 'hard'),
+  ('adventure', 'general', 'hard'),
+  ('butterfly', 'animals', 'hard'),
+  ('crocodile', 'animals', 'hard'),
+  ('pineapple', 'food', 'hard'),
+  ('telescope', 'objects', 'hard'),
+  ('chocolate', 'food', 'hard'),
+  ('jellyfish', 'animals', 'hard'),
+  ('waterfall', 'nature', 'hard'),
+  ('lemonade', 'food', 'hard'),
+  ('mountain', 'nature', 'hard'),
+  ('notebook', 'objects', 'hard'),
+  ('sandwich', 'food', 'hard'),
+  ('umbrella', 'objects', 'hard'),
+  ('keyboard', 'objects', 'hard'),
+  ('penguin', 'animals', 'hard'),
+  ('rainbow', 'nature', 'hard'),
+  ('volcano', 'nature', 'hard');

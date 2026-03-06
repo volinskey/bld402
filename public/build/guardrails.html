@@ -29,6 +29,7 @@
         <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS, get a shareable URL, SPA support</li>
         <li><strong>Multiple tiers</strong> — Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
         <li><strong>Testnet (free)</strong> — Base Sepolia with faucet for test USDC</li>
+        <li><strong>run402 serverless functions (Node.js)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing)</li>
       </ul>
 
       <h2>What run402 CANNOT do</h2>
@@ -49,9 +50,9 @@
             <td>Claim a subdomain via <code>POST /v1/subdomains</code> in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
           </tr>
           <tr>
-            <td>Server-side code / backend logic / lambdas / edge functions</td>
-            <td>"Everything runs in the browser. There's no way to run code on a server behind the scenes."</td>
-            <td>All logic runs client-side in JavaScript. Use the database for shared state.</td>
+            <td>Server-side compute beyond run402 functions</td>
+            <td>"Most of your app runs in the browser, but for things that need to happen on a server — like password hashing — we can use run402's built-in serverless functions. You can't run your own custom server, though."</td>
+            <td>Use <code>run402 functions</code> (Node.js) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>POST /admin/v1/projects/:id/functions</code>. All other logic runs client-side in JavaScript.</td>
           </tr>
           <tr>
             <td>Real-time WebSocket connections</td>

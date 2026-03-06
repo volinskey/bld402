@@ -427,7 +427,7 @@ The system test for each app should verify:
 - [ ] Memory directives include: project credentials, current step, app spec, deployment URLs.
 
 ### Code Templates (F9)
-- [ ] All 27 templates are available as complete, working apps.
+- [ ] All 28 templates are available as complete, working apps.
 - [ ] Each template includes: SQL schema, RLS config, and frontend code (HTML/CSS/JS).
 - [ ] Templates are parameterized so the agent fills in project-specific values.
 - [ ] Common pattern templates (auth, CRUD, file upload, layout) are available separately.

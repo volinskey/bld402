@@ -1,6 +1,6 @@
 # Hangman Template
 
-Classic word guessing game with SVG hangman drawing. Solo play or pass-and-play with friends. Built-in word list with categories.
+Classic word guessing game with SVG hangman drawing. Solo play or pass-and-play with friends. Built-in word list with categories and difficulty levels.
 
 ## Files
 
@@ -19,7 +19,7 @@ Classic word guessing game with SVG hangman drawing. Solo play or pass-and-play 
 - SVG hangman drawing with progressive reveal
 - On-screen letter keyboard input
 - Word categories (animals, food, nature, objects, general)
-- Difficulty levels (easy, medium)
+- Difficulty levels (easy, medium, hard)
 - Win/lose state detection
 - Pass-and-play multiplayer mode
 - Mobile-responsive layout
@@ -28,14 +28,14 @@ Classic word guessing game with SVG hangman drawing. Solo play or pass-and-play 
 
 Two tables:
 
-- **games** — `id`, `word`, `guesses` (text array), `max_wrong`, `status`, `created_at`
-- **word_lists** — `id`, `word`, `category`, `difficulty` (seeded with 25 default words)
+- **words** — `id` (serial PK), `word` (text), `category` (text), `difficulty` (text: easy/medium/hard). Seeded with 54 default words.
+- **games** — `id` (serial PK), `word_id` (integer FK to words), `guesses` (text array), `status` (text: playing/won/lost), `created_at` (timestamptz)
 
 See `schema.sql` for full table definitions and seed data.
 
 ## RLS
 
 - `public_read_write` on `games` — anyone can create and play games
-- `public_read` on `word_lists` — anyone can read words, only service role can add new ones
+- `public_read` on `words` — anyone can read words, only service role can add new ones
 
 See `rls.json` for policy configuration.

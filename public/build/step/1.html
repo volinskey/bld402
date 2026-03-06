@@ -19,6 +19,19 @@
       <h1>Step 1: Describe Your App</h1>
       <p class="muted small">Phase: spec</p>
 
+      <div id="template-hint" style="display:none; background:#e8f4fd; border:1px solid #b3d9f2; border-radius:6px; padding:0.75rem 1rem; margin-bottom:1rem;">
+        <strong>Pre-selected template:</strong> <span id="template-hint-name"></span>
+      </div>
+      <script>
+        (function() {
+          var p = new URLSearchParams(window.location.search).get('template');
+          if (p) {
+            document.getElementById('template-hint-name').textContent = p;
+            document.getElementById('template-hint').style.display = '';
+          }
+        })();
+      </script>
+
       <div id="context">
         <h2>Context</h2>
         <p>This is the first step. The user wants to build a web app. You have no prior information about what they want.</p>

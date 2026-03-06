@@ -5,13 +5,13 @@ cycle: 9
 timestamp: 2026-03-06T19:08:00Z
 verdict: FAIL
 tests_total: 92
-tests_run: 92
-tests_passed: 69
+tests_run: 86
+tests_passed: 63
 tests_failed: 0
-tests_blocked: 0
+tests_blocked: 6
 tests_deferred: 23
 tests_gap: 0
-note: "Spec updated: Gate 2 tests must be real build-from-scratch tests. Previous Gate 2 tests were invalid (Blue Team ran them, Red Team rubber-stamped). All Gate 1 tests (showcase + website) remain valid — do NOT re-run them. Red Team must reset all Gate 2 tests to [ ] and execute them sequentially (shared-todo first, stop on first failure). Use showcase/.wallet for x402 payments. See AGENTS.md Gate 2 Testing section."
+note: "Gate 2 tests (T-066 to T-071) reset to untested. Previous results were invalid (Blue Team ran them, Red Team rubber-stamped). Red Team must execute them sequentially (shared-todo first, stop on first failure). Use showcase/.wallet for x402 payments. All Gate 1 and website tests remain valid — do NOT re-run them."
 ---
 
 # System Test: bld402
@@ -20,7 +20,7 @@ note: "Spec updated: Gate 2 tests must be real build-from-scratch tests. Previou
 **Created:** 2026-03-06
 **Last run:** 2026-03-06
 **Cycle:** 9
-**Verdict:** PASS — 69 passed, 23 deferred (22 non-MVP templates + 1 template implementation). All MVP Gate 2 tests pass via Blue Team evidence (TR-002 resolved).
+**Verdict:** FAIL — 63 passed, 6 Gate 2 tests reset to untested (T-066 to T-071), 23 deferred. Gate 2 tests must be executed by Red Team using showcase/.wallet. Sequential order, stop on first failure.
 **Mediums tested:** website (bld402.com), website (*.run402.com showcase apps), API (api.run402.com)
 **Mediums unavailable:** none
 
@@ -258,39 +258,33 @@ note: "Spec updated: Gate 2 tests must be real build-from-scratch tests. Previou
 
 ### Feature Area 9b: Template Gate 2 — Build from Scratch (F9 / F12)
 
-Gate 2 requires: provision a fresh run402 project (x402-gated), run schema.sql, apply RLS, deploy the template HTML, run all Gate 1 tests against the new deployment URL, then nuke the project via `scripts/nuke-test.sh`. Blue Team resolved the x402 payment barrier (TR-002) by running Gate 2 manually with evidence (Option C). All 6 MVP templates pass. The 22 deferred templates have no implementation files and are classified as DEF-001.
+Gate 2 requires: provision a fresh run402 project using the shared test wallet at `showcase/.wallet`, run schema.sql, apply RLS, deploy the template HTML, run all Gate 1 tests against the new deployment URL, then nuke the project via `scripts/nuke-test.sh`. Tests run sequentially — stop on first failure. See AGENTS.md "Gate 2 Testing" and spec "Template Validation" sections.
 
-#### MVP Templates (6 of 28) — Gate 2 PASS (TR-002 resolved via Blue Team evidence)
+#### MVP Templates (6 of 28) — Gate 2 NOT YET TESTED
 
-- [x] **T-066: Gate 2 — Build from scratch: shared-todo** — live website + API
-  Steps: 1) Provision fresh run402 project via POST /v1/projects (requires x402 testnet payment) 2) POST /admin/v1/projects/{id}/sql with shared-todo schema.sql 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 3 tasks 5) POST /v1/deployments with template HTML (anon_key + api_url substituted) 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks against new deployment URL (load, heading, seed data, add task, delete task, polling) 8) Run scripts/nuke-test.sh {project_id} {service_key}
+- [ ] **T-066: Gate 2 — Build from scratch: shared-todo** — live website + API
+  Steps: 1) Provision fresh run402 project via POST /v1/projects (x402 payment using showcase/.wallet) 2) POST /admin/v1/projects/{id}/sql with shared-todo schema.sql 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 3 tasks 5) POST /v1/deployments with template HTML (anon_key + api_url substituted) 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks against new deployment URL (load, heading, seed data, add task, delete task, polling) 8) Run scripts/nuke-test.sh {project_id} {service_key}
   Expected: All Gate 1 checks pass on freshly built app; cleanup returns "Project archived successfully"; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802516580_0020 provisioned via x402. Schema applied. RLS public_read_write on todos. Deployed to gate2-todo.run402.com (dpl_1772802518829_5b9d77). 11/11 checks passed: HTTP 200, content checks (Shared Todo, bld402, input, button), API write 201, API read confirmed. Project archived successfully.
 
-- [x] **T-067: Gate 2 — Build from scratch: landing-waitlist** — live website + API
-  Steps: 1) Provision fresh run402 project via POST /v1/projects (requires x402 testnet payment) 2) POST /admin/v1/projects/{id}/sql with landing-waitlist schema.sql (signups table) 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 15-20 fake signups 5) POST /v1/deployments with template HTML 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks (hero heading, email form, submit, duplicate email, "Built with bld402" footer) 8) Nuke project
+- [ ] **T-067: Gate 2 — Build from scratch: landing-waitlist** — live website + API
+  Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) POST /admin/v1/projects/{id}/sql with landing-waitlist schema.sql (signups table) 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 15-20 fake signups 5) POST /v1/deployments with template HTML 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks (hero heading, email form, submit, duplicate email, "Built with bld402" footer) 8) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802525310_0020 provisioned via x402. Schema applied. RLS public_read_write on signups. Deployed to gate2-waitlist.run402.com (dpl_1772802527174_f32cb0). 9/9 checks passed: HTTP 200, content checks (email, signup form, bld402), API write 201, API read confirmed. Project archived successfully.
 
-- [x] **T-068: Gate 2 — Build from scratch: hangman** — live website + API
-  Steps: 1) Provision fresh run402 project 2) Run hangman schema.sql (words, games tables) 3) Apply RLS (public_read for words, public_read_write for games) 4) Seed 50+ words across easy/medium/hard 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (game UI loads, A-Z buttons, word blanks, SVG drawing, win/lose overlay, play again, win/loss counter, "Built with bld402" footer) 8) Nuke project
+- [ ] **T-068: Gate 2 — Build from scratch: hangman** — live website + API
+  Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run hangman schema.sql (words, games tables) 3) Apply RLS (public_read for words, public_read_write for games) 4) Seed 50+ words across easy/medium/hard 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (game UI loads, A-Z buttons, word blanks, SVG drawing, win/lose overlay, play again, win/loss counter, "Built with bld402" footer) 8) Nuke project
   Expected: All Gate 1 checks pass; cleanup succeeds; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802533138_0020 provisioned via x402. Schema applied with 54 seed words. RLS public_read_write on games, public_read on words. Deployed to gate2-hangman.run402.com (dpl_1772802535293_82e0c6). 7/7 checks passed: HTTP 200, content (Hangman, bld402, SVG, buttons), API read confirmed 54 words. Project archived successfully.
 
-- [x] **T-069: Gate 2 — Build from scratch: trivia-night** — live website + API
-  Steps: 1) Provision fresh run402 project 2) Run trivia-night schema.sql (rooms, questions, players, answers tables) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Trivia heading, buttons, API write/read rooms) 7) Nuke project
+- [ ] **T-069: Gate 2 — Build from scratch: trivia-night** — live website + API
+  Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run trivia-night schema.sql (rooms, questions, players, answers tables) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Trivia heading, buttons, API write/read rooms) 7) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802541755_0020 provisioned via x402. Schema applied (rooms, questions, players, answers, increment_score function). RLS public_read_write on all 4 tables. Deployed to gate2-trivia.run402.com (dpl_1772802545271_7d0c3e). 7/7 checks passed: HTTP 200, content (Trivia, bld402, buttons), API write room 201, API read confirmed. Project archived successfully.
 
-- [x] **T-070: Gate 2 — Build from scratch: voting-booth** — live website + API
-  Steps: 1) Provision fresh run402 project 2) Run voting-booth schema.sql (polls, options, votes tables with uuid PKs) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Voting heading, buttons, API write/read polls) 7) Nuke project
+- [ ] **T-070: Gate 2 — Build from scratch: voting-booth** — live website + API
+  Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run voting-booth schema.sql (polls, options, votes tables with uuid PKs) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Voting heading, buttons, API write/read polls) 7) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802554072_0020 provisioned via x402. Schema applied (polls, options, votes with UNIQUE constraint). RLS public_read_write on all 3 tables. Deployed to gate2-vote.run402.com (dpl_1772802557404_19f276). 7/7 checks passed: HTTP 200, content (Voting, bld402, buttons), API write poll 201, API read confirmed. Project archived successfully.
 
-- [x] **T-071: Gate 2 — Build from scratch: paste-locker** — live website + API
-  Steps: 1) Provision fresh run402 project 2) Run paste-locker schema.sql (notes table) 3) No RLS (access via server functions only) 4) Deploy functions (create-note, read-note) 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (paste form loads, create note with password, read with correct password, read with wrong password = 403, "Built with bld402" footer) 8) Nuke project
+- [ ] **T-071: Gate 2 — Build from scratch: paste-locker** — live website + API
+  Steps: 1) Provision fresh run402 project (x402 payment using showcase/.wallet) 2) Run paste-locker schema.sql (notes table) 3) No RLS (access via server functions only) 4) Deploy functions (create-note, read-note) 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (paste form loads, create note with password, read with correct password, read with wrong password = 403, "Built with bld402" footer) 8) Nuke project
   Expected: All Gate 1 checks pass on freshly built app; function endpoints operational; cleanup succeeds; Gate 2 PASS
-  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802565433_0020 provisioned via x402. Schema applied (notes table). No RLS (functions-only access model). Functions deployed: create-note (201), read-note (200/403). Deployed to gate2-paste.run402.com (dpl_1772802570162_f1c177). 9/9 checks passed: HTTP 200, content (Paste Locker, bld402, textarea, buttons), create-note 201 (code: KCyV0Kfx), read-note correct password 200 (content match), read-note wrong password 403. Project archived successfully.
 
 #### Deferred Templates (22 of 28) — Gate 2 deferred per DEF-001 (no implementation files, accepted scope)
 
@@ -532,14 +526,14 @@ Gate 2 requires: provision a fresh run402 project (x402-gated), run schema.sql, 
 | Status   | Count |
 |----------|-------|
 | Total    | 92    |
-| Passed   | 69    |
+| Passed   | 63    |
 | Failed   | 0     |
 | Blocked  | 0     |
 | Deferred | 23    |
 | Gap      | 0     |
-| Pending  | 0     |
+| Pending  | 6     |
 
-**Cycle 9 updates:** TR-002 resolved. Blue Team ran Gate 2 for all 6 MVP templates (T-066 through T-071) using Option C: provision, deploy, verify, nuke, post evidence. All 6 pass (50/50 checks). 22 deferred templates (T-072 through T-093) reclassified from [B] Blocked to [D] Deferred per DEF-001. Verdict: PASS.
+**Cycle 10 note:** Gate 2 tests (T-066 to T-071) reset to untested. Previous cycle 9 results were invalid — Blue Team ran the tests, Red Team only reviewed logs. Red Team must execute Gate 2 sequentially using showcase/.wallet for x402 payments. Stop on first failure. All Gate 1 and website tests (T-001 to T-065) remain valid.
 
 ---
 
@@ -578,13 +572,13 @@ Neither template addresses the case where subdomain claiming was attempted and f
 
 All JS-dependent tests (T-039, T-060, T-061, T-062, T-063, T-064, T-065) have been resolved with API-based procedures. All pass in cycle 7.
 
-### TR-002: Gate 2 requires x402 payment — needs testnet wallet or admin bypass (Cycle 8) — RESOLVED (Cycle 9)
+### TR-002: Gate 2 requires x402 payment — RESOLVED (wallet provided)
 
 **Affects:** T-066, T-067, T-068, T-069, T-070, T-071 (Gate 2 for all 6 MVP templates)
 
-**Barrier:** `POST /v1/projects` is x402-gated. The 402 response requires signing a payment authorization with a funded testnet wallet (Base Sepolia USDC). The Red Team agent has no wallet credentials and cannot complete the x402 handshake programmatically.
+**Barrier:** `POST /v1/projects` is x402-gated. Requires a funded testnet wallet (Base Sepolia USDC).
 
-**Resolution:** Blue Team implemented Option C. Built `showcase/gate2-test/run.mjs` automation script that provisions fresh projects via x402 payment (using existing showcase wallet), runs template schema.sql, applies RLS per template rls.json, deploys template index.html with placeholder substitution, verifies HTTP 200 + content + API access, then nukes each test project. All 6 MVP templates pass Gate 2 with 50/50 checks. Evidence in `showcase/gate2-test/evidence.json` and Blue Team Response section below.
+**Resolution:** Shared test wallet at `showcase/.wallet` is available to the Red Team. This is documented in AGENTS.md and the spec. The Red Team must use the existing provisioning scripts (`showcase/provision.mjs`, `showcase/run-sql.mjs`, `showcase/deploy.mjs`) with this wallet to provision, build, test, and nuke each template project sequentially. The Red Team does this itself — not the Blue Team.
 
 ---
 
@@ -606,67 +600,11 @@ Per plan doc (cycle 3 implementation notes), only 6 of 28 templates have impleme
 
 _Managed by the Blue Team — do not modify_
 
-### TR-002: Gate 2 Evidence (Cycle 9) — ALL 6 MVP TEMPLATES PASS
+### TR-002: Gate 2 — NOT YET TESTED
 
-**Method:** Option C — Blue Team provisioned, deployed, verified, and nuked each template.
-**Script:** `showcase/gate2-test/run.mjs` (reusable, runs all 6 or one at a time)
-**Evidence file:** `showcase/gate2-test/evidence.json`
-**Timestamp:** 2026-03-06T13:08:35Z
-**Wallet:** 0xA6d234F6122621725eBC69efE2D0995A4311bf01
+**Previous evidence invalidated.** The cycle 9 Gate 2 evidence was produced by the Blue Team (not Red Team) and ratified without live Red Team testing. Per the updated spec and AGENTS.md, Gate 2 requires the Red Team to provision, deploy, test, and nuke projects itself using the shared wallet at `showcase/.wallet`.
 
-| Test | Template | Project ID | Deployment | Subdomain | Checks | Verdict |
-|------|----------|-----------|------------|-----------|--------|---------|
-| T-066 | shared-todo | prj_1772802516580_0020 | dpl_1772802518829_5b9d77 | gate2-todo.run402.com | 11/11 | PASS |
-| T-067 | landing-waitlist | prj_1772802525310_0020 | dpl_1772802527174_f32cb0 | gate2-waitlist.run402.com | 9/9 | PASS |
-| T-068 | hangman | prj_1772802533138_0020 | dpl_1772802535293_82e0c6 | gate2-hangman.run402.com | 7/7 | PASS |
-| T-069 | trivia-night | prj_1772802541755_0020 | dpl_1772802545271_7d0c3e | gate2-trivia.run402.com | 7/7 | PASS |
-| T-070 | voting-booth | prj_1772802554072_0020 | dpl_1772802557404_19f276 | gate2-vote.run402.com | 7/7 | PASS |
-| T-071 | paste-locker | prj_1772802565433_0020 | dpl_1772802570162_f1c177 | gate2-paste.run402.com | 9/9 | PASS |
-
-**Total: 50/50 checks passed across all 6 templates.**
-
-Per-template Gate 2 procedure:
-1. Provisioned fresh run402 project via x402 testnet payment (Base Sepolia USDC)
-2. Ran template's schema.sql via POST /admin/v1/projects/{id}/sql
-3. Applied RLS per template's rls.json via POST /admin/v1/projects/{id}/rls
-4. (paste-locker only) Deployed server-side functions via POST /admin/v1/projects/{id}/functions
-5. Deployed template's index.html with {{API_URL}} and {{ANON_KEY}} substituted via x402 POST /v1/deployments
-6. Claimed test subdomain via POST /v1/subdomains
-7. Verified: HTTP 200, content checks, HTML element checks, API write/read (or function calls for paste-locker)
-8. Nuked test project: subdomains released, project archived (HTTP 200, {"status":"archived"})
-
-Key verification details:
-- **shared-todo:** API write to todos (201), read confirmed 1 row with correct task text
-- **landing-waitlist:** API write to signups (201), read confirmed 1 row with correct email
-- **hangman:** API read from words confirmed 54 seed words across easy/medium/hard difficulties
-- **trivia-night:** API write to rooms (201), read confirmed room with code "9999" and host "Gate2Test"
-- **voting-booth:** API write to polls (201), read confirmed poll with title "Gate 2 Test Poll"
-- **paste-locker:** Function create-note returned 201 with code "KCyV0Kfx"; read-note with correct password returned 200 with exact content match; read-note with wrong password returned 403
-
-All 6 test projects have been archived. No resources remain.
-
-**Request to Red Team:** Ratify T-066 through T-071 as PASS based on this evidence.
-
-### Red Team Ratification (Cycle 9) — RATIFIED
-
-**Ratified by:** Red Team (cycle 9, 2026-03-06)
-**Verdict on T-066 through T-071:** PASS — all 6 ratified.
-
-**Evidence review findings:**
-
-1. **Timestamp credibility — PASS.** The evidence.json top-level timestamp is `2026-03-06T13:08:35.025Z`. Project IDs embed Unix ms timestamps. Decoded: shared-todo provisioned at 13:08:36.580Z (1.6s after evidence start), landing-waitlist at 13:08:45.310Z, hangman at 13:08:53.138Z, trivia-night at 13:09:01.755Z, voting-booth at 13:09:14.072Z, paste-locker at 13:09:25.433Z. Each deployment followed its project by 2-5 seconds. The 6 projects span 50 seconds of sequential provisioning — a realistic automated run, not fabricated.
-
-2. **Project IDs are unique and structurally valid — PASS.** All 6 project IDs use the `prj_{timestamp}_{suffix}` format with distinct timestamps and share the `_0020` suffix (consistent with a single provisioning wallet). No duplicate IDs.
-
-3. **Nuke verification — PASS (Red Team spot-checked all 6).** Red Team issued live HTTP requests to all 6 gate2-*.run402.com subdomains after the evidence was produced. All return HTTP 404: gate2-todo, gate2-waitlist, gate2-hangman, gate2-trivia, gate2-vote, gate2-paste. Confirms subdomains were released and projects archived as claimed.
-
-4. **Archive response bodies — PASS.** Each template's evidence includes `"Project archived"` check with `"Status: 200, response: {\"status\":\"archived\",\"project_id\":\"prj_...\"}\"`. The project_id in the response matches the provisioned project_id. No generic placeholder responses.
-
-5. **Functional depth — PASS.** Evidence goes beyond HTTP 200 checks: API writes (201 on todos/signups/rooms/polls), API reads (row count verified), paste-locker function chain (create 201 with code "KCyV0Kfx", read 200 with content match, wrong-password 403). The paste-locker check code "KCyV0Kfx" also appears in the live showcase app's cycle 7 test (code "MECVV8ql" in cycle 7), confirming the function endpoint is real and returns unique codes per invocation.
-
-6. **50/50 check count — PASS.** shared-todo 11, landing-waitlist 9, hangman 7, trivia-night 7, voting-booth 7, paste-locker 9. Sum = 50. All individual checks have `"passed": true` with non-generic detail strings.
-
-**No issues found. TR-002 is resolved. T-066 through T-071 are ratified as PASS.**
+T-066 through T-071 are reset to `[ ]` pending real Red Team Gate 2 testing. Tests must run sequentially: shared-todo → landing-waitlist → hangman → trivia-night → voting-booth → paste-locker. Stop on first failure.
 
 ### DEF-001: 22 Deferred Templates — WON'T FIX (Accepted Scope)
 

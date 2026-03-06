@@ -384,30 +384,29 @@ Remove the 17 dropped templates from the website. Update template counts and gal
 
 Build Micro-Blog first to prove auth + storage integration pattern.
 
-- [ ] Build template: Micro-Blog (`templates/utility/micro-blog/`) — schema.sql (posts table with user_id FK to auth.users), rls.json (public_read + user_owns_rows), index.html (public feed, auth login/signup, compose with image upload, like button, delete own posts), README.md with coding-agent gate
-- [ ] Verify auth flow end-to-end: signup → login → create post → upload image to storage → view in feed → delete own post → logout → verify feed still readable without auth
-- [ ] Fix any auth integration issues discovered (token refresh, RLS denial errors, signup flow) and update auth-flow.js pattern if needed
+- [x] Build template: Micro-Blog (`templates/utility/micro-blog/`) — schema.sql, rls.json (public_read + user_owns_rows), index.html (public feed, auth modal, compose with image upload, like button, delete own posts), README.md with coding-agent gate + vanity subdomain docs
+- [ ] Verify auth flow end-to-end during showcase deployment (Phase 30): signup → login → create post → upload image → view feed → delete own post → logout → verify feed still readable. Fix any auth/RLS issues and update auth-flow.js pattern if needed.
 
 ### Phase 24: Build Templates — Auth + Storage (Photo Wall, Secret Santa, Flash Cards)
 
 Remaining auth templates, benefiting from Micro-Blog's auth proving.
 
-- [ ] Build template: Photo Wall (`templates/utility/photo-wall/`) — schema.sql (photos table), rls.json (public_read + user_owns_rows), index.html (gallery grid, lightbox, auth-gated upload with caption, optional private wall toggle), README.md with coding-agent gate
-- [ ] Build template: Secret Santa (`templates/utility/secret-santa/`) — schema.sql (groups + members tables), rls.json (user_owns_rows on members, group read for members), draw-names.js Lambda function (circular shuffle, service_key DB writes), index.html (organize/join, lobby with polling, draw trigger, in-app reveal), README.md with coding-agent gate
-- [ ] Build template: Flash Cards (`templates/utility/flash-cards/`) — schema.sql (decks + cards + progress tables), rls.json (user_owns_rows on all, public_read override for is_public decks), index.html (my decks, edit deck, study mode with spaced repetition, public deck sharing/cloning), README.md with coding-agent gate
+- [x] Build template: Photo Wall (`templates/utility/photo-wall/`) — schema.sql (photos table), rls.json (public_read + user_owns_rows), index.html (gallery grid, lightbox, auth-gated upload with caption, optional private wall toggle), README.md with coding-agent gate
+- [x] Build template: Secret Santa (`templates/utility/secret-santa/`) — schema.sql (groups + members tables), rls.json (user_owns_rows on members, group read for members), draw-names.js Lambda function (circular shuffle, service_key DB writes), index.html (organize/join, lobby with polling, draw trigger, in-app reveal), README.md with coding-agent gate
+- [x] Build template: Flash Cards (`templates/utility/flash-cards/`) — schema.sql (decks + cards + progress tables), rls.json (user_owns_rows on all, public_read override for is_public decks), index.html (my decks, edit deck, study mode with spaced repetition, public deck sharing/cloning), README.md with coding-agent gate
 
 ### Phase 25: Build Templates — Generate-Image (AI Sticker Maker, Memory Match)
 
 Templates that use AI image generation + storage.
 
-- [ ] Build template: AI Sticker Maker (`templates/games/ai-sticker-maker/`) — schema.sql (stickers table), rls.json (public_read_write), index.html (prompt input, generate with x402 payment flow, preview, save to storage + DB, public gallery grid with lightbox and likes), README.md with coding-agent gate
-- [ ] Build template: Memory Match (`templates/games/memory-match/`) — schema.sql (card_sets + card_images + scores tables), rls.json (public_read on sets/images, public_read_write on scores), index.html (difficulty selector, card grid with flip animation, match detection, timer, leaderboard), README.md with coding-agent gate. Note: template includes placeholder card art; showcase will use AI-generated art.
+- [x] Build template: AI Sticker Maker (`templates/games/ai-sticker-maker/`) — schema.sql (stickers table), rls.json (public_read_write), index.html (prompt input, generate with x402 payment flow, preview, save to storage + DB, public gallery grid with lightbox and likes), README.md with coding-agent gate
+- [x] Build template: Memory Match (`templates/games/memory-match/`) — schema.sql (card_sets + card_images + scores tables), rls.json (public_read on sets/images, public_read_write on scores), index.html (difficulty selector, card grid with flip animation, match detection, timer, leaderboard), README.md with coding-agent gate. Note: template includes placeholder card art; showcase will use AI-generated art.
 
 ### Phase 26: Build Template — Bingo Card Generator
 
 No new services, but unique multiplayer mechanic.
 
-- [ ] Build template: Bingo Card Generator (`templates/games/bingo-card-generator/`) — schema.sql (games + items + players tables), rls.json (public_read on games/items, public_read_write on players), index.html (host setup with preset lists, join with code, 5x5 card generation, host calling interface, player marking, bingo auto-detection with confetti, polling), README.md with coding-agent gate
+- [x] Build template: Bingo Card Generator (`templates/games/bingo-card-generator/`) — schema.sql (games + items + players tables), rls.json (public_read on games/items, public_read_write on players), index.html (host setup with preset lists, join with code, 5x5 card generation, host calling interface, player marking, bingo auto-detection with confetti, polling), README.md with coding-agent gate
 
 ### Phase 27: Write Showcase Specs (7 new apps)
 
@@ -510,3 +509,5 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-06: Plan continued — System test cycle 8 returned BLOCKED (92 tests: 63 passed, 0 failed, 28 blocked, 1 deferred). Two findings: TR-002 (6 MVP Gate 2 tests blocked by x402 payment barrier) and DEF-001 (22 deferred templates have no implementation). Triage: TR-002 accepted — Blue Team will run Gate 2 manually (Option C: provision, deploy, verify, nuke, post evidence). DEF-001 won't-fix — accepted scope boundary, tests should be reclassified [B]→[D]. Added Phase 20: Fix Cycle 4 with 8 tasks (6 template Gate 2 builds + DEF-001 reclassification + evidence posting).
 - 2026-03-06: Phase 20 complete — Gate 2 Template Validation: All 6 MVP templates pass build-from-scratch. Created `showcase/gate2-test/run.mjs` automation script. Each template provisioned via x402, schema applied, RLS configured, HTML deployed with placeholder substitution, verified (HTTP 200 + content + API), then nuked. 50/50 total checks. paste-locker also tested server-side functions (create-note 201, read-note 200/403). 22 deferred templates reclassified [B]→[D]. System test cycle 9: 69 passed, 0 failed, 0 blocked, 23 deferred. Verdict: PASS.
 - 2026-03-06: Plan continued — Spec updated to v0.3.0. Template count reduced from 28 → 13 (removed 17 low-value templates, added 7 new templates covering auth, storage, functions, generate-image). Added Phases 21-31: 2 new pattern snippets, website cleanup, 7 template builds (sequenced: Micro-Blog first as auth proving ground), 7 showcase specs, 7 showcase builds, AI seed art generation, 7 showcase deployments, human page updates. ~55 tasks across 11 phases.
+- 2026-03-06: Phases 21-22 complete — 2 new pattern snippets (functions.js, generate-image.js). Website cleanup: updated humans/templates.html, templates/index.html, build/step/2.html with 13 templates (removed 17 dropped).
+- 2026-03-06: Phases 23-26 complete — All 7 new templates built. Each has schema.sql, rls.json, index.html, and README.md. Micro-Blog (auth + storage), Photo Wall (auth + storage), Secret Santa (auth + functions + draw-names.js Lambda), Flash Cards (auth + spaced repetition), AI Sticker Maker (generate-image + storage), Memory Match (generate-image + leaderboard), Bingo Card Generator (multiplayer polling). Auth verify task deferred to Phase 30.

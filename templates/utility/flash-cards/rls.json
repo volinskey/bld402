@@ -1,0 +1,13 @@
+{
+  "policies": [
+    {
+      "template": "user_owns_rows",
+      "tables": [
+        { "table": "decks" },
+        { "table": "cards" },
+        { "table": "progress" }
+      ]
+    }
+  ],
+  "notes": "user_owns_rows on all tables: users see only their own decks, cards, and progress. Public decks need a custom read policy: SELECT allowed WHERE decks.is_public = true (agent should add this manually via SQL after applying the template)."
+}

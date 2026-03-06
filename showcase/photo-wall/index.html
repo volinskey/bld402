@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Photo Wall</title>
+  <link rel="icon" href="https://bld402.com/favicon.ico">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a1a;
+      background: #f8f9fa;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .demo-banner {
+      background: #fff3cd; color: #856404; text-align: center;
+      padding: 0.4rem 1rem; font-size: 0.85rem; flex-shrink: 0;
+      border-bottom: 1px solid #ffc107;
+    }
+    .demo-banner a { color: #0066cc; text-decoration: none; font-weight: 600; }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.1rem; }
+
+    main { max-width: 60rem; margin: 0 auto; padding: 0.75rem 1rem; flex: 1; overflow: auto; width: 100%; }
+
+    /* Photo grid */
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 0.75rem;
+    }
+    .photo-card {
+      background: #fff; border: 1px solid #e0e0e0; border-radius: 10px;
+      overflow: hidden;
+    }
+    .photo-card img {
+      width: 100%; aspect-ratio: 1; object-fit: cover; cursor: pointer; display: block;
+    }
+    .photo-card-info { padding: 0.5rem 0.75rem; }
+    .photo-caption {
+      font-size: 0.85rem; line-height: 1.4; word-break: break-word;
+      margin-bottom: 0.25rem;
+    }
+    .photo-meta {
+      display: flex; justify-content: space-between; align-items: center;
+      font-size: 0.75rem; color: #999;
+    }
+
+    /* Lightbox */
+    .lightbox-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 200; align-items: center; justify-content: center;
+      flex-direction: column; cursor: pointer;
+    }
+    .lightbox-overlay.open { display: flex; }
+    .lightbox-overlay img {
+      max-width: 90vw; max-height: 80vh; object-fit: contain; border-radius: 8px;
+    }
+    .lightbox-caption {
+      color: #fff; font-size: 0.95rem; margin-top: 0.75rem;
+      max-width: 90vw; text-align: center; line-height: 1.4;
+    }
+    .lightbox-close {
+      position: absolute; top: 1rem; right: 1rem;
+      background: none; border: none; color: #fff; font-size: 2rem;
+      cursor: pointer; line-height: 1;
+    }
+    .lightbox-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.2); border: none; color: #fff;
+      font-size: 2rem; cursor: pointer; padding: 0.5rem 0.75rem;
+      border-radius: 8px; line-height: 1;
+    }
+    .lightbox-nav:hover { background: rgba(255,255,255,0.4); }
+    .lightbox-prev { left: 1rem; }
+    .lightbox-next { right: 1rem; }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
+    .loading { text-align: center; padding: 2rem; color: #888; }
+
+    footer { text-align: center; padding: 0.35rem; font-size: 0.75rem; color: #888; flex-shrink: 0; }
+    footer a { color: #0066cc; text-decoration: none; }
+
+    @media (max-width: 900px) {
+      .photo-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 600px) {
+      main { padding: 0.5rem; }
+      .photo-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">This is a curated demo wall. Build your own with <a href="https://bld402.com">bld402</a>!</div>
+
+  <header>
+    <h1>Photo Wall</h1>
+  </header>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox" onclick="closeLightbox(event)">
+    <button class="lightbox-close" onclick="closeLightbox(event)">&times;</button>
+    <button class="lightbox-nav lightbox-prev" onclick="navigateLightbox(event, -1)">&#8249;</button>
+    <img id="lightbox-img" src="" alt="Full size photo">
+    <button class="lightbox-nav lightbox-next" onclick="navigateLightbox(event, 1)">&#8250;</button>
+    <div class="lightbox-caption" id="lightbox-caption"></div>
+  </div>
+
+  <main>
+    <!-- Gallery -->
+    <div id="gallery">
+      <div class="loading">Loading photos...</div>
+    </div>
+  </main>
+
+  <footer>
+    Built with <a href="https://bld402.com">bld402</a> &middot; Powered by <a href="https://run402.com">run402</a>
+  </footer>
+
+  <script>
+    const CONFIG = {
+      API_URL: '{{API_URL}}',
+      ANON_KEY: '{{ANON_KEY}}'
+    };
+
+    let allPhotos = [];
+    let lightboxIndex = -1;
+
+    function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // ---- API helpers ----
+    async function api(path, options = {}) {
+      const headers = {
+        'apikey': CONFIG.ANON_KEY,
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      const res = await fetch(CONFIG.API_URL + path, { ...options, headers });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    // ---- Gallery ----
+    async function loadPhotos() {
+      const gallery = document.getElementById('gallery');
+      try {
+        const photos = await api('/rest/v1/photos?order=created_at.desc&limit=50', {
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!photos || photos.length === 0) {
+          gallery.innerHTML = '<div class="empty-state"><p>No photos yet.</p></div>';
+          return;
+        }
+
+        allPhotos = photos;
+        gallery.innerHTML = '<div class="photo-grid">' + photos.map((photo, i) => renderPhoto(photo, i)).join('') + '</div>';
+      } catch (err) {
+        gallery.innerHTML = '<div class="empty-state"><p>Failed to load photos.</p></div>';
+      }
+    }
+
+    function renderPhoto(photo, index) {
+      const time = new Date(photo.created_at).toLocaleDateString(undefined, {
+        month: 'short', day: 'numeric'
+      });
+      const imgUrl = CONFIG.API_URL + '/storage/v1/object/photos/' + photo.image_path;
+      const captionText = photo.caption ? esc(photo.caption) : '';
+
+      return `
+        <div class="photo-card" id="photo-${photo.id}">
+          <img src="${esc(imgUrl)}" alt="${captionText}" loading="lazy"
+               onclick="openLightbox(${index})">
+          <div class="photo-card-info">
+            ${captionText ? `<div class="photo-caption">${captionText}</div>` : ''}
+            <div class="photo-meta">
+              <span>${esc(time)}</span>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    // ---- Lightbox ----
+    function openLightbox(index) {
+      lightboxIndex = index;
+      updateLightboxContent();
+      document.getElementById('lightbox').classList.add('open');
+    }
+
+    function updateLightboxContent() {
+      const photo = allPhotos[lightboxIndex];
+      if (!photo) return;
+      const imgUrl = CONFIG.API_URL + '/storage/v1/object/photos/' + photo.image_path;
+      document.getElementById('lightbox-img').src = imgUrl;
+      document.getElementById('lightbox-caption').textContent = photo.caption || '';
+    }
+
+    function closeLightbox(e) {
+      if (e && e.target !== e.currentTarget && e.target.tagName !== 'BUTTON') return;
+      document.getElementById('lightbox').classList.remove('open');
+      lightboxIndex = -1;
+    }
+
+    function navigateLightbox(e, direction) {
+      e.stopPropagation();
+      const newIndex = lightboxIndex + direction;
+      if (newIndex >= 0 && newIndex < allPhotos.length) {
+        lightboxIndex = newIndex;
+        updateLightboxContent();
+      }
+    }
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (lightboxIndex < 0) return;
+      if (e.key === 'Escape') {
+        document.getElementById('lightbox').classList.remove('open');
+        lightboxIndex = -1;
+      } else if (e.key === 'ArrowLeft') {
+        navigateLightbox(e, -1);
+      } else if (e.key === 'ArrowRight') {
+        navigateLightbox(e, 1);
+      }
+    });
+
+    // Touch/swipe support
+    let touchStartX = 0;
+    document.getElementById('lightbox').addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    });
+    document.getElementById('lightbox').addEventListener('touchend', (e) => {
+      const diff = e.changedTouches[0].screenX - touchStartX;
+      if (Math.abs(diff) > 50) {
+        navigateLightbox(e, diff > 0 ? -1 : 1);
+      }
+    });
+
+    // ---- Init ----
+    loadPhotos();
+  </script>
+</body>
+</html>

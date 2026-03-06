@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Sticker Maker</title>
+  <link rel="icon" href="https://bld402.com/favicon.ico">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      color: #1a1a1a;
+      background: #f8f9fa;
+      height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .demo-banner {
+      background: #fff3cd; color: #856404; text-align: center;
+      padding: 0.4rem 1rem; font-size: 0.85rem; flex-shrink: 0;
+      border-bottom: 1px solid #ffc107;
+    }
+
+    header {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0.5rem 1rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.1rem; }
+
+    main { flex: 1; overflow: auto; width: 100%; }
+
+    /* Create bar */
+    .create-bar {
+      background: #fff;
+      border-bottom: 1px solid #e0e0e0;
+      padding: 0.75rem 1rem;
+      flex-shrink: 0;
+    }
+    .create-bar-inner {
+      max-width: 48rem;
+      margin: 0 auto;
+    }
+    .create-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-end;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .input-group.prompt-group { flex: 1; }
+    .input-group label {
+      font-size: 0.75rem;
+      color: #666;
+      font-weight: 500;
+    }
+    .input-group input {
+      padding: 0.5rem 0.65rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+    .input-group input:focus { outline: none; border-color: #0066cc; }
+    .prompt-row {
+      display: flex;
+      align-items: center;
+      gap: 0.25rem;
+    }
+    .char-count { font-size: 0.75rem; color: #999; white-space: nowrap; }
+    .char-count.warn { color: #dc3545; }
+
+    .btn {
+      padding: 0.5rem 1rem; border: none; border-radius: 6px;
+      font-size: 0.9rem; cursor: pointer; white-space: nowrap;
+    }
+    .btn-primary { background: #0066cc; color: #fff; }
+    .btn-primary:hover { background: #0055aa; }
+    .btn-primary:disabled { background: #88b8e8; cursor: not-allowed; }
+    .btn-success { background: #28a745; color: #fff; }
+    .btn-success:hover { background: #218838; }
+    .btn-success:disabled { background: #82c991; cursor: not-allowed; }
+
+    /* Preview */
+    .preview {
+      display: none;
+      margin-top: 0.75rem;
+      padding: 0.75rem;
+      background: #f0f4f8;
+      border-radius: 10px;
+      text-align: center;
+    }
+    .preview.visible { display: block; }
+    .preview img {
+      max-width: 200px;
+      max-height: 200px;
+      border-radius: 12px;
+      object-fit: cover;
+    }
+    .preview-actions {
+      margin-top: 0.5rem;
+      display: flex;
+      justify-content: center;
+      gap: 0.5rem;
+    }
+    .btn-outline {
+      background: none; border: 1px solid #d0dbe5; color: #333;
+      padding: 0.4rem 0.75rem; border-radius: 6px; cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    /* Gallery */
+    .gallery-wrap {
+      max-width: 64rem;
+      margin: 0 auto;
+      padding: 1rem;
+    }
+    .gallery {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+    }
+    .sticker-card {
+      background: #fff;
+      border: 1px solid #e0e0e0;
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      transition: opacity 0.3s;
+    }
+    .sticker-card img {
+      width: 100%;
+      aspect-ratio: 1;
+      object-fit: cover;
+      display: block;
+    }
+    .sticker-info {
+      padding: 0.5rem 0.65rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+    }
+    .sticker-prompt {
+      font-size: 0.8rem;
+      line-height: 1.3;
+      color: #333;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .sticker-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .sticker-creator {
+      font-size: 0.75rem;
+      color: #999;
+    }
+    .demo-badge {
+      display: inline-block; background: #d0e7ff; color: #0055aa;
+      font-size: 0.65rem; font-weight: 600; padding: 0.1rem 0.35rem;
+      border-radius: 4px; margin-left: 0.3rem; vertical-align: middle;
+    }
+    .time-remaining {
+      font-size: 0.7rem; color: #999;
+    }
+    .download-btn {
+      background: none; border: none; cursor: pointer; font-size: 0.8rem;
+      color: #0066cc; padding: 0.15rem 0;
+    }
+    .download-btn:hover { text-decoration: underline; }
+    .delete-btn {
+      background: none; border: none; cursor: pointer; font-size: 0.8rem;
+      color: #999;
+    }
+    .delete-btn:hover { color: #dc3545; }
+    .sticker-actions {
+      display: flex; gap: 0.5rem; align-items: center;
+    }
+
+    .empty-state { text-align: center; padding: 3rem 1rem; color: #999; }
+    .loading { text-align: center; padding: 2rem; color: #888; }
+
+    footer { text-align: center; padding: 0.35rem; font-size: 0.75rem; color: #888; flex-shrink: 0; }
+    footer a { color: #0066cc; text-decoration: none; }
+
+    @media (max-width: 900px) {
+      .gallery { grid-template-columns: repeat(3, 1fr); }
+    }
+    @media (max-width: 600px) {
+      .gallery { grid-template-columns: repeat(2, 1fr); }
+      .create-row { flex-wrap: wrap; }
+      .gallery-wrap { padding: 0.5rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="demo-banner">This is a live demo — generate your own stickers! Each costs $0.01 in crypto.</div>
+
+  <header>
+    <h1>AI Sticker Maker</h1>
+  </header>
+
+  <div class="create-bar">
+    <div class="create-bar-inner">
+      <div class="create-row">
+        <div class="input-group prompt-group">
+          <div class="prompt-row">
+            <label for="prompt-input">Prompt</label>
+            <span class="char-count" id="char-count">0/200</span>
+          </div>
+          <input type="text" id="prompt-input" placeholder="A cute cat astronaut eating pizza..." maxlength="200" oninput="updateCharCount()">
+        </div>
+        <button class="btn btn-primary" id="generate-btn" onclick="generate()">Generate ($0.01)</button>
+      </div>
+      <div class="preview" id="preview">
+        <img id="preview-img" src="" alt="Generated sticker">
+        <div class="preview-actions">
+          <button class="btn btn-success" id="save-btn" onclick="saveToGallery()">Save to Gallery</button>
+          <button class="btn-outline" onclick="discardPreview()">Discard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main>
+    <div class="gallery-wrap">
+      <div id="gallery">
+        <div class="loading">Loading stickers...</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Built with <a href="https://bld402.com">bld402</a> &middot; Powered by <a href="https://run402.com">run402</a>
+  </footer>
+
+  <script>
+    const CONFIG = {
+      API_URL: '{{API_URL}}',
+      ANON_KEY: '{{ANON_KEY}}'
+    };
+
+    let generatedImageUrl = null;
+
+    function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
+
+    // ---- API helpers ----
+    async function api(path, options = {}) {
+      const headers = {
+        'apikey': CONFIG.ANON_KEY,
+        'Content-Type': 'application/json',
+        ...options.headers
+      };
+
+      const res = await fetch(CONFIG.API_URL + path, { ...options, headers });
+      if (!res.ok) {
+        const err = await res.text();
+        throw new Error(err);
+      }
+      if (res.status === 204) return null;
+      return res.json();
+    }
+
+    async function uploadFile(bucket, path, file) {
+      const res = await fetch(CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path, {
+        method: 'POST',
+        headers: { 'apikey': CONFIG.ANON_KEY },
+        body: file
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    // ---- Char count ----
+    function updateCharCount() {
+      const text = document.getElementById('prompt-input').value;
+      const count = text.length;
+      const el = document.getElementById('char-count');
+      el.textContent = count + '/200';
+      el.classList.toggle('warn', count > 180);
+    }
+
+    // ---- Generate ----
+    async function generateSticker(prompt) {
+      const res = await fetch(CONFIG.API_URL + '/functions/v1/generate-image-proxy', {
+        method: 'POST',
+        headers: { 'apikey': CONFIG.ANON_KEY, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt })
+      });
+      if (!res.ok) throw new Error(await res.text());
+      return res.json();
+    }
+
+    async function generate() {
+      const prompt = document.getElementById('prompt-input').value.trim();
+      if (!prompt) return;
+
+      const btn = document.getElementById('generate-btn');
+      btn.disabled = true;
+      btn.textContent = 'Generating...';
+      discardPreview();
+
+      try {
+        const result = await generateSticker(prompt);
+        generatedImageUrl = result.image_url;
+        document.getElementById('preview-img').src = generatedImageUrl;
+        document.getElementById('preview').classList.add('visible');
+      } catch (err) {
+        alert('Failed to generate: ' + (err.message || 'Unknown error'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Generate ($0.01)';
+      }
+    }
+
+    function discardPreview() {
+      generatedImageUrl = null;
+      document.getElementById('preview').classList.remove('visible');
+      document.getElementById('preview-img').src = '';
+    }
+
+    // ---- Save to gallery ----
+    async function saveToGallery() {
+      if (!generatedImageUrl) return;
+
+      const btn = document.getElementById('save-btn');
+      btn.disabled = true;
+      btn.textContent = 'Saving...';
+
+      try {
+        const prompt = document.getElementById('prompt-input').value.trim();
+        const filename = Date.now() + '.png';
+
+        // Download generated image and upload to storage
+        const imgRes = await fetch(generatedImageUrl);
+        const blob = await imgRes.blob();
+        await uploadFile('stickers', filename, blob);
+
+        // Save record to stickers table
+        await api('/rest/v1/stickers', {
+          method: 'POST',
+          headers: { 'Prefer': 'return=minimal' },
+          body: JSON.stringify({
+            prompt: prompt,
+            image_path: filename
+          })
+        });
+
+        // Reset
+        discardPreview();
+        document.getElementById('prompt-input').value = '';
+        updateCharCount();
+        loadStickers();
+      } catch (err) {
+        alert('Failed to save: ' + (err.message || 'Unknown error'));
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save to Gallery';
+      }
+    }
+
+    // ---- Time remaining helpers ----
+    function getTimeRemaining(createdAt) {
+      const created = new Date(createdAt).getTime();
+      const expiresAt = created + 60 * 60 * 1000; // 1 hour
+      const remaining = expiresAt - Date.now();
+      if (remaining <= 0) return { text: '0m left', fraction: 0 };
+      const minutes = Math.ceil(remaining / 60000);
+      return { text: minutes + 'm left', fraction: remaining / (60 * 60 * 1000) };
+    }
+
+    // ---- Gallery ----
+    async function loadStickers() {
+      const gallery = document.getElementById('gallery');
+      try {
+        const stickers = await api('/rest/v1/stickers?order=created_at.desc&limit=50', {
+          headers: { 'Accept': 'application/json' }
+        });
+
+        if (!stickers || stickers.length === 0) {
+          gallery.innerHTML = '<div class="empty-state"><p>No stickers yet. Generate the first one!</p></div>';
+          return;
+        }
+
+        gallery.innerHTML = '<div class="gallery">' + stickers.map(s => renderSticker(s)).join('') + '</div>';
+      } catch (err) {
+        gallery.innerHTML = '<div class="empty-state"><p>Failed to load stickers.</p></div>';
+      }
+    }
+
+    function renderSticker(sticker) {
+      const imgUrl = CONFIG.API_URL + '/storage/v1/object/stickers/' + sticker.image_path;
+      const isSeed = sticker.is_seed;
+
+      // Demo badge for seed stickers
+      const badgeHtml = isSeed ? '<span class="demo-badge">demo</span>' : '';
+
+      // Time remaining and fade for non-seed stickers
+      let fadeStyle = '';
+      let timeHtml = '';
+      if (!isSeed) {
+        const tr = getTimeRemaining(sticker.created_at);
+        const opacity = 0.4 + 0.6 * tr.fraction;
+        fadeStyle = ` style="opacity: ${opacity.toFixed(2)}"`;
+        timeHtml = `<span class="time-remaining">${tr.text}</span>`;
+      }
+
+      // Download button for all stickers, delete only for non-seed
+      const deleteHtml = !isSeed ? `<button class="delete-btn" onclick="deleteSticker('${sticker.id}')">Delete</button>` : '';
+
+      return `
+        <div class="sticker-card"${fadeStyle}>
+          <img src="${esc(imgUrl)}" alt="${esc(sticker.prompt)}" loading="lazy">
+          <div class="sticker-info">
+            <div class="sticker-prompt">${esc(sticker.prompt)}${badgeHtml}</div>
+            <div class="sticker-meta">
+              ${timeHtml || `<span class="sticker-creator">${esc(sticker.creator_name || 'Anonymous')}</span>`}
+              <div class="sticker-actions">
+                <button class="download-btn" onclick="downloadSticker('${esc(imgUrl)}', '${esc(sticker.prompt)}')">Download</button>
+                ${deleteHtml}
+              </div>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    async function deleteSticker(stickerId) {
+      if (!confirm('Delete this sticker?')) return;
+      try {
+        await api('/rest/v1/stickers?id=eq.' + stickerId, { method: 'DELETE' });
+        loadStickers();
+      } catch (err) {
+        alert('Failed to delete: ' + (err.message || 'Unknown error'));
+      }
+    }
+
+    function downloadSticker(url, prompt) {
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = (prompt || 'sticker').replace(/[^a-zA-Z0-9 ]/g, '').replace(/\s+/g, '-').substring(0, 40) + '.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+
+    // ---- Polling ----
+    setInterval(loadStickers, 5000);
+
+    // ---- Init ----
+    loadStickers();
+  </script>
+</body>
+</html>

@@ -424,13 +424,13 @@ Detailed specs for each showcase app — exact behavior, seed data, demo modific
 
 Each app starts from its template HTML, then adds demo-specific modifications per spec.
 
-- [ ] micro-blog: template HTML + seed posts with AI-generated images + demo banner + footer + vanity subdomain callout
-- [ ] photo-wall: template HTML + disable upload UI + pre-loaded AI-generated gallery + demo banner + footer
-- [ ] secret-santa: template HTML + pre-drawn group state + demo banner + footer
-- [ ] ai-sticker-maker: template HTML + seed stickers gallery + live generation enabled + demo banner + footer
-- [ ] flash-cards: template HTML + 3 public seed decks + demo banner + footer
-- [ ] bingo-card-generator: template HTML + finished game display + 3 preset lists + demo banner + footer
-- [ ] memory-match: template HTML + 3 AI-generated card sets + seed leaderboard + demo banner + footer
+- [x] micro-blog: template HTML + seed posts with AI-generated images + demo banner + footer + vanity subdomain callout
+- [x] photo-wall: template HTML + disable upload UI + pre-loaded AI-generated gallery + demo banner + footer
+- [x] secret-santa: template HTML + pre-drawn group state + demo banner + footer
+- [x] ai-sticker-maker: template HTML + seed stickers gallery + live generation enabled + demo banner + footer
+- [x] flash-cards: template HTML + 3 public seed decks + demo banner + footer
+- [x] bingo-card-generator: template HTML + finished game display + 3 preset lists + demo banner + footer
+- [x] memory-match: template HTML + 3 AI-generated card sets + seed leaderboard + demo banner + footer
 
 ### Phase 29: Generate Seed Art (AI Images)
 
@@ -512,3 +512,4 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-06: Phases 21-22 complete — 2 new pattern snippets (functions.js, generate-image.js). Website cleanup: updated humans/templates.html, templates/index.html, build/step/2.html with 13 templates (removed 17 dropped).
 - 2026-03-06: Phases 23-26 complete — All 7 new templates built. Each has schema.sql, rls.json, index.html, and README.md. Micro-Blog (auth + storage), Photo Wall (auth + storage), Secret Santa (auth + functions + draw-names.js Lambda), Flash Cards (auth + spaced repetition), AI Sticker Maker (generate-image + storage), Memory Match (generate-image + leaderboard), Bingo Card Generator (multiplayer polling). Auth verify task deferred to Phase 30.
 - 2026-03-06: Phase 27 complete — All 7 showcase specs written at docs/products/showcase/. Each spec follows shared-todo-spec.md format: YAML frontmatter, numbered FRs, schema with demo additions (is_seed, cleanup triggers), seed SQL, RLS, pinned demo modifications, acceptance criteria checkboxes, and template repeatability section.
+- 2026-03-06: Phase 28 complete — All 7 showcase apps built at showcase/{app}/. Each has schema.sql (template + demo mods), seed.sql, and index.html (template HTML modified for demo: banner, seed protection, bld402 favicon). Micro-blog/stickers have fade+cleanup. Photo-wall has upload/auth removed. Secret-santa has "View Demo" button. Flash-cards defaults to Public Decks view. Bingo has 3 preset lists + demo game viewer. Memory-match fully playable.

@@ -120,7 +120,9 @@
     .post-body { font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
     .post-image {
       margin-top: 0.5rem; border-radius: 8px; max-width: 100%; cursor: pointer;
+      background: #e9ecef; min-height: 100px;
     }
+    .post-image:not([src]) { color: transparent; }
     .post-footer {
       display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;
       padding-top: 0.5rem; border-top: 1px solid #f0f0f0;
@@ -242,21 +244,26 @@
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
     // Load storage images with apikey auth (img tags can't send headers)
+    const _blobCache = {};
     function storageUrl(bucket, path) {
       return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
     }
     async function loadAuthImage(imgEl, bucket, path) {
+      const key = bucket + '/' + path;
+      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
       try {
         const res = await fetch(storageUrl(bucket, path), {
           headers: { 'apikey': CONFIG.ANON_KEY }
         });
         if (!res.ok) return;
         const blob = await res.blob();
-        imgEl.src = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        _blobCache[key] = url;
+        imgEl.src = url;
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -500,7 +507,7 @@
 
       let imageHtml = '';
       if (post.image_path) {
-        imageHtml = `<img class="post-image" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image" loading="lazy">`;
+        imageHtml = `<img class="post-image" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image">`;
       }
 
       // Demo badge for seed posts

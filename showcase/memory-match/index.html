@@ -148,7 +148,9 @@
     }
     .card-back img {
       width: 100%; height: 100%; object-fit: cover;
+      background: #e9ecef;
     }
+    .card-back img:not([src]) { color: transparent; }
     .card-cell.matched { cursor: default; }
     .card-cell.matched .card-back { border-color: #28a745; }
 
@@ -354,21 +356,26 @@
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
     // Load storage images with apikey auth (img tags can't send headers)
+    const _blobCache = {};
     function storageUrl(bucket, path) {
       return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
     }
     async function loadAuthImage(imgEl, bucket, path) {
+      const key = bucket + '/' + path;
+      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
       try {
         const res = await fetch(storageUrl(bucket, path), {
           headers: { 'apikey': CONFIG.ANON_KEY }
         });
         if (!res.ok) return;
         const blob = await res.blob();
-        imgEl.src = URL.createObjectURL(blob);
+        const url = URL.createObjectURL(blob);
+        _blobCache[key] = url;
+        imgEl.src = url;
       } catch(e) { /* image load failed silently */ }
     }
     function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]').forEach(img => {
+      document.querySelectorAll('img[data-storage-path]:not([src])').forEach(img => {
         loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
       });
     }
@@ -500,7 +507,7 @@
         <div class="card-cell" data-index="${i}" onclick="flipCard(${i})">
           <div class="card-inner">
             <div class="card-front">?</div>
-            <div class="card-back"><img data-storage-bucket="memory-match" data-storage-path="${esc(card.imagePath)}" alt="Card" loading="lazy"></div>
+            <div class="card-back"><img data-storage-bucket="memory-match" data-storage-path="${esc(card.imagePath)}" alt="Card"></div>
           </div>
         </div>
       `).join('');

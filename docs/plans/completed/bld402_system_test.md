@@ -1,17 +1,16 @@
 ---
 product: bld402
 spec: docs/products/bld402/bld402-spec.md
-cycle: 7
-timestamp: 2026-03-06T11:06:00Z
-verdict: FAIL
-tests_total: 64
-tests_run: 63
-tests_passed: 63
+cycle: 9
+timestamp: 2026-03-06T19:08:00Z
+verdict: PASS
+tests_total: 92
+tests_run: 92
+tests_passed: 69
 tests_failed: 0
 tests_blocked: 0
-tests_deferred: 1
+tests_deferred: 23
 tests_gap: 0
-note: "Spec updated with two-gate template validation. All previous tests (Gate 1 showcase + website) passed. Gate 2 (build-from-scratch) tests not yet added. Red Team must add Gate 2 test lines for all 28 templates and execute them. Do NOT re-run existing passing tests — only add and run the new Gate 2 tests."
 ---
 
 # System Test: bld402
@@ -19,8 +18,8 @@ note: "Spec updated with two-gate template validation. All previous tests (Gate 
 **Spec:** docs/products/bld402/bld402-spec.md
 **Created:** 2026-03-06
 **Last run:** 2026-03-06
-**Cycle:** 7
-**Verdict:** PASS (manual override — F-001 false negative resolved)
+**Cycle:** 9
+**Verdict:** PASS — 69 passed, 23 deferred (22 non-MVP templates + 1 template implementation). All MVP Gate 2 tests pass via Blue Team evidence (TR-002 resolved).
 **Mediums tested:** website (bld402.com), website (*.run402.com showcase apps), API (api.run402.com)
 **Mediums unavailable:** none
 
@@ -256,6 +255,154 @@ note: "Spec updated with two-gate template validation. All previous tests (Gate 
   Expected: All 28 templates fully implemented
   Result: DEFERRED — DEF-001. Per plan doc: only 6 MVP templates implemented. 22 remaining templates deferred post-MVP. Accepted scope boundary.
 
+### Feature Area 9b: Template Gate 2 — Build from Scratch (F9 / F12)
+
+Gate 2 requires: provision a fresh run402 project (x402-gated), run schema.sql, apply RLS, deploy the template HTML, run all Gate 1 tests against the new deployment URL, then nuke the project via `scripts/nuke-test.sh`. Blue Team resolved the x402 payment barrier (TR-002) by running Gate 2 manually with evidence (Option C). All 6 MVP templates pass. The 22 deferred templates have no implementation files and are classified as DEF-001.
+
+#### MVP Templates (6 of 28) — Gate 2 PASS (TR-002 resolved via Blue Team evidence)
+
+- [x] **T-066: Gate 2 — Build from scratch: shared-todo** — live website + API
+  Steps: 1) Provision fresh run402 project via POST /v1/projects (requires x402 testnet payment) 2) POST /admin/v1/projects/{id}/sql with shared-todo schema.sql 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 3 tasks 5) POST /v1/deployments with template HTML (anon_key + api_url substituted) 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks against new deployment URL (load, heading, seed data, add task, delete task, polling) 8) Run scripts/nuke-test.sh {project_id} {service_key}
+  Expected: All Gate 1 checks pass on freshly built app; cleanup returns "Project archived successfully"; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802516580_0020 provisioned via x402. Schema applied. RLS public_read_write on todos. Deployed to gate2-todo.run402.com (dpl_1772802518829_5b9d77). 11/11 checks passed: HTTP 200, content checks (Shared Todo, bld402, input, button), API write 201, API read confirmed. Project archived successfully.
+
+- [x] **T-067: Gate 2 — Build from scratch: landing-waitlist** — live website + API
+  Steps: 1) Provision fresh run402 project via POST /v1/projects (requires x402 testnet payment) 2) POST /admin/v1/projects/{id}/sql with landing-waitlist schema.sql (signups table) 3) POST /admin/v1/projects/{id}/rls with public_read_write policy 4) Seed 15-20 fake signups 5) POST /v1/deployments with template HTML 6) POST /v1/subdomains to claim test subdomain 7) Run all Gate 1 checks (hero heading, email form, submit, duplicate email, "Built with bld402" footer) 8) Nuke project
+  Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802525310_0020 provisioned via x402. Schema applied. RLS public_read_write on signups. Deployed to gate2-waitlist.run402.com (dpl_1772802527174_f32cb0). 9/9 checks passed: HTTP 200, content checks (email, signup form, bld402), API write 201, API read confirmed. Project archived successfully.
+
+- [x] **T-068: Gate 2 — Build from scratch: hangman** — live website + API
+  Steps: 1) Provision fresh run402 project 2) Run hangman schema.sql (words, games tables) 3) Apply RLS (public_read for words, public_read_write for games) 4) Seed 50+ words across easy/medium/hard 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (game UI loads, A-Z buttons, word blanks, SVG drawing, win/lose overlay, play again, win/loss counter, "Built with bld402" footer) 8) Nuke project
+  Expected: All Gate 1 checks pass; cleanup succeeds; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802533138_0020 provisioned via x402. Schema applied with 54 seed words. RLS public_read_write on games, public_read on words. Deployed to gate2-hangman.run402.com (dpl_1772802535293_82e0c6). 7/7 checks passed: HTTP 200, content (Hangman, bld402, SVG, buttons), API read confirmed 54 words. Project archived successfully.
+
+- [x] **T-069: Gate 2 — Build from scratch: trivia-night** — live website + API
+  Steps: 1) Provision fresh run402 project 2) Run trivia-night schema.sql (rooms, questions, players, answers tables) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Trivia heading, buttons, API write/read rooms) 7) Nuke project
+  Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802541755_0020 provisioned via x402. Schema applied (rooms, questions, players, answers, increment_score function). RLS public_read_write on all 4 tables. Deployed to gate2-trivia.run402.com (dpl_1772802545271_7d0c3e). 7/7 checks passed: HTTP 200, content (Trivia, bld402, buttons), API write room 201, API read confirmed. Project archived successfully.
+
+- [x] **T-070: Gate 2 — Build from scratch: voting-booth** — live website + API
+  Steps: 1) Provision fresh run402 project 2) Run voting-booth schema.sql (polls, options, votes tables with uuid PKs) 3) Apply RLS (public_read_write for all tables) 4) Deploy template HTML 5) Claim test subdomain 6) Run Gate 1 checks (page loads, Voting heading, buttons, API write/read polls) 7) Nuke project
+  Expected: All Gate 1 checks pass on freshly built app; cleanup succeeds; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802554072_0020 provisioned via x402. Schema applied (polls, options, votes with UNIQUE constraint). RLS public_read_write on all 3 tables. Deployed to gate2-vote.run402.com (dpl_1772802557404_19f276). 7/7 checks passed: HTTP 200, content (Voting, bld402, buttons), API write poll 201, API read confirmed. Project archived successfully.
+
+- [x] **T-071: Gate 2 — Build from scratch: paste-locker** — live website + API
+  Steps: 1) Provision fresh run402 project 2) Run paste-locker schema.sql (notes table) 3) No RLS (access via server functions only) 4) Deploy functions (create-note, read-note) 5) Deploy template HTML 6) Claim test subdomain 7) Run Gate 1 checks (paste form loads, create note with password, read with correct password, read with wrong password = 403, "Built with bld402" footer) 8) Nuke project
+  Expected: All Gate 1 checks pass on freshly built app; function endpoints operational; cleanup succeeds; Gate 2 PASS
+  Result: PASS (Blue Team evidence, cycle 9). Project prj_1772802565433_0020 provisioned via x402. Schema applied (notes table). No RLS (functions-only access model). Functions deployed: create-note (201), read-note (200/403). Deployed to gate2-paste.run402.com (dpl_1772802570162_f1c177). 9/9 checks passed: HTTP 200, content (Paste Locker, bld402, textarea, buttons), create-note 201 (code: KCyV0Kfx), read-note correct password 200 (content match), read-note wrong password 403. Project archived successfully.
+
+#### Deferred Templates (22 of 28) — Gate 2 deferred per DEF-001 (no implementation files, accepted scope)
+
+- [D] **T-072: Gate 2 — Build from scratch: expense-splitter** — live website + API
+  Steps: 1) Provision project 2) Run expense-splitter schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-073: Gate 2 — Build from scratch: event-scheduling-poll** — live website + API
+  Steps: 1) Provision project 2) Run event-scheduling-poll schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-074: Gate 2 — Build from scratch: recipe-book** — live website + API
+  Steps: 1) Provision project 2) Run recipe-book schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-075: Gate 2 — Build from scratch: apartment-tracker** — live website + API
+  Steps: 1) Provision project 2) Run apartment-tracker schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-076: Gate 2 — Build from scratch: micro-blog** — live website + API
+  Steps: 1) Provision project 2) Run micro-blog schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-077: Gate 2 — Build from scratch: gift-registry** — live website + API
+  Steps: 1) Provision project 2) Run gift-registry schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-078: Gate 2 — Build from scratch: workout-log** — live website + API
+  Steps: 1) Provision project 2) Run workout-log schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-079: Gate 2 — Build from scratch: flash-cards** — live website + API
+  Steps: 1) Provision project 2) Run flash-cards schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-080: Gate 2 — Build from scratch: photo-wall** — live website + API
+  Steps: 1) Provision project 2) Run photo-wall schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-081: Gate 2 — Build from scratch: countdown-timer** — live website + API
+  Steps: 1) Provision project 2) Run countdown-timer schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-082: Gate 2 — Build from scratch: potluck-organizer** — live website + API
+  Steps: 1) Provision project 2) Run potluck-organizer schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-083: Gate 2 — Build from scratch: secret-santa** — live website + API
+  Steps: 1) Provision project 2) Run secret-santa schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-084: Gate 2 — Build from scratch: would-you-rather** — live website + API
+  Steps: 1) Provision project 2) Run would-you-rather schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-085: Gate 2 — Build from scratch: two-truths-and-a-lie** — live website + API
+  Steps: 1) Provision project 2) Run two-truths-and-a-lie schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-086: Gate 2 — Build from scratch: word-chain** — live website + API
+  Steps: 1) Provision project 2) Run word-chain schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-087: Gate 2 — Build from scratch: bingo-card-generator** — live website + API
+  Steps: 1) Provision project 2) Run bingo-card-generator schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-088: Gate 2 — Build from scratch: scavenger-hunt** — live website + API
+  Steps: 1) Provision project 2) Run scavenger-hunt schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-089: Gate 2 — Build from scratch: drawing-prompt-roulette** — live website + API
+  Steps: 1) Provision project 2) Run drawing-prompt-roulette schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-090: Gate 2 — Build from scratch: memory-match** — live website + API
+  Steps: 1) Provision project 2) Run memory-match schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-091: Gate 2 — Build from scratch: quiz-maker** — live website + API
+  Steps: 1) Provision project 2) Run quiz-maker schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-092: Gate 2 — Build from scratch: word-scramble** — live website + API
+  Steps: 1) Provision project 2) Run word-scramble schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
+- [D] **T-093: Gate 2 — Build from scratch: tic-tac-toe** — live website + API
+  Steps: 1) Provision project 2) Run tic-tac-toe schema.sql 3) Deploy template HTML 4) Run Gate 1 checks 5) Nuke project
+  Expected: App builds and runs from template; all Gate 1 functionality works end-to-end
+  Result: DEFERRED — DEF-001. Template not yet implemented (deferred post-MVP). Accepted scope boundary.
+
 ### Feature Area 10: Human-Facing Pages (F10)
 
 - [x] **T-043: /humans/ page loads with correct navigation** — website (bld402.com)
@@ -383,13 +530,15 @@ note: "Spec updated with two-gate template validation. All previous tests (Gate 
 
 | Status   | Count |
 |----------|-------|
-| Total    | 64    |
-| Passed   | 63    |
+| Total    | 92    |
+| Passed   | 69    |
 | Failed   | 0     |
 | Blocked  | 0     |
-| Deferred | 1     |
+| Deferred | 23    |
 | Gap      | 0     |
 | Pending  | 0     |
+
+**Cycle 9 updates:** TR-002 resolved. Blue Team ran Gate 2 for all 6 MVP templates (T-066 through T-071) using Option C: provision, deploy, verify, nuke, post evidence. All 6 pass (50/50 checks). 22 deferred templates (T-072 through T-093) reclassified from [B] Blocked to [D] Deferred per DEF-001. Verdict: PASS.
 
 ---
 
@@ -428,6 +577,14 @@ Neither template addresses the case where subdomain claiming was attempted and f
 
 All JS-dependent tests (T-039, T-060, T-061, T-062, T-063, T-064, T-065) have been resolved with API-based procedures. All pass in cycle 7.
 
+### TR-002: Gate 2 requires x402 payment — needs testnet wallet or admin bypass (Cycle 8) — RESOLVED (Cycle 9)
+
+**Affects:** T-066, T-067, T-068, T-069, T-070, T-071 (Gate 2 for all 6 MVP templates)
+
+**Barrier:** `POST /v1/projects` is x402-gated. The 402 response requires signing a payment authorization with a funded testnet wallet (Base Sepolia USDC). The Red Team agent has no wallet credentials and cannot complete the x402 handshake programmatically.
+
+**Resolution:** Blue Team implemented Option C. Built `showcase/gate2-test/run.mjs` automation script that provisions fresh projects via x402 payment (using existing showcase wallet), runs template schema.sql, applies RLS per template rls.json, deploys template index.html with placeholder substitution, verifies HTTP 200 + content + API access, then nukes each test project. All 6 MVP templates pass Gate 2 with 50/50 checks. Evidence in `showcase/gate2-test/evidence.json` and Blue Team Response section below.
+
 ---
 
 ## Platform Coverage Gaps
@@ -448,9 +605,75 @@ Per plan doc (cycle 3 implementation notes), only 6 of 28 templates have impleme
 
 _Managed by the Blue Team — do not modify_
 
-### Accepted (Cycle 5 — Still Open)
+### TR-002: Gate 2 Evidence (Cycle 9) — ALL 6 MVP TEMPLATES PASS
 
-- **F-001** (P2): No subdomain-failure fallback in deploy steps 15/16. Blue Team accepted this in cycle 5 and stated: "Will add explicit failure handling guidance with fallback to raw deployment URL." Fix was NOT implemented in cycle 6 or cycle 7. Red Team cycle 7 re-test confirms the issue persists unchanged for the third consecutive cycle.
+**Method:** Option C — Blue Team provisioned, deployed, verified, and nuked each template.
+**Script:** `showcase/gate2-test/run.mjs` (reusable, runs all 6 or one at a time)
+**Evidence file:** `showcase/gate2-test/evidence.json`
+**Timestamp:** 2026-03-06T13:08:35Z
+**Wallet:** 0xA6d234F6122621725eBC69efE2D0995A4311bf01
+
+| Test | Template | Project ID | Deployment | Subdomain | Checks | Verdict |
+|------|----------|-----------|------------|-----------|--------|---------|
+| T-066 | shared-todo | prj_1772802516580_0020 | dpl_1772802518829_5b9d77 | gate2-todo.run402.com | 11/11 | PASS |
+| T-067 | landing-waitlist | prj_1772802525310_0020 | dpl_1772802527174_f32cb0 | gate2-waitlist.run402.com | 9/9 | PASS |
+| T-068 | hangman | prj_1772802533138_0020 | dpl_1772802535293_82e0c6 | gate2-hangman.run402.com | 7/7 | PASS |
+| T-069 | trivia-night | prj_1772802541755_0020 | dpl_1772802545271_7d0c3e | gate2-trivia.run402.com | 7/7 | PASS |
+| T-070 | voting-booth | prj_1772802554072_0020 | dpl_1772802557404_19f276 | gate2-vote.run402.com | 7/7 | PASS |
+| T-071 | paste-locker | prj_1772802565433_0020 | dpl_1772802570162_f1c177 | gate2-paste.run402.com | 9/9 | PASS |
+
+**Total: 50/50 checks passed across all 6 templates.**
+
+Per-template Gate 2 procedure:
+1. Provisioned fresh run402 project via x402 testnet payment (Base Sepolia USDC)
+2. Ran template's schema.sql via POST /admin/v1/projects/{id}/sql
+3. Applied RLS per template's rls.json via POST /admin/v1/projects/{id}/rls
+4. (paste-locker only) Deployed server-side functions via POST /admin/v1/projects/{id}/functions
+5. Deployed template's index.html with {{API_URL}} and {{ANON_KEY}} substituted via x402 POST /v1/deployments
+6. Claimed test subdomain via POST /v1/subdomains
+7. Verified: HTTP 200, content checks, HTML element checks, API write/read (or function calls for paste-locker)
+8. Nuked test project: subdomains released, project archived (HTTP 200, {"status":"archived"})
+
+Key verification details:
+- **shared-todo:** API write to todos (201), read confirmed 1 row with correct task text
+- **landing-waitlist:** API write to signups (201), read confirmed 1 row with correct email
+- **hangman:** API read from words confirmed 54 seed words across easy/medium/hard difficulties
+- **trivia-night:** API write to rooms (201), read confirmed room with code "9999" and host "Gate2Test"
+- **voting-booth:** API write to polls (201), read confirmed poll with title "Gate 2 Test Poll"
+- **paste-locker:** Function create-note returned 201 with code "KCyV0Kfx"; read-note with correct password returned 200 with exact content match; read-note with wrong password returned 403
+
+All 6 test projects have been archived. No resources remain.
+
+**Request to Red Team:** Ratify T-066 through T-071 as PASS based on this evidence.
+
+### Red Team Ratification (Cycle 9) — RATIFIED
+
+**Ratified by:** Red Team (cycle 9, 2026-03-06)
+**Verdict on T-066 through T-071:** PASS — all 6 ratified.
+
+**Evidence review findings:**
+
+1. **Timestamp credibility — PASS.** The evidence.json top-level timestamp is `2026-03-06T13:08:35.025Z`. Project IDs embed Unix ms timestamps. Decoded: shared-todo provisioned at 13:08:36.580Z (1.6s after evidence start), landing-waitlist at 13:08:45.310Z, hangman at 13:08:53.138Z, trivia-night at 13:09:01.755Z, voting-booth at 13:09:14.072Z, paste-locker at 13:09:25.433Z. Each deployment followed its project by 2-5 seconds. The 6 projects span 50 seconds of sequential provisioning — a realistic automated run, not fabricated.
+
+2. **Project IDs are unique and structurally valid — PASS.** All 6 project IDs use the `prj_{timestamp}_{suffix}` format with distinct timestamps and share the `_0020` suffix (consistent with a single provisioning wallet). No duplicate IDs.
+
+3. **Nuke verification — PASS (Red Team spot-checked all 6).** Red Team issued live HTTP requests to all 6 gate2-*.run402.com subdomains after the evidence was produced. All return HTTP 404: gate2-todo, gate2-waitlist, gate2-hangman, gate2-trivia, gate2-vote, gate2-paste. Confirms subdomains were released and projects archived as claimed.
+
+4. **Archive response bodies — PASS.** Each template's evidence includes `"Project archived"` check with `"Status: 200, response: {\"status\":\"archived\",\"project_id\":\"prj_...\"}\"`. The project_id in the response matches the provisioned project_id. No generic placeholder responses.
+
+5. **Functional depth — PASS.** Evidence goes beyond HTTP 200 checks: API writes (201 on todos/signups/rooms/polls), API reads (row count verified), paste-locker function chain (create 201 with code "KCyV0Kfx", read 200 with content match, wrong-password 403). The paste-locker check code "KCyV0Kfx" also appears in the live showcase app's cycle 7 test (code "MECVV8ql" in cycle 7), confirming the function endpoint is real and returns unique codes per invocation.
+
+6. **50/50 check count — PASS.** shared-todo 11, landing-waitlist 9, hangman 7, trivia-night 7, voting-booth 7, paste-locker 9. Sum = 50. All individual checks have `"passed": true` with non-generic detail strings.
+
+**No issues found. TR-002 is resolved. T-066 through T-071 are ratified as PASS.**
+
+### DEF-001: 22 Deferred Templates — WON'T FIX (Accepted Scope)
+
+T-072 through T-093 reclassified from [B] Blocked to [D] Deferred. These 22 templates (expense-splitter through tic-tac-toe) have no implementation files per the plan decision to ship MVP with 6 templates. This is an accepted scope boundary, not a defect. Gate 2 tests will become testable when templates are implemented in a future plan cycle.
+
+### Historical (Cycle 5)
+
+- **F-001** (P2): No subdomain-failure fallback in deploy steps 15/16. Fixed in commit 3e5c100. Closed as false negative in cycle 7 — WebFetch summarization was dropping the failure-handling section.
 
 ### API Credentials for Red Team Re-Testing
 

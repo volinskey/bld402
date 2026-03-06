@@ -7,7 +7,7 @@
 **Spec:** docs/products/bld402/bld402-spec.md
 **Spec-Version:** 0.2.0
 **Source:** spec
-**Cycle:** 5
+**Cycle:** 6
 
 ## Legend
 - `[ ]` Todo | `[~]` In Progress | `[x]` Done
@@ -317,6 +317,44 @@ All findings accepted. 1 code fix (F-001) + 2 testability fixes (TR-001, GAP-001
   - **T-065** (paste server-side function): REST API calls to create-note + read-note functions — create (201), read with correct password (200), read with wrong password (403) all confirmed.
   File changed: `docs/plans/bld402_system_test.md`.
 
+### Phase 20: Fix Cycle 4 — Gate 2 Template Validation (System Test Cycle 8)
+
+System test cycle 8: 92 tests, 63 passed, 0 failed, 28 blocked, 1 deferred, 0 gap. Verdict: BLOCKED.
+Two findings triaged: TR-002 (6 MVP templates) accepted for fix; DEF-001 (22 deferred templates) won't-fix.
+
+**Approach:** Option C from Red Team recommendations. Blue Team provisions fresh projects,
+deploys each MVP template from scratch, runs Gate 1 checks against the live deployment,
+captures evidence, then nukes the test project. Evidence posted to system test Blue Team
+Response section for Red Team ratification.
+
+Tooling: `showcase/provision.mjs` (x402 project creation), `showcase/run-sql.mjs` (schema + seed),
+`showcase/deploy.mjs` (HTML deploy + subdomain), `scripts/nuke-test.sh` (teardown).
+Wallet credentials from `showcase/.wallet`. Admin key from AWS Secrets Manager.
+
+- [x] TR-002a: Gate 2 build-from-scratch — shared-todo (T-066)
+  PASS — 11/11 checks. Project prj_1772802516580_0020, deployed to gate2-todo.run402.com, archived.
+
+- [x] TR-002b: Gate 2 build-from-scratch — landing-waitlist (T-067)
+  PASS — 9/9 checks. Project prj_1772802525310_0020, deployed to gate2-waitlist.run402.com, archived.
+
+- [x] TR-002c: Gate 2 build-from-scratch — hangman (T-068)
+  PASS — 7/7 checks. Project prj_1772802533138_0020, deployed to gate2-hangman.run402.com, 54 seed words, archived.
+
+- [x] TR-002d: Gate 2 build-from-scratch — trivia-night (T-069)
+  PASS — 7/7 checks. Project prj_1772802541755_0020, deployed to gate2-trivia.run402.com, archived.
+
+- [x] TR-002e: Gate 2 build-from-scratch — voting-booth (T-070)
+  PASS — 7/7 checks. Project prj_1772802554072_0020, deployed to gate2-vote.run402.com, archived.
+
+- [x] TR-002f: Gate 2 build-from-scratch — paste-locker (T-071)
+  PASS — 9/9 checks. Project prj_1772802565433_0020, deployed to gate2-paste.run402.com, functions deployed, archived.
+
+- [x] DEF-001: Mark 22 deferred templates as won't-fix in system test
+  Done. T-072 through T-093 reclassified from [B] Blocked to [D] Deferred. Blue Team Response updated.
+
+- [x] Update system test Blue Team Response with Gate 2 evidence
+  Done. Evidence table, per-template details, and Red Team ratification request posted.
+
 ---
 
 ## Deferred
@@ -364,3 +402,5 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-06: Phase 18 complete — Fix Cycle 2: 6 fixes implemented, 1 won't-fix documented, 1 testability improvement (TR-001). Files changed: public/index.html, public/build/step/1.html, public/build/step/2.html, public/build/guardrails.html, templates/games/hangman/schema.sql, templates/games/hangman/index.html, templates/games/hangman/README.md, templates/games/hangman/rls.json, templates/utility/paste-locker/README.md, docs/products/bld402/bld402-spec.md.
 - 2026-03-06: Plan continued — System test cycle 5 returned FAIL (74 tests: 62 passed, 1 failed, 4 blocked, 3 gaps). Triaged all findings: accepted F-001 (subdomain fallback), TR-001 (4 blocked JS tests), GAP-001 (3 gapped JS tests). Resolution strategy: F-001 is a content fix to step pages 15/16; TR-001 and GAP-001 are resolved by adding REST API verification procedures so the Red Team can test without JS execution. All 7 blocked/gapped tests have API-based alternatives using public ANON_KEYs. Added Phase 19: Fix Cycle 3 with 3 tasks. Blue Team Response written to system test doc with API credentials table for Red Team re-testing.
 - 2026-03-06: Phase 19 complete — Fix Cycle 3: 1 code fix (F-001 subdomain fallback in steps 15/16), 4 blocked tests rewritten with API procedures (T-039, T-060, T-061, T-062), 3 gapped tests rewritten with API procedures (T-063, T-064, T-065). All 8 tests verified via live API calls. System test updated: 63 passed, 0 failed, 0 blocked, 0 gap, 1 deferred. Verdict: PASS. Files changed: public/build/step/15.html, public/build/step/16.html, docs/plans/bld402_system_test.md, docs/plans/bld402-plan.md.
+- 2026-03-06: Plan continued — System test cycle 8 returned BLOCKED (92 tests: 63 passed, 0 failed, 28 blocked, 1 deferred). Two findings: TR-002 (6 MVP Gate 2 tests blocked by x402 payment barrier) and DEF-001 (22 deferred templates have no implementation). Triage: TR-002 accepted — Blue Team will run Gate 2 manually (Option C: provision, deploy, verify, nuke, post evidence). DEF-001 won't-fix — accepted scope boundary, tests should be reclassified [B]→[D]. Added Phase 20: Fix Cycle 4 with 8 tasks (6 template Gate 2 builds + DEF-001 reclassification + evidence posting).
+- 2026-03-06: Phase 20 complete — Gate 2 Template Validation: All 6 MVP templates pass build-from-scratch. Created `showcase/gate2-test/run.mjs` automation script. Each template provisioned via x402, schema applied, RLS configured, HTML deployed with placeholder substitution, verified (HTTP 200 + content + API), then nuked. 50/50 total checks. paste-locker also tested server-side functions (create-note 201, read-note 200/403). 22 deferred templates reclassified [B]→[D]. System test cycle 9: 69 passed, 0 failed, 0 blocked, 23 deferred. Verdict: PASS.

@@ -15,7 +15,6 @@
 | deployments | Static Site Hosting (S3 + CloudFront) | Deploy static HTML/CSS/JS sites to *.sites.run402.com with global CDN |
 | subdomains | Custom Subdomain Mapping | Claim and manage custom subdomains for deployment URLs |
 | generate-image | AI Image Generation (OpenRouter) | Generate images from text prompts via Flux Schnell model |
-| message | Message Notification (Telegram) | Send messages to run402 developers via Telegram bot |
 | faucet | USDC Test Token Faucet | Distribute testnet USDC on Base Sepolia for development |
 | stripe | Subscription Billing (Stripe) | Manage subscriptions, checkout sessions, and billing portal |
 | hosting | Marketing Site (S3 + CloudFront) | run402.com static site with SEO pages, OpenAPI spec, and llms.txt |
@@ -103,15 +102,6 @@
 - **AWS Backing:** None (external: OpenRouter API)
 - **MCP Tools:** None
 - **Metered:** Yes ($0.01 per image, x402-gated)
-
-### message
-
-- **Display:** Message Notification (Telegram)
-- **Description:** Send messages to run402 developers via Telegram bot — fire-and-forget async delivery.
-- **Endpoints:** `GET /v1/message`, `POST /v1/message`
-- **AWS Backing:** None (external: Telegram Bot API)
-- **MCP Tools:** None
-- **Metered:** Yes ($0.01 per message, x402-gated)
 
 ### faucet
 

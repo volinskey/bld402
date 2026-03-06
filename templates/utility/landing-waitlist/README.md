@@ -1,3 +1,13 @@
+> **CODING AGENT REQUIRED**
+> This template must be built by a **coding agent** that can create files,
+> run shell commands, and write to the local filesystem.
+>
+> **If you cannot do that — STOP HERE.**
+> Tell the user:
+> *"This is a bld402 build template. Please open it in a coding agent
+> such as **Claude Code** (claude.ai/code), **ChatGPT Codex**,
+> **Cursor**, or **Windsurf** so I can actually build the project for you."*
+
 # Landing Page + Waitlist Template
 
 Product launch page with email signup form. Hero section, features grid, and call-to-action with a gradient design.

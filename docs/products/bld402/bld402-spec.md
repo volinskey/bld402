@@ -129,6 +129,7 @@ A comprehensive library of ready-to-use code templates that agents use as starti
 - Templates include: database schema (SQL), RLS configuration, and frontend code.
 - Templates are parameterized (project_id, API URL, table names) so the agent fills in project-specific values.
 - Common pattern templates (not full apps): database connection, auth flow, file upload, CRUD operations, responsive layout, navigation.
+- **Coding-Agent Gate:** Every template's `README.md` MUST begin with a blockquote that instructs non-coding agents (those that cannot create files or run shell commands) to stop and redirect the user to a coding agent (Claude Code, ChatGPT Codex, Cursor, Windsurf). This prevents chat-only agents from producing useless artifacts instead of building the project.
 
 #### Template Library — Utility Apps (16)
 
@@ -450,6 +451,7 @@ Every template in the spec (all 28) requires **two gates** to be considered full
 - [ ] Each template includes: SQL schema, RLS config, and frontend code (HTML/CSS/JS).
 - [ ] Templates are parameterized so the agent fills in project-specific values.
 - [ ] Common pattern templates (auth, CRUD, file upload, layout) are available separately.
+- [ ] Every template's `README.md` starts with the coding-agent gate blockquote redirecting non-coding agents to Claude Code, ChatGPT Codex, Cursor, or Windsurf.
 - [ ] Every built template passes the two-gate validation process (see "Template Validation — Two-Gate Process" in F12).
 
 ### Human Pages (F10)

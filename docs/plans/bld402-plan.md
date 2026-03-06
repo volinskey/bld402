@@ -412,13 +412,13 @@ No new services, but unique multiplayer mechanic.
 
 Detailed specs for each showcase app — exact behavior, seed data, demo modifications.
 
-- [ ] Write spec: Micro-Blog showcase (`docs/products/showcase/micro-blog-spec.md`) — public feed with 8-10 seed posts + images, auth enabled, vanity subdomain emphasis
-- [ ] Write spec: Photo Wall showcase (`docs/products/showcase/photo-wall-spec.md`) — curated mad wall with 12-15 AI-generated images, uploads disabled, view-only demo
-- [ ] Write spec: Secret Santa showcase (`docs/products/showcase/secret-santa-spec.md`) — pre-created group with 5 members, already drawn, shows completed exchange state
-- [ ] Write spec: AI Sticker Maker showcase (`docs/products/showcase/ai-sticker-maker-spec.md`) — 15-20 pre-generated seed stickers, live generation enabled (x402 from showcase wallet)
-- [ ] Write spec: Flash Cards showcase (`docs/products/showcase/flash-cards-spec.md`) — 3 pre-made public decks (World Capitals, Spanish Basics, Web Dev Terms), auth enabled
-- [ ] Write spec: Bingo Card Generator showcase (`docs/products/showcase/bingo-card-generator-spec.md`) — pre-created finished game showing completed board state, 3 preset item lists
-- [ ] Write spec: Memory Match showcase (`docs/products/showcase/memory-match-spec.md`) — 3 card sets with AI-generated art, 10-15 fake leaderboard scores, fully playable
+- [x] Write spec: Micro-Blog showcase (`docs/products/showcase/micro-blog-spec.md`) — public feed with 8-10 seed posts + images, auth enabled, vanity subdomain emphasis
+- [x] Write spec: Photo Wall showcase (`docs/products/showcase/photo-wall-spec.md`) — curated mad wall with 12-15 AI-generated images, uploads disabled, view-only demo
+- [x] Write spec: Secret Santa showcase (`docs/products/showcase/secret-santa-spec.md`) — pre-created group with 5 members, already drawn, shows completed exchange state
+- [x] Write spec: AI Sticker Maker showcase (`docs/products/showcase/ai-sticker-maker-spec.md`) — 15-20 pre-generated seed stickers, live generation enabled (x402 from showcase wallet)
+- [x] Write spec: Flash Cards showcase (`docs/products/showcase/flash-cards-spec.md`) — 3 pre-made public decks (World Capitals, Spanish Basics, Web Dev Terms), auth enabled
+- [x] Write spec: Bingo Card Generator showcase (`docs/products/showcase/bingo-card-generator-spec.md`) — pre-created finished game showing completed board state, 3 preset item lists
+- [x] Write spec: Memory Match showcase (`docs/products/showcase/memory-match-spec.md`) — 3 card sets with AI-generated art, 10-15 fake leaderboard scores, fully playable
 
 ### Phase 28: Build Showcase HTML From Templates (7 new apps)
 
@@ -511,3 +511,4 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-06: Plan continued — Spec updated to v0.3.0. Template count reduced from 28 → 13 (removed 17 low-value templates, added 7 new templates covering auth, storage, functions, generate-image). Added Phases 21-31: 2 new pattern snippets, website cleanup, 7 template builds (sequenced: Micro-Blog first as auth proving ground), 7 showcase specs, 7 showcase builds, AI seed art generation, 7 showcase deployments, human page updates. ~55 tasks across 11 phases.
 - 2026-03-06: Phases 21-22 complete — 2 new pattern snippets (functions.js, generate-image.js). Website cleanup: updated humans/templates.html, templates/index.html, build/step/2.html with 13 templates (removed 17 dropped).
 - 2026-03-06: Phases 23-26 complete — All 7 new templates built. Each has schema.sql, rls.json, index.html, and README.md. Micro-Blog (auth + storage), Photo Wall (auth + storage), Secret Santa (auth + functions + draw-names.js Lambda), Flash Cards (auth + spaced repetition), AI Sticker Maker (generate-image + storage), Memory Match (generate-image + leaderboard), Bingo Card Generator (multiplayer polling). Auth verify task deferred to Phase 30.
+- 2026-03-06: Phase 27 complete — All 7 showcase specs written at docs/products/showcase/. Each spec follows shared-todo-spec.md format: YAML frontmatter, numbered FRs, schema with demo additions (is_seed, cleanup triggers), seed SQL, RLS, pinned demo modifications, acceptance criteria checkboxes, and template repeatability section.

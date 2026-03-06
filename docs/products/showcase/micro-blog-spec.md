@@ -7,7 +7,7 @@ template: templates/utility/micro-blog/
 
 # Showcase: Micro Blog
 
-Live demo at **blog.run402.com** — a public micro-blog feed where anyone can post short thoughts and photos.
+Live demo at **microblog.run402.com** — a public micro-blog feed where anyone can post short thoughts and photos.
 
 ## Source Template
 
@@ -198,7 +198,7 @@ CREATE POLICY "auth_insert" ON posts FOR INSERT TO authenticated
 - [ ] Footer shows bld402 + run402 links
 - [ ] **Viewport fitting:** App fits in one screen without page-level scroll (100dvh, flex layout); feed scrolls within its container
 - [ ] **Responsive:** Post cards and compose form stack properly on narrow screens (< 600px)
-- [ ] Page accessible at blog.run402.com
+- [ ] Page accessible at microblog.run402.com
 - [ ] **Repeatability:** A fresh project built from `templates/utility/micro-blog/` produces a working micro-blog app
 
 ## Template Repeatability
@@ -206,5 +206,5 @@ CREATE POLICY "auth_insert" ON posts FOR INSERT TO authenticated
 **The key value of each showcase app is proving that the template works.** Anyone following the bld402 steps with this template MUST be able to reach the same functional result. The only differences between a fresh build and the showcase are the pinned demo modifications listed above.
 
 **Red Team must validate both:**
-1. **The live demo** at blog.run402.com — test all acceptance criteria above.
+1. **The live demo** at microblog.run402.com — test all acceptance criteria above.
 2. **A fresh build from scratch** — follow bld402.com steps using `templates/utility/micro-blog/`, provision a new project, deploy, and verify the template produces a working app with the same core functionality (public feed, auth, compose posts, image upload, hearts).

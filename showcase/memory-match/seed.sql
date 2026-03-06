@@ -8,36 +8,36 @@ INSERT INTO card_sets (id, name, difficulty) VALUES
 
 -- Animals card images (6 pairs)
 INSERT INTO card_images (card_set_id, prompt, image_path, pair_index) VALUES
-  ('c0000001-0000-0000-0000-000000000001', 'happy otter', 'memory-match/animals/0.png', 0),
-  ('c0000001-0000-0000-0000-000000000001', 'sleepy fox', 'memory-match/animals/1.png', 1),
-  ('c0000001-0000-0000-0000-000000000001', 'dancing penguin', 'memory-match/animals/2.png', 2),
-  ('c0000001-0000-0000-0000-000000000001', 'curious owl', 'memory-match/animals/3.png', 3),
-  ('c0000001-0000-0000-0000-000000000001', 'playful kitten', 'memory-match/animals/4.png', 4),
-  ('c0000001-0000-0000-0000-000000000001', 'brave puppy', 'memory-match/animals/5.png', 5);
+  ('c0000001-0000-0000-0000-000000000001', 'happy otter', 'animals/0.png', 0),
+  ('c0000001-0000-0000-0000-000000000001', 'sleepy fox', 'animals/1.png', 1),
+  ('c0000001-0000-0000-0000-000000000001', 'dancing penguin', 'animals/2.png', 2),
+  ('c0000001-0000-0000-0000-000000000001', 'curious owl', 'animals/3.png', 3),
+  ('c0000001-0000-0000-0000-000000000001', 'playful kitten', 'animals/4.png', 4),
+  ('c0000001-0000-0000-0000-000000000001', 'brave puppy', 'animals/5.png', 5);
 
 -- Space card images (8 pairs)
 INSERT INTO card_images (card_set_id, prompt, image_path, pair_index) VALUES
-  ('c0000001-0000-0000-0000-000000000002', 'ringed planet', 'memory-match/space/0.png', 0),
-  ('c0000001-0000-0000-0000-000000000002', 'spiral galaxy', 'memory-match/space/1.png', 1),
-  ('c0000001-0000-0000-0000-000000000002', 'astronaut cat', 'memory-match/space/2.png', 2),
-  ('c0000001-0000-0000-0000-000000000002', 'rocket ship', 'memory-match/space/3.png', 3),
-  ('c0000001-0000-0000-0000-000000000002', 'shooting star', 'memory-match/space/4.png', 4),
-  ('c0000001-0000-0000-0000-000000000002', 'moon crater', 'memory-match/space/5.png', 5),
-  ('c0000001-0000-0000-0000-000000000002', 'alien plant', 'memory-match/space/6.png', 6),
-  ('c0000001-0000-0000-0000-000000000002', 'space station', 'memory-match/space/7.png', 7);
+  ('c0000001-0000-0000-0000-000000000002', 'ringed planet', 'space/0.png', 0),
+  ('c0000001-0000-0000-0000-000000000002', 'spiral galaxy', 'space/1.png', 1),
+  ('c0000001-0000-0000-0000-000000000002', 'astronaut cat', 'space/2.png', 2),
+  ('c0000001-0000-0000-0000-000000000002', 'rocket ship', 'space/3.png', 3),
+  ('c0000001-0000-0000-0000-000000000002', 'shooting star', 'space/4.png', 4),
+  ('c0000001-0000-0000-0000-000000000002', 'moon crater', 'space/5.png', 5),
+  ('c0000001-0000-0000-0000-000000000002', 'alien plant', 'space/6.png', 6),
+  ('c0000001-0000-0000-0000-000000000002', 'space station', 'space/7.png', 7);
 
 -- Ocean card images (10 pairs)
 INSERT INTO card_images (card_set_id, prompt, image_path, pair_index) VALUES
-  ('c0000001-0000-0000-0000-000000000003', 'coral reef', 'memory-match/ocean/0.png', 0),
-  ('c0000001-0000-0000-0000-000000000003', 'deep sea fish', 'memory-match/ocean/1.png', 1),
-  ('c0000001-0000-0000-0000-000000000003', 'sea turtle', 'memory-match/ocean/2.png', 2),
-  ('c0000001-0000-0000-0000-000000000003', 'jellyfish', 'memory-match/ocean/3.png', 3),
-  ('c0000001-0000-0000-0000-000000000003', 'octopus', 'memory-match/ocean/4.png', 4),
-  ('c0000001-0000-0000-0000-000000000003', 'seahorse', 'memory-match/ocean/5.png', 5),
-  ('c0000001-0000-0000-0000-000000000003', 'whale shark', 'memory-match/ocean/6.png', 6),
-  ('c0000001-0000-0000-0000-000000000003', 'manta ray', 'memory-match/ocean/7.png', 7),
-  ('c0000001-0000-0000-0000-000000000003', 'clownfish', 'memory-match/ocean/8.png', 8),
-  ('c0000001-0000-0000-0000-000000000003', 'starfish', 'memory-match/ocean/9.png', 9);
+  ('c0000001-0000-0000-0000-000000000003', 'coral reef', 'ocean/0.png', 0),
+  ('c0000001-0000-0000-0000-000000000003', 'deep sea fish', 'ocean/1.png', 1),
+  ('c0000001-0000-0000-0000-000000000003', 'sea turtle', 'ocean/2.png', 2),
+  ('c0000001-0000-0000-0000-000000000003', 'jellyfish', 'ocean/3.png', 3),
+  ('c0000001-0000-0000-0000-000000000003', 'octopus', 'ocean/4.png', 4),
+  ('c0000001-0000-0000-0000-000000000003', 'seahorse', 'ocean/5.png', 5),
+  ('c0000001-0000-0000-0000-000000000003', 'whale shark', 'ocean/6.png', 6),
+  ('c0000001-0000-0000-0000-000000000003', 'manta ray', 'ocean/7.png', 7),
+  ('c0000001-0000-0000-0000-000000000003', 'clownfish', 'ocean/8.png', 8),
+  ('c0000001-0000-0000-0000-000000000003', 'starfish', 'ocean/9.png', 9);
 
 -- Seed leaderboard scores: Easy (10 scores)
 INSERT INTO scores (player_name, difficulty, moves, time_seconds) VALUES

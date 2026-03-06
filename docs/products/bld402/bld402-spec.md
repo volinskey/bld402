@@ -1,11 +1,11 @@
 ---
 product: bld402
-version: 0.2.0
+version: 0.3.0
 status: Draft
 type: product
 interfaces: [website]
 created: 2026-03-04
-updated: 2026-03-05
+updated: 2026-03-06
 ---
 
 # bld402 — Build Web Apps Without Code on run402
@@ -131,43 +131,28 @@ A comprehensive library of ready-to-use code templates that agents use as starti
 - Common pattern templates (not full apps): database connection, auth flow, file upload, CRUD operations, responsive layout, navigation.
 - **Coding-Agent Gate:** Every template's `README.md` MUST begin with a blockquote that instructs non-coding agents (those that cannot create files or run shell commands) to stop and redirect the user to a coding agent (Claude Code, ChatGPT Codex, Cursor, Windsurf). This prevents chat-only agents from producing useless artifacts instead of building the project.
 
-#### Template Library — Utility Apps (16)
+#### Template Library — Utility Apps (8)
 
-| # | Template | Description |
-|---|----------|-------------|
-| 1 | Shared Todo List | Collaborative task list with checkboxes and assignments |
-| 2 | Landing Page + Waitlist | Product launch page with email signup |
-| 3 | Expense Splitter | Split bills among friends, track who owes what |
-| 4 | Event Scheduling Poll | Doodle-style availability picker |
-| 5 | Recipe Book | Personal recipe collection with search and categories |
-| 6 | Apartment Tracker | Compare rental listings with notes and ratings |
-| 7 | Micro-Blog | Short-form posts with timestamps and reactions |
-| 8 | Gift Registry | Wishlist sharing with "claimed" status |
-| 9 | Workout Log | Track exercises, sets, reps with progress charts |
-| 10 | Flash Cards | Create and study decks with spaced repetition |
-| 11 | Voting Booth | Create a poll, share link, see live results |
-| 12 | Photo Wall | Event photo sharing — everyone uploads, gallery view |
-| 13 | Countdown Timer | Shared event countdown with comments |
-| 14 | Potluck Organizer | Who's bringing what — claim items, avoid duplicates |
-| 15 | Secret Santa | Anonymous gift exchange matcher |
-| 16 | Paste Locker | Secure pastebin with server-side password hashing |
+| # | Template | Services | Description |
+|---|----------|----------|-------------|
+| 1 | Shared Todo List | database, rest-api | Collaborative task list with checkboxes and assignments |
+| 2 | Landing Page + Waitlist | database, rest-api | Product launch page with email signup |
+| 3 | Voting Booth | database, rest-api | Create a poll, share link, see live results |
+| 4 | Paste Locker | database, functions | Secure pastebin with server-side password hashing |
+| 5 | Micro-Blog | **auth**, **storage**, database, rest-api | Short-form posts with image attachments — public feed, authenticated posting |
+| 6 | Photo Wall | **auth**, **storage**, database, rest-api | Event photo sharing with auth-gated uploads and gallery view |
+| 7 | Secret Santa | **auth**, **functions**, database, rest-api | Anonymous gift exchange with server-side matching |
+| 8 | Flash Cards | **auth**, database, rest-api | Create and study decks with spaced repetition |
 
-#### Template Library — Games (12)
+#### Template Library — Games (5)
 
-| # | Template | Description |
-|---|----------|-------------|
-| 17 | Hangman | Classic word guessing — solo or pass-and-play |
-| 18 | Trivia Night | Kahoot-style: host creates questions, players join via code, live scoring |
-| 19 | Would You Rather | Vote on dilemmas, see results in real time |
-| 20 | Two Truths and a Lie | Players submit statements, others guess the lie |
-| 21 | Word Chain | Take turns adding words, timer-based, score tracking |
-| 22 | Bingo Card Generator | Host calls items, players mark their cards |
-| 23 | Scavenger Hunt | Team checklist with photo upload proof |
-| 24 | Drawing Prompt Roulette | Get a prompt, draw it, others vote on results |
-| 25 | Memory Match | Card flip game with difficulty levels and leaderboard |
-| 26 | Quiz Maker | Create and share custom quizzes with scoring |
-| 27 | Word Scramble | Unscramble words against the clock, shareable scores |
-| 28 | Tic-Tac-Toe | Share a link, play a friend, win/loss tracking |
+| # | Template | Services | Description |
+|---|----------|----------|-------------|
+| 9 | Hangman | database, rest-api | Classic word guessing — solo play with random words |
+| 10 | Trivia Night | database, rest-api | Kahoot-style: host creates questions, players join via code, live scoring |
+| 11 | AI Sticker Maker | **generate-image**, **storage**, database, rest-api | Type a prompt, get an AI-generated sticker, save to public gallery |
+| 12 | Bingo Card Generator | database, rest-api | Host calls items, players mark unique cards, auto-detect bingo |
+| 13 | Memory Match | **generate-image**, **storage**, database, rest-api | Card flip matching game with AI-generated art and leaderboard |
 
 ### F10: Human-Facing Pages
 
@@ -175,7 +160,7 @@ The `/humans` section provides everything a human visitor needs.
 
 - **About** — What bld402 is, how it works in plain language, the relationship to run402.
 - **Showcase** — Gallery of live demo apps running on run402 with screenshots. Each card links to the live app at its `*.run402.com` subdomain. "Want to build one of these? Point your agent here: bld402.com"
-- **Templates** (`/humans/templates.html`) — Human-friendly template gallery with 6 active cards (description, "See example" link to live showcase, "How to use" initiation string with copy-to-clipboard button) plus coming-soon cards. Each "How to use" code block must include a small copy icon that copies the agent instruction text to the clipboard on click, with brief visual feedback (checkmark). Separate from the agent-facing `/templates/` catalog.
+- **Templates** (`/humans/templates.html`) — Human-friendly template gallery with 13 active cards (description, "See example" link to live showcase, "How to use" initiation string with copy-to-clipboard button). Each "How to use" code block must include a small copy icon that copies the agent instruction text to the clipboard on click, with brief visual feedback (checkmark). Separate from the agent-facing `/templates/` catalog.
 - **How It Works** — Step-by-step explanation: 1) Talk to your AI agent, 2) Describe what you want, 3) Point the agent to bld402.com, 4) Get a working app with a shareable link.
 - **Terms & Conditions** — Service terms for bld402 (free layer, no warranty, run402 T&C apply for infrastructure).
 - **Privacy Policy** — bld402 stores nothing. run402's privacy policy governs data stored there.
@@ -192,20 +177,27 @@ bld402 guides agents through run402's payment flow without adding any fees.
 
 ### F12: Live Showcase Apps
 
-Six fully functional demo apps, each built using the bld402 workflow and deployed to run402 with a memorable subdomain. These are the proof that bld402 works — a visitor clicks a showcase card and lands on a real, working app. Each app is built from its MVP template, deployed to run402, and validated individually via red team system testing.
+Thirteen fully functional demo apps, each built using the bld402 workflow and deployed to run402 with a memorable subdomain. These are the proof that bld402 works — a visitor clicks a showcase card and lands on a real, working app. Each app is built from its MVP template, deployed to run402, and validated individually via red team system testing.
 
 #### Shared Subdomain Convention
 
 All showcase apps live at `{app-name}.run402.com`:
 
-| App | Subdomain | URL |
-|-----|-----------|-----|
-| Shared Todo List | `todo` | https://todo.run402.com |
-| Landing Page + Waitlist | `waitlist` | https://waitlist.run402.com |
-| Hangman | `hangman` | https://hangman.run402.com |
-| Trivia Night | `trivia` | https://trivia.run402.com |
-| Voting Booth | `vote` | https://vote.run402.com |
-| Paste Locker | `paste` | https://paste.run402.com |
+| App | Subdomain | URL | Status |
+|-----|-----------|-----|--------|
+| Shared Todo List | `todo` | https://todo.run402.com | Live |
+| Landing Page + Waitlist | `waitlist` | https://waitlist.run402.com | Live |
+| Hangman | `hangman` | https://hangman.run402.com | Live |
+| Trivia Night | `trivia` | https://trivia.run402.com | Live |
+| Voting Booth | `vote` | https://vote.run402.com | Live |
+| Paste Locker | `paste` | https://paste.run402.com | Live |
+| Micro-Blog | `blog` | https://blog.run402.com | To build |
+| Photo Wall | `wall` | https://wall.run402.com | To build |
+| Secret Santa | `santa` | https://santa.run402.com | To build |
+| AI Sticker Maker | `stickers` | https://stickers.run402.com | To build |
+| Flash Cards | `cards` | https://cards.run402.com | To build |
+| Bingo Card Generator | `bingo` | https://bingo.run402.com | To build |
+| Memory Match | `memory` | https://memory.run402.com | To build |
 
 #### Build Process
 
@@ -364,9 +356,291 @@ Create a poll, share the link, see live results.
 
 **Seed data:** Create 1 example poll pre-loaded: "What's the best pizza topping?" with options: Pepperoni, Mushrooms, Pineapple, Extra Cheese, Olives. Pre-populate with 25-30 random votes so the results chart looks active.
 
+#### App 6: Paste Locker (`paste.run402.com`)
+
+Secure pastebin with server-side password hashing via Lambda function.
+
+**What it does:**
+- Create a note with optional password protection
+- Get a shareable link — anyone with the link can view (or must enter password if protected)
+- Notes are stored in the database, passwords are hashed server-side via a Lambda function
+- Notes can have an expiry (1 hour, 1 day, 7 days, never)
+- Syntax highlighting for code pastes
+
+**Database schema:**
+- `notes` table: `id` (uuid PK), `content` (text, not null), `title` (text, nullable), `password_hash` (text, nullable), `expires_at` (timestamptz, nullable), `views` (integer, default 0), `created_at` (timestamptz, default now())
+
+**RLS policy:** `public_read_write` — anyone can create and read notes (password check is application-level via function)
+
+**Functions:**
+- `hash-password`: Takes plaintext password, returns bcrypt hash (used on note creation)
+- `verify-password`: Takes plaintext + hash, returns boolean (used on note access)
+
+**UI requirements:**
+- **Create screen:** Title (optional), content textarea with monospace font, password field (optional), expiry dropdown, "Create Note" button
+- **View screen:** Title, content with syntax highlighting, view count, creation date
+- **Password screen:** If protected, show password input before revealing content
+- "Built with bld402" footer
+- Mobile-responsive
+
+**Seed data:** 3 example notes pre-created: one public code snippet, one public plain text, one password-protected (password: "demo")
+
+#### App 7: Micro-Blog (`blog.run402.com`)
+
+Short-form posts with optional image attachments — public feed, authenticated posting. The Micro-Blog template prominently offers vanity subdomain selection during deployment — "Pick a name for your blog: `yourname.run402.com`" — because a blog URL is your identity.
+
+**What it does:**
+- Anyone can browse the feed (no login required)
+- Sign up / log in to create posts (text + optional image)
+- Posts display in reverse chronological order with author name, timestamp, and image
+- React to posts with a simple heart/like (no auth required for reactions)
+- Authors can delete their own posts
+
+**Database schema:**
+- `posts` table: `id` (serial PK), `body` (text, not null, max 500 chars), `image_path` (text, nullable), `user_id` (uuid, not null, references auth.users), `author_name` (text, not null), `likes` (integer, default 0), `created_at` (timestamptz, default now())
+
+**RLS policy:**
+- `public_read` on posts (anyone can read)
+- `user_owns_rows` on insert/delete (only your own posts)
+
+**Storage:** Images uploaded to `posts/` bucket, public read access.
+
+**UI requirements:**
+- Header: "Micro-Blog" with login/signup buttons (or username + logout when authenticated)
+- Feed: reverse chronological cards — author name, timestamp, text, optional image, heart button with count
+- Compose bar (visible only when logged in): text area (500 char limit with counter), "Add Image" button, "Post" button
+- Empty state: "No posts yet. Sign up and be the first!"
+- Mobile-responsive: single column feed, touch-friendly
+- "Built with bld402" footer
+
+**Seed data:** Pre-populate with 8-10 fun posts from fake users, some with images (generated via generate-image or stock), covering a mix of topics — food pics, pet photos, shower thoughts, etc.
+
+#### App 8: Photo Wall (`wall.run402.com`)
+
+Event photo sharing with auth-gated uploads and gallery view.
+
+**What it does:**
+- Gallery grid of photos with captions and timestamps
+- Auth-gated uploads: sign up/log in to post photos (template supports toggling view permissions too)
+- Photos stored via run402 storage (S3)
+- Masonry-style or grid layout, lightbox on click
+- Optional: restrict viewing to authenticated users only (private wall)
+
+**Showcase specifics:**
+- `wall.run402.com` is a **curated "mad wall"** — pre-loaded with fun AI-generated images (stickers, weird art, memes)
+- **Uploads disabled** in showcase — it's a visual demo only, no public posting
+- Looks vibrant and full on first visit
+
+**Database schema:**
+- `photos` table: `id` (serial PK), `caption` (text, nullable, max 200 chars), `image_path` (text, not null), `user_id` (uuid, not null, references auth.users), `author_name` (text, not null), `created_at` (timestamptz, default now())
+
+**RLS policy:**
+- `public_read` on photos (default — can be switched to `user_owns_rows` for private walls)
+- `user_owns_rows` on insert/delete (authenticated users post and delete their own)
+
+**Storage:** Images uploaded to `photos/` bucket, public read by default.
+
+**UI requirements:**
+- Header: "Photo Wall" with login/signup buttons (or username + logout)
+- Gallery: responsive grid (3 cols desktop, 2 cols tablet, 1 col mobile), each card = image + caption + author + timestamp
+- Lightbox: click any photo to see it full-size with caption
+- Upload button (visible only when logged in): pick image, add caption, post
+- Empty state: "No photos yet. Sign up and share something!"
+- "Built with bld402" footer
+- Mobile-responsive, touch-friendly
+
+**Seed data:** 12-15 AI-generated fun images with playful captions like "When the code finally compiles", "Office dog says hi", "Abstract art by a robot", etc.
+
+#### App 9: Secret Santa (`santa.run402.com`)
+
+Anonymous gift exchange — organizer creates a group, members join, server-side matching, in-app reveal.
+
+**What it does:**
+- **Organizer flow:** Sign up/log in → create a group (name + budget suggestion) → get a join code → share with friends → trigger the draw when everyone's in
+- **Member flow:** Sign up/log in → enter join code → add your wishlist (text) → wait for the draw
+- **The draw:** Organizer clicks "Draw Names" → server-side Lambda function shuffles and assigns pairs (no one sees the full list) → each member signs in to see their assignment
+- **After draw:** Each member can only see their own assignment + the person's wishlist
+- Organizer can see status (who's viewed their assignment) but NOT the pairings
+
+**Database schema:**
+- `groups` table: `id` (serial PK), `name` (text, not null), `code` (text, unique, 6 chars), `budget` (text, nullable), `organizer_id` (uuid, not null, references auth.users), `status` (text: open/drawn), `created_at` (timestamptz)
+- `members` table: `id` (serial PK), `group_id` (integer, references groups), `user_id` (uuid, not null, references auth.users), `display_name` (text, not null), `wishlist` (text, nullable), `assigned_to` (integer, nullable, references members), `viewed_assignment` (boolean, default false), `joined_at` (timestamptz)
+
+**RLS policy:**
+- `user_owns_rows` on members (you can only see/edit your own row)
+- Members can read group info if they belong to it
+- `assigned_to` is only readable by the row owner (you see your own assignment only)
+
+**Functions:**
+- `draw-names`: Takes `group_id`, fetches all members, generates a valid circular shuffle (A→B→C→A, no self-assignments), writes `assigned_to` for each member, updates group status to `drawn`. Runs server-side so no client ever sees the full pairing list.
+
+**UI requirements:**
+- **Landing screen:** "Secret Santa" — two buttons: "Organize a Group" / "Join a Group"
+- **Organizer lobby:** Group name, join code (large, copyable), member list updating via polling, "Draw Names" button (disabled until 3+ members)
+- **Member view:** Enter code + sign up/log in, add display name + wishlist, waiting screen
+- **Post-draw screen:** "You're getting a gift for: {name}" with their wishlist. No other pairings visible.
+- **Organizer post-draw:** Status list showing who has viewed their assignment, no pairings shown
+- "Built with bld402" footer
+- Mobile-responsive
+
+**Seed data:** One pre-created group "bld402 Team Holiday Exchange" with 5 fake members and wishlists (already drawn), so the showcase shows what a completed exchange looks like.
+
+#### App 10: AI Sticker Maker (`stickers.run402.com`)
+
+Type a prompt, get an AI-generated sticker image, save to a public gallery.
+
+**What it does:**
+- Type a text prompt (e.g., "happy cat wearing a top hat")
+- Click "Generate" → AI creates a sticker image via run402's generate-image service
+- Preview the result → "Save to Gallery" or "Try Again"
+- Saved stickers appear in a public gallery grid that anyone can browse
+- No auth required — anyone can generate and save (simple, low friction)
+
+**Database schema:**
+- `stickers` table: `id` (serial PK), `prompt` (text, not null, max 200 chars), `image_path` (text, not null), `creator_name` (text, nullable, default 'Anonymous'), `likes` (integer, default 0), `created_at` (timestamptz, default now())
+
+**RLS policy:** `public_read_write` — anyone can create and browse stickers (no auth, keep it frictionless)
+
+**Storage:** Generated images saved to `stickers/` bucket, public read.
+
+**Services flow:**
+1. User types prompt → client calls `POST /v1/generate-image` with prompt text (x402-gated, $0.01)
+2. Image returned → displayed as preview
+3. User clicks "Save" → client uploads image to storage via `POST /storage/v1/object/stickers/` → inserts row into `stickers` table with `image_path`
+
+**UI requirements:**
+- Header: "AI Sticker Maker" with sparkle/magic wand icon
+- **Generate section:** Large text input ("Describe your sticker..."), optional name field ("Your name (optional)"), "Generate" button with loading spinner
+- **Preview:** Generated image displayed large, two buttons: "Save to Gallery" / "Try Again"
+- **Gallery below:** Grid of all saved stickers (newest first) — each card shows image, prompt text, creator name, like button
+- Lightbox on click for full-size view
+- Empty state for gallery: "No stickers yet. Generate the first one!"
+- "Built with bld402" footer
+- Mobile-responsive: single column generate, 2-col gallery on mobile
+
+**Seed data:** Pre-generate 15-20 fun stickers with prompts like "rocket ship made of pizza", "penguin DJ at a beach party", "robot dog playing guitar", "unicorn astronaut", "grumpy cloud with sunglasses", etc.
+
+**Showcase note:** `stickers.run402.com` is fully functional — visitors can actually generate stickers (costs $0.01 per image via x402, paid from the showcase project wallet).
+
+#### App 11: Flash Cards (`cards.run402.com`)
+
+Create and study decks with spaced repetition — personal decks, authenticated.
+
+**What it does:**
+- Sign up / log in to create and manage your own decks
+- Each deck has a name and a set of cards (front/back)
+- Study mode: show front, tap to reveal back, rate yourself (Easy / Hard / Again)
+- Spaced repetition: cards you mark "Hard" or "Again" appear sooner, "Easy" cards spaced out
+- Deck library: browse your decks, see progress (% mastered)
+- Optional: share a deck via public link (read-only, others can clone it)
+
+**Database schema:**
+- `decks` table: `id` (serial PK), `name` (text, not null), `description` (text, nullable), `user_id` (uuid, not null, references auth.users), `is_public` (boolean, default false), `created_at` (timestamptz)
+- `cards` table: `id` (serial PK), `deck_id` (integer, references decks), `front` (text, not null), `back` (text, not null), `sort_order` (integer)
+- `progress` table: `id` (serial PK), `card_id` (integer, references cards), `user_id` (uuid, not null, references auth.users), `ease_factor` (numeric, default 2.5), `interval_days` (integer, default 0), `next_review` (timestamptz, default now()), `review_count` (integer, default 0), unique constraint on (card_id, user_id)
+
+**RLS policy:**
+- `user_owns_rows` on decks, cards, and progress (you see only your own)
+- Public decks: `public_read` override on decks + cards where `is_public = true`
+
+**UI requirements:**
+- Header: "Flash Cards" with login/signup buttons (or username + logout)
+- **My Decks screen:** List of decks with name, card count, progress bar (% mastered), "Study" and "Edit" buttons, "+ New Deck" button
+- **Edit deck:** Deck name, description, list of cards (front/back inputs), add/remove cards, toggle "Make Public"
+- **Study mode:** Full-screen card — shows front, tap/click to flip, then 3 buttons: Again (red) / Hard (yellow) / Easy (green). Progress bar at top showing cards remaining in session
+- **Shared deck view:** Read-only preview of a public deck, "Clone to My Decks" button
+- Empty state: "No decks yet. Create your first one!"
+- "Built with bld402" footer
+- Mobile-first: study mode designed for phone use (swipe-friendly, large tap targets)
+
+**Seed data:** 3 pre-made public decks:
+1. "World Capitals" — 20 cards (front: country, back: capital)
+2. "Spanish Basics" — 15 cards (front: English word, back: Spanish translation)
+3. "Web Dev Terms" — 15 cards (front: term like "REST API", back: plain-language explanation)
+
+#### App 12: Bingo Card Generator (`bingo.run402.com`)
+
+Host creates a bingo game with custom items, players get unique cards, host calls items live.
+
+**What it does:**
+- **Host flow:** Create a game → enter 25+ items (or use a preset list) → get a join code → share with players → call items one by one
+- **Player flow:** Enter join code → get a randomly generated unique bingo card (5x5 grid, free center) → mark items as host calls them → first to complete a row/column/diagonal wins
+- Host controls the pace — clicks "Next Call" to reveal the next item
+- Auto-detection: when a player completes a line, they get a "BINGO!" alert and the host is notified
+- Game state via polling (every 2 seconds)
+
+**Database schema:**
+- `games` table: `id` (serial PK), `name` (text, not null), `code` (text, unique, 4 digits), `host_name` (text, not null), `status` (text: setup/playing/finished), `created_at` (timestamptz)
+- `items` table: `id` (serial PK), `game_id` (integer, references games), `label` (text, not null), `called` (boolean, default false), `call_order` (integer, nullable)
+- `players` table: `id` (serial PK), `game_id` (integer, references games), `name` (text, not null), `card` (jsonb, 5x5 array of item IDs), `marked` (jsonb, array of marked item IDs, default '[]'), `has_bingo` (boolean, default false), `joined_at` (timestamptz)
+
+**RLS policy:**
+- `public_read` on games and items
+- `public_read_write` on players (no auth — low friction party game)
+
+**UI requirements:**
+- **Landing screen:** "Bingo!" — two buttons: "Host a Game" / "Join a Game"
+- **Host setup:** Game name, text area to enter items (one per line, minimum 25), or pick a preset list. "Create Game" button
+- **Host game screen:** Join code (large, copyable), player count, big "Next Call" button, called items list, current call displayed prominently
+- **Player lobby:** Enter code + name, waiting screen
+- **Player game screen:** 5x5 bingo card grid, free center space pre-marked, tap items to mark them as host calls, called items list on the side. Marked items highlighted
+- **Bingo alert:** Confetti animation + "BINGO!" overlay when a player completes a line
+- "Built with bld402" footer
+- Mobile-first: card grid sized for phone screens, large tap targets
+
+**Seed data:** 3 preset item lists:
+1. "Office Bingo" — 30 items: "Someone's on mute", "Dog in background", "Sorry I was on mute", "Can you see my screen?", etc.
+2. "Holiday Bingo" — 30 items: "Ugly sweater", "Fruitcake", "Someone sings carols", etc.
+3. "Road Trip Bingo" — 30 items: "Gas station", "License plate game", "Are we there yet?", etc.
+
+**Showcase note:** `bingo.run402.com` has a pre-created game in "finished" state showing a completed board with called items, so visitors see what a game looks like mid-play.
+
+#### App 13: Memory Match (`memory.run402.com`)
+
+Card flip matching game with AI-generated card art and difficulty levels.
+
+**What it does:**
+- Pick a difficulty: Easy (4x3 = 6 pairs), Medium (4x4 = 8 pairs), Hard (6x4 = 12 pairs)
+- Cards are face-down — click to flip, find matching pairs
+- Each pair has unique AI-generated art (generated once via generate-image, stored in storage)
+- Track: moves count, time elapsed, best scores per difficulty
+- Smooth flip animation, matched pairs stay revealed
+- Leaderboard: top scores stored in database (name + moves + time)
+
+**Database schema:**
+- `card_sets` table: `id` (serial PK), `name` (text, not null), `difficulty` (text: easy/medium/hard), `created_at` (timestamptz)
+- `card_images` table: `id` (serial PK), `card_set_id` (integer, references card_sets), `prompt` (text, not null), `image_path` (text, not null), `pair_index` (integer, not null)
+- `scores` table: `id` (serial PK), `player_name` (text, not null), `difficulty` (text, not null), `moves` (integer, not null), `time_seconds` (integer, not null), `created_at` (timestamptz)
+
+**RLS policy:**
+- `public_read` on card_sets and card_images
+- `public_read_write` on scores (no auth — casual game, leaderboard is public)
+
+**Storage:** AI-generated card images stored in `cards/` bucket, public read.
+
+**Generate-image usage:** Each card set has its themed art generated once at build time:
+- Easy set: 6 pairs of cute animals ("happy otter", "sleepy fox", "dancing penguin", etc.)
+- Medium set: 8 pairs of food ("pizza slice", "sushi roll", "taco", etc.)
+- Hard set: 12 pairs of space objects ("ringed planet", "spiral galaxy", "astronaut cat", etc.)
+
+**UI requirements:**
+- Header: "Memory Match" with difficulty selector (Easy / Medium / Hard) and stats (moves, timer)
+- **Game board:** Grid of face-down cards, click to flip with smooth CSS animation, matched pairs stay face-up with a subtle glow
+- **Match feedback:** Brief green flash on match, brief red shake on mismatch, auto-flip back after 1 second
+- **Win screen:** "You did it!" — moves count, time, "Enter your name for the leaderboard" input, "Play Again" button
+- **Leaderboard:** Top 10 per difficulty, shown below the game or as a tab
+- "Built with bld402" footer
+- Mobile-responsive: grid scales to screen, tap-friendly cards
+
+**Seed data:**
+- 3 card sets pre-generated (easy/medium/hard) with AI art already in storage
+- 10-15 fake leaderboard scores per difficulty so it doesn't look empty
+
+**Showcase note:** `memory.run402.com` is fully playable. The AI-generated card art makes it visually distinctive — no two Memory Match apps will look the same if users generate their own sets.
+
 #### Template Validation — Two-Gate Process
 
-Every template in the spec (all 28) requires **two gates** to be considered fully validated. Both gates must pass.
+Every template in the spec (all 13) requires **two gates** to be considered fully validated. Both gates must pass.
 
 **Gate 1: Showcase Test** — Test the existing live showcase deployment at its `*.run402.com` URL.
 - Verify the app loads at its subdomain
@@ -381,10 +655,10 @@ Every template in the spec (all 28) requires **two gates** to be considered full
 **Rules:**
 1. Gate 2 cannot start until Gate 1 passes. If the showcase is broken, fix it first.
 2. A template is only "validated" when BOTH gates pass in the same test cycle.
-3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files (22 of 28 are currently deferred), the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
+3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files, the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
 4. **Any Blue Team change to a template or its showcase resets both gates to untested.** If the Blue Team modifies any file in `templates/{category}/{name}/` or `showcase/{name}/`, both Gate 1 and Gate 2 for that template must be re-run in the next Red Team cycle. Same applies when a new template is added to the spec.
 5. **Cleanup is mandatory.** Gate 2 projects MUST be nuked after testing. Report the project_id and cleanup status in the system test results. See AGENTS.md for cleanup rules.
-6. **Sequential, stop on first failure.** Gate 2 tests run one template at a time. If a template fails, STOP — do not proceed to the next template. Fix the failure first, then continue. Order: shared-todo → landing-waitlist → hangman → trivia-night → voting-booth → paste-locker.
+6. **Sequential, stop on first failure.** Gate 2 tests run one template at a time. If a template fails, STOP — do not proceed to the next template. Fix the failure first, then continue. Order: shared-todo → landing-waitlist → voting-booth → paste-locker → hangman → trivia-night → micro-blog → photo-wall → secret-santa → ai-sticker-maker → flash-cards → bingo-card-generator → memory-match.
 7. **Wallet for Gate 2.** The Red Team uses the shared test wallet at `showcase/.wallet` for x402 payments. This is the only exception to the "no source code" rule — the wallet is equivalent to a user's own wallet. See AGENTS.md for usage details.
 
 **Test plan format for each template:**
@@ -447,17 +721,21 @@ Every template in the spec (all 28) requires **two gates** to be considered full
 - [ ] Memory directives include: project credentials, current step, app spec, deployment URLs.
 
 ### Code Templates (F9)
-- [ ] All 28 templates are available as complete, working apps.
+- [ ] All 13 templates are available as complete, working apps.
 - [ ] Each template includes: SQL schema, RLS config, and frontend code (HTML/CSS/JS).
 - [ ] Templates are parameterized so the agent fills in project-specific values.
 - [ ] Common pattern templates (auth, CRUD, file upload, layout) are available separately.
 - [ ] Every template's `README.md` starts with the coding-agent gate blockquote redirecting non-coding agents to Claude Code, ChatGPT Codex, Cursor, or Windsurf.
 - [ ] Every built template passes the two-gate validation process (see "Template Validation — Two-Gate Process" in F12).
+- [ ] Templates using auth (Micro-Blog, Photo Wall, Secret Santa, Flash Cards) include complete signup/login/logout flows.
+- [ ] Templates using storage (Micro-Blog, Photo Wall, AI Sticker Maker, Memory Match) include file upload and public read patterns.
+- [ ] Templates using functions (Secret Santa, Paste Locker) include Lambda deployment and invocation.
+- [ ] Templates using generate-image (AI Sticker Maker, Memory Match) include x402 payment flow for image generation.
 
 ### Human Pages (F10)
 - [ ] `/humans` contains: about, showcase, how-it-works, terms, privacy, legal sections.
-- [ ] The showcase links to 6 live demo apps at their `*.run402.com` subdomains.
-- [ ] The showcase includes screenshots of the 6 live apps.
+- [ ] The showcase links to 13 live demo apps at their `*.run402.com` subdomains.
+- [ ] The showcase includes screenshots of the 13 live apps.
 - [ ] The "how it works" section is understandable by a non-technical person.
 
 ### Payment Pass-Through (F11)
@@ -467,16 +745,18 @@ Every template in the spec (all 28) requires **two gates** to be considered full
 - [ ] bld402 adds zero fees to any transaction.
 
 ### Live Showcase Apps (F12)
-- [ ] All 6 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, hangman.run402.com, trivia.run402.com, vote.run402.com, paste.run402.com.
-- [ ] Each app was built using the bld402 workflow and its corresponding MVP template.
+- [ ] All 13 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, vote.run402.com, paste.run402.com, hangman.run402.com, trivia.run402.com, blog.run402.com, wall.run402.com, santa.run402.com, stickers.run402.com, cards.run402.com, bingo.run402.com, memory.run402.com.
+- [ ] Each app was built using the bld402 workflow and its corresponding template.
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.
 - [ ] Each app works on mobile and desktop.
 - [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, nuke).
 - [ ] The showcase page links to each live app.
 - [ ] Showcase apps use Hobby tier (not Prototype) so they don't expire.
-- [ ] All 28 templates have lines in the system test plan for both gates. Unbuilt templates are marked blocked, not omitted.
+- [ ] All 13 templates have lines in the system test plan for both gates.
 - [ ] Any Blue Team change to a template or showcase resets it to untested in the test plan.
+- [ ] Photo Wall showcase (`wall.run402.com`) has uploads disabled — curated content only.
+- [ ] AI Sticker Maker showcase (`stickers.run402.com`) allows live generation (x402-funded from showcase wallet).
 
 ## Constraints & Dependencies
 

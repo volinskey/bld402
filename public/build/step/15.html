@@ -111,6 +111,17 @@ Authorization: Bearer {service_key}
           <li><strong>Free</strong> — no x402 payment required, but needs <code>service_key</code> auth</li>
         </ul>
 
+        <h4>If subdomain claiming fails</h4>
+        <p>The subdomain request may fail for several reasons:</p>
+        <ul>
+          <li><strong>409 Conflict</strong> — the name is already taken. Suggest a different name (e.g., add a number or prefix).</li>
+          <li><strong>400 Bad Request</strong> — the name violates the rules above (too short, reserved word, invalid characters).</li>
+          <li><strong>429 Rate Limit</strong> — too many requests. Wait a moment and retry once.</li>
+          <li><strong>5xx Server Error</strong> — run402 issue. Retry once; if it persists, skip the subdomain.</li>
+        </ul>
+        <p><strong>Fallback:</strong> If subdomain claiming fails after one retry, fall back to the raw deployment URL (<code>https://dpl-{id}.sites.run402.com</code>). Tell the user their app is live at the deployment URL and that you can try claiming a memorable subdomain later.</p>
+        <p>Do <strong>not</strong> retry in a loop or stall — the deployment itself already succeeded. The subdomain is optional polish.</p>
+
         <p><strong>If the user does not want a subdomain,</strong> skip this step — the raw deployment URL works fine.</p>
       </div>
 

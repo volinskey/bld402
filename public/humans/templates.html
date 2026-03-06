@@ -33,6 +33,27 @@
     }
     .copy-btn:hover { color: #374151; }
     .copy-btn svg { display: block; }
+    .coding-agent-link {
+      color: #0066cc; text-decoration: underline dotted; cursor: help;
+      position: relative; display: inline-block;
+    }
+    .coding-agent-link:hover .agent-tooltip,
+    .coding-agent-link:focus .agent-tooltip { display: block; }
+    .agent-tooltip {
+      display: none; position: absolute; bottom: 100%; left: 50%;
+      transform: translateX(-50%); margin-bottom: 8px; width: 280px;
+      background: #1F2937; color: #F9FAFB; font-size: 12px; line-height: 1.5;
+      border-radius: 8px; padding: 12px 14px; z-index: 10;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15); pointer-events: none;
+    }
+    .agent-tooltip::after {
+      content: ''; position: absolute; top: 100%; left: 50%;
+      transform: translateX(-50%);
+      border: 6px solid transparent; border-top-color: #1F2937;
+    }
+    .agent-tooltip strong { color: #fff; }
+    .agent-tooltip .yes { color: #34D399; }
+    .agent-tooltip .no { color: #F87171; }
   </style>
 </head>
 <body>
@@ -60,7 +81,7 @@
         <p style="margin-top:0.75rem;"><a href="https://todo.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=shared-todo and build me a shared todo list</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -74,7 +95,7 @@
         <p style="margin-top:0.75rem;"><a href="https://waitlist.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=landing-waitlist and build me a landing page with waitlist</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -88,7 +109,7 @@
         <p style="margin-top:0.75rem;"><a href="https://hangman.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=hangman and build me a hangman game</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -102,7 +123,7 @@
         <p style="margin-top:0.75rem;"><a href="https://trivia.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=trivia-night and build me a trivia night game</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -116,7 +137,7 @@
         <p style="margin-top:0.75rem;"><a href="https://vote.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=voting-booth and build me a voting booth</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
@@ -130,7 +151,7 @@
         <p style="margin-top:0.75rem;"><a href="https://paste.run402.com" target="_blank" rel="noopener">See example &rarr;</a></p>
         <button class="how-to-use-toggle" onclick="this.nextElementSibling.classList.toggle('open')">How to use</button>
         <div class="how-to-use">
-          <p class="small muted" style="margin-bottom:0.5rem;">Tell your AI agent:</p>
+          <p class="small muted" style="margin-bottom:0.5rem;">Paste this into a <span class="coding-agent-link" tabindex="0">coding agent<span class="agent-tooltip"><strong>Coding agents</strong> can create files, run commands, and make API calls.<br><br><span class="yes">&#10003;</span> Claude Code, ChatGPT Codex, Cursor, Windsurf<br><span class="no">&#10007;</span> ChatGPT chat, Claude chat, Gemini chat</span></span>:</p>
           <div class="copy-wrap">
             <code>Go to bld402.com/build/step/1?template=paste-locker and build me a paste locker</code>
             <button class="copy-btn" onclick="copyAgent(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>

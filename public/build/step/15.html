@@ -9,14 +9,14 @@
 </head>
 <body>
   <nav class="step-nav">
-    <a href="/">bld402</a> &rsaquo;
+    <a href="/"><span class="brand-bld">bld</span>402</a> &rsaquo;
     <a href="/agent.json">Workflow</a> &rsaquo;
     <span>Step 15: Deploy</span>
   </nav>
 
   <main>
     <section id="agent-instructions">
-      <h1>Step 15: Deploy to run402</h1>
+      <h1>Step 15: Deploy to <span class="brand-run">run</span>402</h1>
       <p class="muted small">Phase: deploy</p>
 
       <div id="context">
@@ -106,7 +106,7 @@ Authorization: Bearer {service_key}
           <li><strong>3-63 characters</strong>, lowercase letters, numbers, and hyphens only</li>
           <li>Must <strong>start and end</strong> with a letter or number (no leading/trailing hyphens)</li>
           <li>No consecutive hyphens (<code>--</code>)</li>
-          <li><strong>Reserved words</strong> are blocked: api, www, admin, app, dashboard, docs, help, support, cdn, static, dev, staging, test, demo, run402, and others</li>
+          <li><strong>Reserved words</strong> are blocked: api, www, admin, app, dashboard, docs, help, support, cdn, static, dev, staging, test, demo, <span class="brand-run">run</span>402, and others</li>
           <li>Each subdomain is <strong>owned by the project</strong> that created it — other projects cannot claim it</li>
           <li><strong>Free</strong> — no x402 payment required, but needs <code>service_key</code> auth</li>
         </ul>
@@ -117,7 +117,7 @@ Authorization: Bearer {service_key}
           <li><strong>409 Conflict</strong> — the name is already taken. Suggest a different name (e.g., add a number or prefix).</li>
           <li><strong>400 Bad Request</strong> — the name violates the rules above (too short, reserved word, invalid characters).</li>
           <li><strong>429 Rate Limit</strong> — too many requests. Wait a moment and retry once.</li>
-          <li><strong>5xx Server Error</strong> — run402 issue. Retry once; if it persists, skip the subdomain.</li>
+          <li><strong>5xx Server Error</strong> — <span class="brand-run">run</span>402 issue. Retry once; if it persists, skip the subdomain.</li>
         </ul>
         <p><strong>Fallback:</strong> If subdomain claiming fails after one retry, fall back to the raw deployment URL (<code>https://dpl-{id}.sites.run402.com</code>). Tell the user their app is live at the deployment URL and that you can try claiming a memorable subdomain later.</p>
         <p>Do <strong>not</strong> retry in a loop or stall — the deployment itself already succeeded. The subdomain is optional polish.</p>

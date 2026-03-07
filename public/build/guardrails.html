@@ -10,7 +10,7 @@
 </head>
 <body>
   <nav class="step-nav">
-    <a href="/">bld402</a> &rsaquo;
+    <a href="/"><span class="brand-bld">bld</span>402</a> &rsaquo;
     <span>Capability Guardrails</span>
   </nav>
 
@@ -19,7 +19,7 @@
       <h1>Capability Guardrails</h1>
       <p>Before building, check the user's request against these lists. If a feature falls under "Not Possible," tell the user clearly in plain language and suggest the alternative.</p>
 
-      <h2>What run402 CAN do</h2>
+      <h2>What <span class="brand-run">run</span>402 CAN do</h2>
       <ul>
         <li><strong>Postgres database</strong> — tables, columns, constraints, indexes, SQL queries</li>
         <li><strong>REST API</strong> — full CRUD (create, read, update, delete) with filtering, pagination, ordering via PostgREST</li>
@@ -29,11 +29,11 @@
         <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS, get a shareable URL, SPA support</li>
         <li><strong>Multiple tiers</strong> — Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
         <li><strong>Testnet (free)</strong> — Base Sepolia with faucet for test USDC</li>
-        <li><strong>run402 serverless functions (Node.js)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing)</li>
+        <li><strong><span class="brand-run">run</span>402 serverless functions (Node.js)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing)</li>
       </ul>
 
-      <h2>What run402 CANNOT do</h2>
-      <p>These features are <strong>not available</strong> on run402. If the user asks for any of these, explain the limitation in plain language and suggest the alternative.</p>
+      <h2>What <span class="brand-run">run</span>402 CANNOT do</h2>
+      <p>These features are <strong>not available</strong> on <span class="brand-run">run</span>402. If the user asks for any of these, explain the limitation in plain language and suggest the alternative.</p>
 
       <table>
         <thead>
@@ -50,8 +50,8 @@
             <td>Claim a subdomain via <code>POST /v1/subdomains</code> in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
           </tr>
           <tr>
-            <td>Server-side compute beyond run402 functions</td>
-            <td>"Most of your app runs in the browser, but for things that need to happen on a server — like password hashing — we can use run402's built-in serverless functions. You can't run your own custom server, though."</td>
+            <td>Server-side compute beyond <span class="brand-run">run</span>402 functions</td>
+            <td>"Most of your app runs in the browser, but for things that need to happen on a server — like password hashing — we can use <span class="brand-run">run</span>402's built-in serverless functions. You can't run your own custom server, though."</td>
             <td>Use <code>run402 functions</code> (Node.js) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>POST /admin/v1/projects/:id/functions</code>. All other logic runs client-side in JavaScript.</td>
           </tr>
           <tr>

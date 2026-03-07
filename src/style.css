@@ -141,6 +141,10 @@ strong { color: #1a1a2e; }
 a { color: #0066cc; text-decoration: none; }
 a:hover { text-decoration: underline; }
 
+/* Brand name colors — use in body text: <span class="brand-bld">bld</span>402 */
+.brand-bld { color: #0066cc; font-weight: inherit; }
+.brand-run { color: #009966; font-weight: inherit; }
+
 /* Lists */
 ol, ul {
   margin: 8px 0 14px 24px;

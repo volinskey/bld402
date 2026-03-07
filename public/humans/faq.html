@@ -29,13 +29,13 @@
     <p class="muted small">Quick answers for anyone curious about <span class="brand-bld">bld</span>402.</p>
 
     <h2>What is <span class="brand-bld">bld</span>402?</h2>
-    <p><span class="brand-bld">bld</span>402 is a free service that helps you build and deploy web applications without writing any code. You describe what you want to an AI agent (like Claude Code, ChatGPT, or Cursor), point it to <span class="brand-bld">bld</span>402.com, and the agent builds and deploys a working app for you — usually in under 10 minutes.</p>
+    <p><span class="brand-bld">bld</span>402 is a free service that helps you build and deploy web applications without writing any code. You describe what you want to a coding agent (like Claude Code, ChatGPT Codex, or Cursor), paste the <span class="brand-bld">bld</span>402 link, and the agent builds and deploys a working app for you — usually in under 10 minutes.</p>
 
     <h2>Do I need to know how to code?</h2>
-    <p>No. That's the whole point. You describe your idea in plain English, and your AI agent handles all the technical work. <span class="brand-bld">bld</span>402 provides the agent with templates, step-by-step instructions, and best practices so it can build a real, working application.</p>
+    <p>No. That's the whole point. You describe your idea in plain English, and your coding agent handles all the technical work. <span class="brand-bld">bld</span>402 provides the agent with templates, step-by-step instructions, and best practices so it can build a real, working application.</p>
 
     <h2>How much does it cost?</h2>
-    <p><span class="brand-bld">bld</span>402 itself is completely free. The apps you build run on <a href="https://run402.com"><span class="brand-run">run</span>402</a> infrastructure, where prototype projects start at $0.10 (enough for 7 days). Your AI agent handles the payment automatically using cryptocurrency (USDC), or you can set up a Stripe subscription.</p>
+    <p><span class="brand-bld">bld</span>402 itself is completely free. The apps you build run on <a href="https://run402.com"><span class="brand-run">run</span>402</a> infrastructure, where prototype projects start at $0.10 (enough for 7 days). Your coding agent handles the payment automatically using cryptocurrency (USDC), or you can set up a Stripe subscription.</p>
 
     <h2>What kinds of things can I build?</h2>
     <p>Anything you can describe: todo lists, voting apps, trivia games, landing pages with email signups, expense trackers, recipe books, workout logs, flash card apps, and more. Check out the <a href="/humans/showcase.html">Showcase</a> for examples and the <a href="/humans/templates.html">Templates</a> for ready-made starting points.</p>
@@ -44,13 +44,21 @@
     <p>It depends on the plan your coding agent chooses. Prototype projects last 7 days. Hobby projects last 30 days and can be renewed. After a lease expires, your app goes read-only for 7 days, then gets archived, and is permanently deleted after 37 days. You can renew anytime before deletion.</p>
 
     <h2>Which AI agent should I use?</h2>
-    <p>Any coding agent works: Claude Code, ChatGPT (with code execution), Cursor, Windsurf, Cline, or others. Just tell it what you want and include "go to <span class="brand-bld">bld</span>402.com" in your prompt. The agent will read the instructions and handle everything.</p>
+    <p>You need a <strong>coding agent</strong> — one that can create files, run commands, and make web requests. Examples: Claude Code, ChatGPT Codex, Cursor, Windsurf, or Cline. Regular chat-only assistants (like ChatGPT without Codex, or Gemini) won't work because they can't fetch web pages or write files.</p>
+
+    <h2>My agent can't access <span class="brand-bld">bld</span>402.com. What do I do?</h2>
+    <p>Some agents run in a sandbox that blocks web access. If your agent says it can't reach <span class="brand-bld">bld</span>402.com, tries to open a browser, or tries to install an extension — it's the wrong type of agent. Switch to a coding agent like <strong>Claude Code</strong>, <strong>ChatGPT Codex</strong>, <strong>Cursor</strong>, or <strong>Windsurf</strong>. These agents fetch web pages directly with HTTP requests — no browser needed.</p>
+
+    <h2>What's the right way to give my agent the link?</h2>
+    <p>Paste the full URL directly into the chat — don't say "go to" or "open". For example:</p>
+    <p class="muted" style="font-style:italic; margin:0.5rem 0;">"I want to build a voting app. Here are the instructions: https://bld402.com"</p>
+    <p>This tells the agent to fetch the page content, not try to open a browser.</p>
 
     <h2>What if my app has a bug?</h2>
-    <p>Tell your AI agent what's wrong. It can read the deployed code, diagnose the issue, and redeploy a fix. You can also ask it to add features or change the design after the initial build.</p>
+    <p>Tell your coding agent what's wrong. It can read the deployed code, diagnose the issue, and redeploy a fix. You can also ask it to add features or change the design after the initial build.</p>
 
     <h2>Can I edit my app after it's deployed?</h2>
-    <p>Yes. Just tell your AI agent what you want to change. It can update the code and redeploy. You can iterate as many times as you want within your project's lease period.</p>
+    <p>Yes. Just tell your coding agent what you want to change. It can update the code and redeploy. You can iterate as many times as you want within your project's lease period.</p>
 
     <h2>Is my data private?</h2>
     <p>Your app's data is stored on <a href="https://run402.com"><span class="brand-run">run</span>402</a> infrastructure with encryption at rest and in transit. Each project is isolated in its own database schema. See <span class="brand-run">run</span>402's <a href="https://run402.com/humans/privacy.html">Privacy Policy</a> for full details.</p>
@@ -59,7 +67,7 @@
     <p>Your deployed app gets a public URL (like <code>yourapp.sites.run402.com</code>). Anyone with the link can visit it. If your app has authentication (login/signup), you control who can access what.</p>
 
     <h2>What happens to apps that violate the rules?</h2>
-    <p>Apps deployed through <span class="brand-bld">bld</span>402 must follow <span class="brand-run">run</span>402's <a href="https://run402.com/humans/terms.html">Acceptable Use Policy</a>. Apps containing malware, phishing, illegal content, or other prohibited material can be taken down without notice. You're responsible for everything your AI agent deploys on your behalf.</p>
+    <p>Apps deployed through <span class="brand-bld">bld</span>402 must follow <span class="brand-run">run</span>402's <a href="https://run402.com/humans/terms.html">Acceptable Use Policy</a>. Apps containing malware, phishing, illegal content, or other prohibited material can be taken down without notice. You're responsible for everything your coding agent deploys on your behalf.</p>
 
     <h2>I don't need templates. I can code — I just need infrastructure.</h2>
     <p>You want <a href="https://run402.com/humans/"><span class="brand-run">run</span>402</a> — it's the infrastructure layer that powers <span class="brand-bld">bld</span>402. <span class="brand-run">run</span>402 gives you direct access to Postgres, REST APIs, auth, storage, and static site hosting. Paste <code>https://run402.com/llms.txt</code> into your coding agent's chat and you're ready to go.</p>

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Gate 2 — Build-from-scratch validation for all 6 MVP templates.
+ * Gate 2 — Build-from-scratch validation for all 13 templates.
  *
  * For each template this script:
  *   1. Provisions a fresh run402 project (x402 payment)
@@ -14,7 +14,7 @@
  *   9. Outputs evidence JSON
  *
  * Usage:
- *   node showcase/gate2-test/run.mjs                    # Run all 6 templates
+ *   node showcase/gate2-test/run.mjs                    # Run all 13 templates
  *   node showcase/gate2-test/run.mjs shared-todo        # Run one template
  *
  * Evidence output: showcase/gate2-test/evidence.json
@@ -97,13 +97,88 @@ const TEMPLATES = [
     htmlChecks: ["textarea", "button"],
     hasFunctions: true,
     functions: [
-      { name: "create-note", file: "templates/utility/paste-locker/create-note.js" },
-      { name: "read-note", file: "templates/utility/paste-locker/read-note.js" },
+      { name: "create-note", file: "templates/utility/paste-locker/create-note.js", deps: ["bcryptjs", "zod"] },
+      { name: "read-note", file: "templates/utility/paste-locker/read-note.js", deps: ["bcryptjs", "zod"] },
     ],
     // paste-locker doesn't use direct table access (no RLS = no anon access)
     apiTable: null,
     apiWritePayload: null,
     apiReadCheck: null,
+  },
+  // ── New templates (Phase 32 Gate 2) ────────────────────────────
+  {
+    name: "photo-wall",
+    dir: "templates/utility/photo-wall",
+    testSubdomain: "gate2-wall",
+    contentChecks: ["bld402"],
+    htmlChecks: ["button"],
+    apiTable: "photos",
+    apiWritePayload: null, // read-only curated gallery, no anon writes
+    apiReadCheck: (rows) => Array.isArray(rows), // just verify table is accessible
+  },
+  {
+    name: "micro-blog",
+    dir: "templates/utility/micro-blog",
+    testSubdomain: "gate2-microblog",
+    contentChecks: ["bld402"],
+    htmlChecks: ["textarea", "button"],
+    apiTable: "posts",
+    apiWritePayload: null, // requires auth to write (user_owns_rows)
+    apiReadCheck: (rows) => Array.isArray(rows), // public_read should work
+  },
+  {
+    name: "secret-santa",
+    dir: "templates/utility/secret-santa",
+    testSubdomain: "gate2-santa",
+    contentChecks: ["bld402"],
+    htmlChecks: ["button", "input"],
+    hasFunctions: true,
+    functions: [
+      { name: "draw-names", file: "templates/utility/secret-santa/draw-names.js" },
+    ],
+    apiTable: "groups",
+    apiWritePayload: null, // groups are public_read only
+    apiReadCheck: (rows) => Array.isArray(rows),
+  },
+  {
+    name: "ai-sticker-maker",
+    dir: "templates/games/ai-sticker-maker",
+    testSubdomain: "gate2-stickers",
+    contentChecks: ["bld402"],
+    htmlChecks: ["input", "button"],
+    apiTable: "stickers",
+    apiWritePayload: { prompt: "Gate 2 test sticker", image_path: "gate2-test.png", creator_name: "Gate2Bot" },
+    apiReadCheck: (rows) => rows.some(r => r.prompt === "Gate 2 test sticker"),
+  },
+  {
+    name: "flash-cards",
+    dir: "templates/utility/flash-cards",
+    testSubdomain: "gate2-cards",
+    contentChecks: ["bld402"],
+    htmlChecks: ["button"],
+    apiTable: "decks",
+    apiWritePayload: null, // requires auth (user_owns_rows)
+    apiReadCheck: (rows) => Array.isArray(rows), // may return empty if no public decks policy
+  },
+  {
+    name: "bingo-card-generator",
+    dir: "templates/games/bingo-card-generator",
+    testSubdomain: "gate2-bingo",
+    contentChecks: ["Bingo", "bld402"],
+    htmlChecks: ["button", "input"],
+    apiTable: "games",
+    apiWritePayload: null, // public_read on games, public_read_write on players
+    apiReadCheck: (rows) => Array.isArray(rows),
+  },
+  {
+    name: "memory-match",
+    dir: "templates/games/memory-match",
+    testSubdomain: "gate2-memory",
+    contentChecks: ["Memory", "bld402"],
+    htmlChecks: ["button"],
+    apiTable: "scores",
+    apiWritePayload: { player_name: "Gate2Bot", difficulty: "easy", moves: 10, time_seconds: 30 },
+    apiReadCheck: (rows) => rows.some(r => r.player_name === "Gate2Bot"),
   },
 ];
 
@@ -240,7 +315,7 @@ async function deployFunctions(projectId, serviceKey, functions) {
       body: JSON.stringify({
         name: fn.name,
         code,
-        deps: ["bcryptjs", "zod"],
+        deps: fn.deps || [],
       }),
     });
     if (!res.ok) {

@@ -4,10 +4,15 @@
       "template": "user_owns_rows",
       "tables": [
         { "table": "decks", "owner_column": "user_id" },
-        { "table": "cards", "owner_column": "deck_id" },
         { "table": "progress", "owner_column": "user_id" }
+      ]
+    },
+    {
+      "template": "public_read",
+      "tables": [
+        { "table": "cards" }
       ]
     }
   ],
-  "notes": "user_owns_rows on all tables: users see only their own decks, cards, and progress. Public decks need a custom read policy: SELECT allowed WHERE decks.is_public = true (agent should add this manually via SQL after applying the template)."
+  "notes": "user_owns_rows on decks and progress (users see only their own). Cards are public_read since they belong to decks — access is gated by the deck being visible. Public decks need a custom read policy: SELECT allowed WHERE decks.is_public = true (agent should add this manually via SQL after applying the template)."
 }

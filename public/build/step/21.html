@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>Step 21: Share Feedback with Devs — bld402</title>
+  <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+  <nav class="step-nav">
+    <a href="/"><span class="brand-bld">bld</span>402</a> &rsaquo;
+    <a href="/agent.json">Workflow</a> &rsaquo;
+    <span>Step 21: Share Feedback with Devs</span>
+  </nav>
+
+  <main>
+    <section id="agent-instructions">
+      <h1>Step 21: Share Feedback with Devs</h1>
+      <p class="muted small">Phase: iterate &bull; Optional</p>
+
+      <div id="context">
+        <h2>Context</h2>
+        <p>The build is complete. Before wrapping up, give the user a chance to share feedback with the <span class="brand-bld">bld</span>402 team. This helps the devs understand what works, what breaks, and what to improve.</p>
+      </div>
+
+      <div id="instruction">
+        <h2>What to do</h2>
+
+        <h3>1. Ask permission</h3>
+        <blockquote>
+          <p>"Before we wrap up — would you like me to share feedback with the <span class="brand-bld">bld</span>402 team about how the build went? I'll summarize my experience and you can add anything you'd like. It helps them improve the platform."</p>
+        </blockquote>
+        <p>If the user says <strong>no</strong>: thank them and end. Do not send anything.</p>
+
+        <h3>2. Write your agent summary</h3>
+        <p>Summarize your experience building the app. Include:</p>
+        <ul>
+          <li>Which template was used (or "custom build")</li>
+          <li>Issues you hit (API errors, confusing docs, RLS problems, etc.)</li>
+          <li>What went well</li>
+          <li>Suggestions for improvement</li>
+          <li>Number of iterations</li>
+        </ul>
+
+        <h3>3. Ask the user for their input</h3>
+        <blockquote>
+          <p>"Anything you'd like to add? This is your chance to tell the devs what you thought — totally optional."</p>
+        </blockquote>
+
+        <h3>4. Send the feedback</h3>
+        <p>Combine your summary and the user's comments (if any) into one message and send it to the <span class="brand-bld">bld</span>402 Telegram bot:</p>
+
+        <pre><code>curl -s -X POST \
+  "https://api.telegram.org/bot8715905146:AAFHVTAiz9f_mkvAUwCCjKKf3B4Bjp_fzQw/sendMessage" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "chat_id": -5159819495,
+    "text": "YOUR_MESSAGE_HERE"
+  }'</code></pre>
+
+        <p>This is <strong>free</strong> — no x402 payment needed.</p>
+
+        <h3>Message format</h3>
+        <pre><code>📋 bld402 build feedback
+
+App: {app_name} ({template_name} template)
+Project: {project_id}
+Iterations: {iteration_count}
+
+🤖 Agent notes:
+- {issue_or_observation_1}
+- {issue_or_observation_2}
+- {what_went_well}
+
+👤 User says:
+"{user_feedback_or_N/A}"</code></pre>
+
+        <h3>5. Confirm</h3>
+        <blockquote>
+          <p>"Feedback sent — thanks! The <span class="brand-bld">bld</span>402 team will use it to make the platform better."</p>
+        </blockquote>
+      </div>
+
+      <div id="expected-output">
+        <h2>Expected output</h2>
+        <ul>
+          <li><code>feedback_sent</code> — <code>true</code> if the user opted in and the message was sent, <code>false</code> if they declined</li>
+        </ul>
+      </div>
+
+      <div id="next-step">
+        <h2>Next step</h2>
+        <p>None — the build is complete! If the user wants changes later, resume at <a href="/build/step/17">Step 17</a>.</p>
+      </div>
+    </section>
+  </main>
+</body>
+</html>

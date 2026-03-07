@@ -49,3 +49,9 @@ See `schema.sql` for full table definitions and indexes.
 Default: `public_read_write` on all tables. One-vote-per-user is enforced by the `UNIQUE(poll_id, voter_id)` constraint using a browser-generated voter_id stored in localStorage.
 
 See `rls.json` for policy configuration.
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

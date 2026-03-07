@@ -78,3 +78,9 @@ During build, the agent generates AI art for card sets using generate-image:
 Each image is generated via the generate-image-proxy function ($0.01 each), saved to storage, and recorded in card_images with pair_index. Total seed cost: ~$0.24 (24 unique images).
 
 Card images are stored at: `memory-match/{set_name}/{pair_index}.png`
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

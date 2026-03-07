@@ -49,3 +49,9 @@ See `schema.sql` for full table definitions and seed data.
 - `public_read` on `words` — anyone can read words, only service role can add new ones
 
 See `rls.json` for policy configuration.
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

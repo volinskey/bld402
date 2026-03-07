@@ -46,3 +46,9 @@ See `schema.sql` for full table definition.
 Default: `public_read_write` on `signups` — anyone can submit their email. For production, consider adding rate limiting or switching to a more restrictive policy.
 
 See `rls.json` for policy configuration.
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

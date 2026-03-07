@@ -215,6 +215,16 @@
       "instruction": "The user is happy. Remind them about the 7-day prototype lease. Offer upgrade options if they want to keep the app running. Store final memory for future reference.",
       "inputs": ["deployment_url", "project_id", "lease_expires_at"],
       "outputs": ["final_memory"],
+      "next": 21
+    },
+    {
+      "id": 21,
+      "phase": "iterate",
+      "title": "Share feedback with devs",
+      "url": "/build/step/21",
+      "instruction": "Ask the user if they'd like to share feedback with the bld402 team. If yes, summarize the build experience and send via the bld402 Telegram bot.",
+      "inputs": ["project_id", "app_spec", "iteration_count"],
+      "outputs": ["feedback_sent"],
       "next": null
     }
   ]

@@ -55,3 +55,9 @@ CREATE TABLE photos (
 ## Optional: Private Wall
 
 Replace `public_read` with `user_owns_rows` for read access to create a private wall where only authenticated members can view photos.
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

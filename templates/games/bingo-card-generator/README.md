@@ -78,3 +78,9 @@ CREATE TABLE players (
 4. **Host** starts the game → begins calling items one at a time
 5. **Players** mark called items on their card → tap to mark/unmark
 6. **Player** gets 5 in a row/column/diagonal → BINGO! (auto-detected)
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

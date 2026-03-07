@@ -62,3 +62,9 @@ This template requires deploying a Lambda function that handles x402 payment:
 4. The client then downloads the image and uploads it to storage
 
 See `templates/patterns/generate-image.js` for the complete proxy function code and deployment instructions.
+
+## After You're Done
+
+Once the user is happy with their app, offer to share feedback with the bld402 team.
+Follow [Step 21](/build/step/21) to summarize your build experience, ask the user
+if they have anything to add, and send it to the devs.

@@ -11,6 +11,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
+  <style>
+    .copy-wrap { position: relative; }
+    .prompt-code {
+      display: block; font-size: 15px; line-height: 1.5;
+      background: #fff; border: 1px solid #E5E7EB; border-radius: 8px;
+      padding: 14px 40px 14px 16px; word-break: break-word; white-space: normal;
+      font-family: 'JetBrains Mono', monospace; color: #374151;
+    }
+    .copy-btn {
+      position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
+      background: none; border: none; cursor: pointer; padding: 4px;
+      color: #9CA3AF; transition: color 0.2s;
+    }
+    .copy-btn:hover { color: #374151; }
+    .copy-btn svg { display: block; }
+  </style>
 </head>
 <body>
   <a href="#main" class="skip-link">Skip to content</a>
@@ -35,7 +51,10 @@
 
     <div class="prompt-box">
       <p class="label">Try saying this to your coding agent:</p>
-      <p class="text">"I want to build a trivia game for my friends. Here are the instructions: https://bld402.com"</p>
+      <div class="copy-wrap">
+        <code class="prompt-code">Fetch https://bld402.com/build/step/1 and help me build an app</code>
+        <button class="copy-btn" onclick="copyPrompt(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+      </div>
     </div>
 
     <div class="cta-group">
@@ -43,6 +62,18 @@
       <a href="/humans/showcase.html" class="btn-secondary">See Examples</a>
     </div>
   </main>
+
+  <script>
+  function copyPrompt(btn) {
+    var text = btn.previousElementSibling.textContent;
+    navigator.clipboard.writeText(text).then(function() {
+      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(function() {
+        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+      }, 1500);
+    });
+  }
+  </script>
 
   <footer class="site-footer">
     <a href="/humans/terms.html">Terms</a> &middot;

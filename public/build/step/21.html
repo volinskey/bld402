@@ -50,7 +50,14 @@
 
         <h3>4. Send the feedback</h3>
         <p>Combine your summary and the user's comments (if any) into one message and send it to the <span class="brand-bld">bld</span>402 Telegram bot.</p>
-        <p>The bot token is in the <code>BLD402_TELEGRAM_TOKEN</code> environment variable. Read it from your environment — <strong>never hardcode it</strong>.</p>
+        <p>First, fetch the bot token from AWS Secrets Manager — <strong>never hardcode it</strong>:</p>
+
+        <pre><code>BLD402_TELEGRAM_TOKEN=$(aws secretsmanager get-secret-value \
+  --secret-id "bld402/telegram-bot-token" \
+  --query SecretString --output text \
+  --region us-east-1 --profile kychee)</code></pre>
+
+        <p>Then send the message:</p>
 
         <pre><code>curl -s -X POST \
   "https://api.telegram.org/bot${BLD402_TELEGRAM_TOKEN}/sendMessage" \

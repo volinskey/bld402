@@ -104,15 +104,12 @@ CREATE TABLE word_lists (
 
 ### Seed Data
 
-Exactly matches template seed (25 words across categories and difficulties):
+50 words across 3 difficulty levels (20 easy, 15 medium, 15 hard). The base 25 words come from the showcase schema.sql; the remaining 25 are added via `showcase/hangman/seed.sql`. All categories: animals, food, nature, objects, general.
 
-```sql
-INSERT INTO word_lists (word, category, difficulty) VALUES
-  ('elephant', 'animals', 'easy'),
-  ('butterfly', 'animals', 'medium'),
-  -- ... (full list in template schema.sql)
-  ('waterfall', 'nature', 'medium');
-```
+**Difficulty breakdown:**
+- **Easy** (4-7 letters): elephant, butterfly, penguin, dinosaur, giraffe, hamburger, icecream, keyboard, lemonade, mountain, notebook, octopus, rainbow, sandwich, umbrella, tiger, apple, cloud, piano, grape
+- **Medium** (6-9 letters): crocodile, adventure, birthday, chocolate, fireworks, jellyfish, pineapple, telescope, volcano, waterfall, castle, bridge, rocket, garden, monkey
+- **Hard** (8+ letters): xylophone, alligator, astronaut, blueberry, caterpillar, champagne, dangerous, education, fantastic, geography, hurricane, labyrinth, mushroom, orchestra, parachute
 
 ## RLS
 

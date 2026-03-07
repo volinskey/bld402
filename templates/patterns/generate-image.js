@@ -104,7 +104,7 @@ function setupGenerateUI(promptInputId, generateBtnId, previewImgId, onGenerated
 //     return { statusCode: 400, body: JSON.stringify({ error: 'prompt is required' }) };
 //   }
 //
-//   const API_URL = 'https://run402.com';
+//   const API_URL = 'https://api.run402.com';
 //   const WALLET_KEY = process.env.WALLET_PRIVATE_KEY;
 //
 //   // Step 1: Try the generate-image endpoint (will return 402)

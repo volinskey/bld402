@@ -7,7 +7,7 @@
 
 // === Configuration ===
 const CONFIG = {
-  API_URL: '{{API_URL}}',       // https://run402.com
+  API_URL: '{{API_URL}}',       // https://api.run402.com
   ANON_KEY: '{{ANON_KEY}}',     // From project creation (client-side key, respects RLS)
   PROJECT_ID: '{{PROJECT_ID}}'  // From project creation
 };

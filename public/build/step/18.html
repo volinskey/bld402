@@ -35,7 +35,7 @@
         <p>Add new JavaScript functionality and UI elements. If the feature needs new data storage:</p>
         <ol>
           <li>Add new columns or tables via SQL migration:
-            <pre><code>POST https://run402.com/admin/v1/projects/{project_id}/sql
+            <pre><code>POST https://api.run402.com/admin/v1/projects/{project_id}/sql
 Authorization: Bearer {service_key}
 
 ALTER TABLE todos ADD COLUMN priority text DEFAULT 'normal';</code></pre>

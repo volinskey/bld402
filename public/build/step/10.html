@@ -28,7 +28,7 @@
         <h2>What to do</h2>
 
         <h3>Create the project</h3>
-        <pre><code>POST https://run402.com/v1/projects
+        <pre><code>POST https://api.run402.com/v1/projects
 Content-Type: application/json
 
 {
@@ -55,6 +55,81 @@ Content-Type: application/json
           <li>The facilitator (Coinbase CDP) handles on-chain settlement.</li>
         </ol>
 
+        <h3>Full 402 response example</h3>
+        <p>The 402 response includes the payment requirements you need to parse:</p>
+        <pre><code>HTTP/1.1 402 Payment Required
+Content-Type: application/json
+
+{
+  "error": "Payment required",
+  "accepts": [{
+    "scheme": "exact",
+    "network": "eip155:84532",
+    "maxAmountRequired": "100000",
+    "resource": "https://api.run402.com/v1/projects",
+    "description": "Create run402 project (prototype tier)",
+    "mimeType": "application/json",
+    "payTo": "0x...",
+    "maxTimeoutSeconds": 300,
+    "extra": {
+      "name": "USDC",
+      "version": "2",
+      "chainId": 84532,
+      "tokenAddress": "0x036CbD53842c5426634e7929541eC2318f3dCF7e"
+    }
+  }]
+}</code></pre>
+
+        <h3>Retry with x-402-payment header</h3>
+        <p>After signing the payment, retry the exact same request with the payment header:</p>
+        <pre><code>POST https://api.run402.com/v1/projects
+Content-Type: application/json
+x-402-payment: eyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6ODQ1MzIiLC...
+
+{
+  "name": "app-name-slug",
+  "tier": "prototype"
+}</code></pre>
+        <p>The <code>x-402-payment</code> header is a base64-encoded JSON object containing the signed EIP-712 payment authorization. The <code>@x402/fetch</code> library handles this automatically.</p>
+
+        <h3>x402 payment code (Node.js)</h3>
+        <p>Working snippet using <code>@x402/fetch</code> and <code>@x402/evm</code>:</p>
+        <pre><code>import { privateKeyToAccount } from 'viem/accounts';
+import { createPublicClient, http } from 'viem';
+import { baseSepolia } from 'viem/chains';
+import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
+import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm';
+
+// 1. Set up wallet from private key
+const account = privateKeyToAccount(process.env.WALLET_PRIVATE_KEY);
+const publicClient = createPublicClient({ chain: baseSepolia, transport: http() });
+
+// 2. Create signer — use account directly (flat object with .address)
+const signer = toClientEvmSigner(account, publicClient);
+
+// 3. Set up x402 client with ExactEvmScheme (use `new`)
+const client = new x402Client();
+client.register('eip155:84532', new ExactEvmScheme(signer));
+
+// 4. Wrap fetch to auto-handle 402 responses
+const fetchPaid = wrapFetchWithPayment(fetch, client);
+
+// 5. Make API call — first attempt returns 402, library retries with payment
+const res = await fetchPaid('https://api.run402.com/v1/projects', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ name: 'my-app', tier: 'prototype' })
+});
+const project = await res.json();</code></pre>
+
+        <h4>Common gotchas</h4>
+        <ul>
+          <li><code>toClientEvmSigner(account, publicClient)</code> — pass the viem <code>account</code> object directly. It has a flat <code>.address</code> property, not nested under <code>.account</code>.</li>
+          <li><code>new ExactEvmScheme(signer)</code> — must use <code>new</code>. Calling without <code>new</code> throws a TypeError.</li>
+          <li><code>new x402Client()</code> — also needs <code>new</code>.</li>
+          <li><code>client.register('eip155:84532', ...)</code> — use the CAIP-2 network ID, not a chain name.</li>
+        </ul>
+
         <p><strong>Successful response (201):</strong></p>
         <pre><code>{
   "project_id": "prj_1772125073085_0001",
@@ -69,7 +144,7 @@ Content-Type: application/json
         <p><strong>Note:</strong> The response also includes <code>schema_slot</code> — you do not need this value. The API handles schema routing automatically via your keys.</p>
 
         <h3>API URL</h3>
-        <p>The base API URL for all subsequent calls is: <code>https://run402.com</code></p>
+        <p>The base API URL for all subsequent calls is: <code>https://api.run402.com</code></p>
         <p>All REST, auth, storage, and admin endpoints use this base URL with the project's keys for routing.</p>
 
         <h3>What to tell the user</h3>
@@ -82,7 +157,7 @@ Content-Type: application/json
           <li><code>project_id</code> — The <span class="brand-run">run</span>402 project identifier</li>
           <li><code>anon_key</code> — JWT for client-side API access (respects RLS)</li>
           <li><code>service_key</code> — JWT for admin access (bypasses RLS) — NEVER expose to users</li>
-          <li><code>api_url</code> — Base API URL (https://run402.com)</li>
+          <li><code>api_url</code> — Base API URL (https://api.run402.com)</li>
           <li><code>lease_expires_at</code> — When the project lease expires</li>
         </ul>
       </div>
@@ -96,7 +171,7 @@ Content-Type: application/json
             "project_id": "run402 project ID — needed for all API calls",
             "anon_key": "Client-side API key — used in frontend code",
             "service_key": "Admin API key — NEVER put this in frontend code, only use for setup",
-            "api_url": "https://run402.com",
+            "api_url": "https://api.run402.com",
             "lease_expires_at": "ISO date when the project expires"
           },
           "discard": ["faucet_tx"]

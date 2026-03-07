@@ -28,7 +28,7 @@
         <h2>What to do</h2>
 
         <h3>Execute SQL migration</h3>
-        <pre><code>POST https://run402.com/admin/v1/projects/{project_id}/sql
+        <pre><code>POST https://api.run402.com/admin/v1/projects/{project_id}/sql
 Content-Type: text/plain
 Authorization: Bearer {service_key}
 
@@ -76,7 +76,7 @@ CREATE TABLE categories (
 
         <h3>Verify tables</h3>
         <p>After creation, verify the schema:</p>
-        <pre><code>GET https://run402.com/admin/v1/projects/{project_id}/schema
+        <pre><code>GET https://api.run402.com/admin/v1/projects/{project_id}/schema
 Authorization: Bearer {service_key}</code></pre>
 
         <h3>What to tell the user</h3>

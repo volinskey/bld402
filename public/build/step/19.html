@@ -28,7 +28,7 @@
         <h2>What to do</h2>
         <p>Deploy the updated app using the same process as <a href="/build/step/15">Step 15</a>.</p>
 
-        <pre><code>POST https://run402.com/v1/deployments
+        <pre><code>POST https://api.run402.com/v1/deployments
 Content-Type: application/json
 
 {
@@ -42,7 +42,7 @@ Content-Type: application/json
         <h3>Reassign subdomain (if claimed)</h3>
         <p>If the user claimed a subdomain in Step 15, reassign it to the new deployment so the same memorable URL points to the updated version:</p>
 
-        <pre><code>POST https://run402.com/v1/subdomains
+        <pre><code>POST https://api.run402.com/v1/subdomains
 Content-Type: application/json
 Authorization: Bearer {service_key}
 

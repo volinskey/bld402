@@ -28,7 +28,7 @@
         <h2>What to do</h2>
 
         <h3>Deploy the static site</h3>
-        <pre><code>POST https://run402.com/v1/deployments
+        <pre><code>POST https://api.run402.com/v1/deployments
 Content-Type: application/json
 
 {
@@ -65,6 +65,20 @@ Content-Type: application/json
   "total_size": 15234
 }</code></pre>
 
+        <h3>Auth model reference</h3>
+        <p>Different <span class="brand-run">run</span>402 endpoints use different authentication methods. Here is the complete reference:</p>
+        <table>
+          <thead><tr><th>Endpoint</th><th>Auth Method</th></tr></thead>
+          <tbody>
+            <tr><td><code>POST /v1/projects</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
+            <tr><td><code>POST /v1/deployments</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
+            <tr><td><code>POST /admin/v1/projects/{id}/sql</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
+            <tr><td><code>POST /v1/subdomains</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
+            <tr><td><code>GET /rest/v1/...</code></td><td><code>apikey</code> header (<code>anon_key</code>)</td></tr>
+          </tbody>
+        </table>
+        <p><strong>Note:</strong> <code>POST /v1/subdomains</code> is idempotent — it upserts. If the subdomain already belongs to your project, it updates the <code>deployment_id</code> instead of returning a 409. This means you can safely call it on every deploy without checking whether the subdomain already exists.</p>
+
         <h3>Important notes</h3>
         <ul>
           <li><strong>Max 50 MB</strong> per deployment. If files exceed this, reduce image sizes or split assets.</li>
@@ -75,13 +89,13 @@ Content-Type: application/json
 
         <h3>Verify deployment</h3>
         <p>Check deployment status (free, no auth):</p>
-        <pre><code>GET https://run402.com/v1/deployments/{deployment_id}</code></pre>
+        <pre><code>GET https://api.run402.com/v1/deployments/{deployment_id}</code></pre>
         <p>Wait for <code>"status": "READY"</code> before sharing the URL.</p>
 
         <h3>Claim a subdomain (optional but recommended)</h3>
         <p>Give your app a memorable URL like <code>https://myapp.run402.com</code> instead of the raw deployment URL.</p>
 
-        <pre><code>POST https://run402.com/v1/subdomains
+        <pre><code>POST https://api.run402.com/v1/subdomains
 Content-Type: application/json
 Authorization: Bearer {service_key}
 

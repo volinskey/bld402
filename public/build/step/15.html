@@ -92,8 +92,9 @@ Content-Type: application/json
         <pre><code>GET https://api.run402.com/v1/deployments/{deployment_id}</code></pre>
         <p>Wait for <code>"status": "READY"</code> before sharing the URL.</p>
 
-        <h3>Claim a subdomain (optional but recommended)</h3>
-        <p>Give your app a memorable URL like <code>https://myapp.run402.com</code> instead of the raw deployment URL.</p>
+        <h3>Claim a subdomain</h3>
+        <p>By default, claim a subdomain so the app has a memorable URL like <code>https://myapp.run402.com</code> instead of the raw deployment URL.</p>
+        <p><strong>Derive the subdomain automatically:</strong> take the app name, lowercase it, replace spaces and underscores with hyphens, strip non-alphanumeric characters (except hyphens), collapse consecutive hyphens, and truncate to 63 characters. Only skip the subdomain if the user explicitly declines.</p>
 
         <pre><code>POST https://api.run402.com/v1/subdomains
 Content-Type: application/json
@@ -136,7 +137,17 @@ Authorization: Bearer {service_key}
         <p><strong>Fallback:</strong> If subdomain claiming fails after one retry, fall back to the raw deployment URL (<code>https://dpl-{id}.sites.run402.com</code>). Tell the user their app is live at the deployment URL and that you can try claiming a memorable subdomain later.</p>
         <p>Do <strong>not</strong> retry in a loop or stall — the deployment itself already succeeded. The subdomain is optional polish.</p>
 
-        <p><strong>If the user does not want a subdomain,</strong> skip this step — the raw deployment URL works fine.</p>
+        <p><strong>If the user explicitly declines a subdomain,</strong> skip it — the raw deployment URL works fine.</p>
+
+        <h3>Smoke-test gate</h3>
+        <p>After deployment (and optional subdomain), you <strong>MUST</strong> verify the app is actually live before proceeding.</p>
+        <ol>
+          <li>Fetch the live URL (prefer <code>subdomain_url</code> if claimed, otherwise <code>deployment_url</code>).</li>
+          <li>Confirm the response is HTTP 200 and the HTML page loads (check for <code>&lt;!DOCTYPE html&gt;</code> or your app's <code>&lt;title&gt;</code>).</li>
+          <li>If the fetch fails or returns non-200, wait 5 seconds and retry once.</li>
+          <li>If it still fails, tell the user: "The deploy succeeded but the site isn't responding yet. Let's give it a moment." Retry up to 3 times total.</li>
+          <li><strong>Do NOT proceed to Step 16 until the smoke test passes.</strong></li>
+        </ol>
       </div>
 
       <div id="expected-output">

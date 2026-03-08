@@ -79,6 +79,22 @@
           <li>Is <code>viewport</code> meta tag present for mobile?</li>
         </ul>
 
+        <h4>Copy &amp; language</h4>
+        <p>All user-visible text must use plain, everyday language. Scan <strong>every</strong> heading, button label, description, placeholder, and error message for technical jargon and rewrite any matches.</p>
+        <p><strong>Banned words</strong> (never show these to end users):</p>
+        <ul>
+          <li>AI / ML jargon: embedding, vector, cosine, similarity, tokenize, inference, model weights, neural, LLM, GPT, transformer</li>
+          <li>Dev jargon: API endpoint, schema, payload, latency, throughput, query, mutation, webhook, middleware, runtime</li>
+          <li>Infra jargon: database, server, cluster, instance, deployment, container, microservice</li>
+        </ul>
+        <p>Examples of rewrites:</p>
+        <ul>
+          <li>"API endpoint returned an error" → "Something went wrong — please try again"</li>
+          <li>"Querying the database…" → "Loading your data…"</li>
+          <li>"Latency is high" → "Things are a bit slow right now"</li>
+        </ul>
+        <p>If any banned word appears in user-facing text, rewrite it to plain language before proceeding.</p>
+
         <p>If any issues are found, fix them in <code>app_files</code> before proceeding.</p>
 
         <h3>What to tell the user</h3>

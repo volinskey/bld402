@@ -94,6 +94,20 @@ x-402-payment: eyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6ODQ1MzIiLC...
 
         <h3>x402 payment code (Node.js)</h3>
         <p>Working snippet using <code>@x402/fetch</code> and <code>@x402/evm</code>:</p>
+
+        <div style="border:2px solid #e74c3c; background:#fdf0ef; padding:1em; margin-bottom:1em; border-radius:6px;">
+          <p><strong>⚠ WARNING — signer creation gotcha:</strong></p>
+          <p>Do <strong>NOT</strong> pass a <code>walletClient</code> to <code>toClientEvmSigner</code>. Pass the viem <code>account</code> object directly (the return value of <code>privateKeyToAccount</code>).</p>
+          <p>Why: the <code>account</code> object has <code>.address</code> as a top-level property. A <code>walletClient</code> nests it under <code>.account.address</code>, which causes the address to resolve to <code>undefined</code> inside EIP-3009 payload creation — and the resulting signed payment silently fails.</p>
+          <pre style="background:#fff; padding:0.5em;"><code>// ✅ CORRECT — pass account directly
+const account = privateKeyToAccount(key);
+const signer = toClientEvmSigner(account, publicClient);
+
+// ❌ WRONG — walletClient nests .address under .account
+const walletClient = createWalletClient({ account, ... });
+const signer = toClientEvmSigner(walletClient, publicClient); // BROKEN</code></pre>
+        </div>
+
         <pre><code>import { privateKeyToAccount } from 'viem/accounts';
 import { createPublicClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';

@@ -30,7 +30,30 @@
         <h3>If using testnet (default)</h3>
         <p>You need a wallet address on Base Sepolia to receive test USDC. If you (the agent) have wallet capabilities, use your own wallet. If not, you'll need the user to provide a wallet address.</p>
 
-        <p><strong>Call the faucet:</strong></p>
+        <p><strong>Step 1: Check existing USDC balance first.</strong> The wallet may already have funds from a previous faucet drip. Only call the faucet if the balance is insufficient.</p>
+
+        <pre><code>// USDC on Base Sepolia
+const USDC_ADDRESS = "0x036CbD53842c5426634e7929541eC2318f3dCF7e";
+
+// Check balance via viem readContract
+const balance = await publicClient.readContract({
+  address: USDC_ADDRESS,
+  abi: [{ name: 'balanceOf', type: 'function', stateMutability: 'view',
+           inputs: [{ name: 'account', type: 'address' }],
+           outputs: [{ name: '', type: 'uint256' }] }],
+  functionName: 'balanceOf',
+  args: [walletAddress],
+});
+
+// USDC has 6 decimals — $0.15 covers project ($0.10) + deploy ($0.05)
+const MIN_REQUIRED = 150000n; // 0.15 USDC
+if (balance >= MIN_REQUIRED) {
+  // Skip faucet — wallet already has sufficient funds
+} else {
+  // Call the faucet (Step 2 below)
+}</code></pre>
+
+        <p><strong>Step 2: Call the faucet (only if balance &lt; $0.15):</strong></p>
         <pre><code>POST https://api.run402.com/v1/faucet
 Content-Type: application/json
 

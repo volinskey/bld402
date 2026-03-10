@@ -133,6 +133,6 @@ Gate 2 tests MUST run **one template at a time, sequentially**. If a template fa
 ## Key References
 
 - **bld402 spec:** `docs/products/bld402/bld402-spec.md`
-- **run402 repo:** `C:/Workspace - Eleanor/run402`
+- **run402 repo:** `C:/Workspace-Kychee/run402`
 - **run402 API:** `https://api.run402.com`
-- **run402 spec:** `C:/Workspace - Eleanor/run402/docs/supa_spec.md`
+- **run402 spec:** `C:/Workspace-Kychee/run402/docs/supa_spec.md`

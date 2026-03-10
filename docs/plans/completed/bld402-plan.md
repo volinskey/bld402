@@ -21,7 +21,7 @@
 - **`/agent.json` schema:** Defined in this plan (Phase 1). Flat array of workflow steps with id, url, phase, inputs, outputs, next/branch fields. Versioned with a `schema_version` field.
 - **MVP templates (5):** Shared Todo List, Landing Page + Waitlist, Hangman, Trivia Night, Voting Booth. Remaining 22 templates deferred to Phase 6.
 - **Static site on AWS Amplify:** No server-side logic. All workflow content is pre-built HTML + JSON. Template matching and branching are agent-side decisions guided by page content.
-- **run402 API reference:** Sourced from the run402 repo (`C:/Workspace - Eleanor/run402`). Must sync before each implementation session.
+- **run402 API reference:** Sourced from the run402 repo (`C:/Workspace-Kychee/run402`). Must sync before each implementation session.
 - **Common pattern templates:** Auth flow, CRUD operations, file upload, responsive layout, navigation — built as reusable snippets agents compose into full apps.
 - **Subdomain support (v0.2.0):** run402 now supports `POST /v1/subdomains` to claim memorable URLs like `hangman.run402.com`. Free, requires `service_key` auth. Step pages 15-16 need updating. Guardrails need updating (subdomains are no longer impossible).
 - **Live showcase apps (v0.2.0):** 5 demo apps deployed to run402 on Hobby tier. Each gets its own subdomain, its own run402 project, and is individually validated. The showcase page links directly to the live apps.

@@ -12,7 +12,7 @@ Sync the run402 repo, scan its source code and MCP tools for the full list of se
 ### 1. Sync the run402 repo
 
 ```bash
-cd "C:/Workspace - Eleanor/run402" && git pull --ff-only
+cd "C:/Workspace-Kychee/run402" && git pull --ff-only
 ```
 
 If the pull fails (e.g., dirty working tree), warn the user and proceed with the current local state. Do NOT force-reset.
@@ -119,7 +119,7 @@ If no `AGENTS.md` exists, skip this step.
 
 ## Edge Cases
 
-- **run402 repo not found at expected path:** Error immediately: "run402 repo not found at `C:/Workspace - Eleanor/run402`. Cannot update services."
+- **run402 repo not found at expected path:** Error immediately: "run402 repo not found at `C:/Workspace-Kychee/run402`. Cannot update services."
 - **git pull fails:** Warn but continue with local state.
 - **New service found in run402:** Add it to the catalog.
 - **Service removed from run402:** Remove it from the catalog.

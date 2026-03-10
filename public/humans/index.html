@@ -18,27 +18,85 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
   <title>bld402 — For Humans</title>
-  <meta name="description" content="Build web apps without code. Tell your coding agent what you want, paste the bld402 link, and get a shareable link in minutes.">
+  <meta name="description" content="Your coding agent builds it. bld402 guides it. Copy one line, get a live hosted app you can share — no sign-up, no credit card.">
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/src/style.css">
   <style>
-    .copy-wrap { position: relative; }
-    .prompt-code {
-      display: block; font-size: 15px; line-height: 1.5;
-      background: #fff; border: 1px solid #E5E7EB; border-radius: 8px;
-      padding: 14px 40px 14px 16px; word-break: break-word; white-space: normal;
-      font-family: 'JetBrains Mono', monospace; color: #374151;
+    /* ---- Primary CTA: the prompt block ---- */
+    .prompt-hero {
+      max-width: 560px;
+      margin: 40px auto 0;
+      text-align: left;
     }
-    .copy-btn {
-      position: absolute; top: 50%; right: 10px; transform: translateY(-50%);
-      background: none; border: none; cursor: pointer; padding: 4px;
-      color: #9CA3AF; transition: color 0.2s;
+    .prompt-hero-label {
+      font-size: 17px;
+      font-weight: 600;
+      color: #1a1a2e;
+      margin-bottom: 12px;
+      text-align: center;
     }
-    .copy-btn:hover { color: #374151; }
-    .copy-btn svg { display: block; }
+    .prompt-hero-box {
+      background: #FFFFFF;
+      border: 2px solid #0066cc;
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      box-shadow: 0 4px 24px rgba(0, 102, 204, 0.12);
+    }
+    .prompt-hero-code {
+      display: block;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 15px;
+      line-height: 1.6;
+      color: #1a1a2e;
+      word-break: break-word;
+      white-space: normal;
+      background: none;
+      padding: 0;
+    }
+    .prompt-hero-copy {
+      align-self: flex-end;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #0066cc;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 24px;
+      font-family: 'Inter', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .prompt-hero-copy:hover {
+      background: #0052a3;
+      transform: translateY(-1px);
+    }
+    .prompt-hero-copy svg { display: block; }
+
+    /* ---- Demoted secondary links ---- */
+    .secondary-links {
+      margin-top: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+    .secondary-links a {
+      font-size: 14px;
+      color: #6B7280;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .secondary-links a:hover { color: #0066cc; text-decoration: underline; }
+    .secondary-links .dot { color: #D1D5DB; }
   </style>
 </head>
 <body>
@@ -57,22 +115,27 @@
   </header>
 
   <main id="main" class="page" style="text-align: center; padding-top: 120px; padding-bottom: 80px;">
-    <h1 style="font-size: clamp(32px, 5vw, 50px); margin-bottom: 20px;">Build web apps<br>without writing code.</h1>
-    <p class="subtitle" style="font-size: 18px; color: #6B7280; max-width: 480px; margin: 0 auto 40px;">
-      Tell your coding agent what you want. Paste the <span class="brand-bld">bld</span>402 link. Get a working app with a shareable link in minutes.
+    <h1 style="font-size: clamp(32px, 5vw, 50px); margin-bottom: 20px;">Your coding agent builds it.<br><span class="brand-bld">bld</span>402 guides it.</h1>
+    <p class="subtitle" style="font-size: 18px; color: #6B7280; max-width: 520px; margin: 0 auto 12px;">
+      Just copy one line &mdash; <span class="brand-bld">bld</span>402 walks your agent through everything and gives you a live app you can share.
     </p>
+    <p class="trust-line" style="font-size: 14px; color: #9CA3AF; margin: 0 auto 40px; letter-spacing: 0.3px;">No sign-up. No credit card. Just start building.</p>
 
-    <div class="prompt-box">
-      <p class="label">Try saying this to your coding agent:</p>
-      <div class="copy-wrap">
-        <code class="prompt-code">Fetch https://bld402.com/build/step/1 and follow the instructions on that page</code>
-        <button class="copy-btn" onclick="copyPrompt(this)" title="Copy to clipboard"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>
+    <div class="prompt-hero">
+      <p class="prompt-hero-label">Copy this into your coding agent to get started:</p>
+      <div class="prompt-hero-box">
+        <code class="prompt-hero-code">Fetch https://bld402.com/build/step/1 and follow the instructions on that page</code>
+        <button class="prompt-hero-copy" onclick="copyPrompt(this)" title="Copy to clipboard">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          <span>Copy</span>
+        </button>
       </div>
     </div>
 
-    <div class="cta-group">
-      <a href="/humans/how-it-works.html" class="btn-primary">How It Works</a>
-      <a href="/humans/showcase.html" class="btn-secondary">See Examples</a>
+    <div class="secondary-links">
+      <a href="/humans/how-it-works.html">How it works</a>
+      <span class="dot">&middot;</span>
+      <a href="/humans/showcase.html">See examples</a>
     </div>
   </main>
 
@@ -97,11 +160,12 @@
 
   function copyPrompt(btn) {
     sendAttributionBeacon();
-    var text = btn.previousElementSibling.textContent;
+    var code = btn.closest('.prompt-hero-box').querySelector('.prompt-hero-code');
+    var text = code.textContent;
     navigator.clipboard.writeText(text).then(function() {
-      btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+      btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg><span>Copied!</span>';
       setTimeout(function() {
-        btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        btn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span>Copy</span>';
       }, 1500);
     });
   }

@@ -293,7 +293,13 @@
     </div>
 
     <div style="text-align:center; margin-top:3rem; padding:2rem; background:#F9FAFB; border: 1px solid #E5E7EB; border-radius:8px;">
-      <p>Don't see what you need? Describe your idea to any coding agent and paste <code style="user-select:all;">https://bld402.com</code> into the chat.</p>
+      <p style="margin-bottom:0.75rem;">Don't see what you need? Copy this into your coding agent and describe what you want to build:</p>
+      <div style="display:inline-flex; align-items:center; gap:8px; background:#fff; border:1px solid #E5E7EB; border-radius:6px; padding:8px 12px;">
+        <code style="user-select:all; font-size:14px; color:#374151;">Fetch https://bld402.com/build/step/1 and follow the instructions on that page</code>
+        <button onclick="copyAgent(this)" style="background:none; border:none; cursor:pointer; color:#6B7280; padding:2px;" title="Copy to clipboard">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
     </div>
   </main>
 

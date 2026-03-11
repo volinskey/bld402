@@ -7,3 +7,5 @@ Thumbs.db
 showcase/.wallet
 .claude/settings.local.json
 .claude/agent-memory/
+.claude/skills/
+.cursor/skills/

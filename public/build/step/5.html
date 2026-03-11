@@ -68,6 +68,16 @@
               <td>S3-backed storage at <code>/storage/v1/object/{bucket}/{path}</code>.</td>
             </tr>
             <tr>
+              <td><strong>Serverless Functions</strong></td>
+              <td>When server-side logic is needed that can't run in the browser (e.g., password hashing, matching algorithms, secret operations)</td>
+              <td>Node.js functions deployed via <code>POST /admin/v1/projects/{id}/functions</code>. Called from frontend via <code>/functions/v1/{function_name}</code>.</td>
+            </tr>
+            <tr>
+              <td><strong>AI Image Generation</strong></td>
+              <td>When the app creates images from text prompts (e.g., sticker makers, art generators)</td>
+              <td>Generate images via <code>POST /v1/generate-image</code>. Returns image data to store in File Storage.</td>
+            </tr>
+            <tr>
               <td><strong>Static Hosting</strong></td>
               <td>Always — how the app is deployed</td>
               <td>Deploy via <code>POST /v1/deployments</code>. Returns a shareable URL.</td>

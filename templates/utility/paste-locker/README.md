@@ -15,7 +15,7 @@ Secure pastebin with server-side password hashing via run402 functions.
 ## Customization Points
 
 - `{{APP_NAME}}` — App title
-- `{{API_URL}}` — run402 API URL (https://run402.com)
+- `{{API_URL}}` — run402 API URL (https://api.run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 
 ## Features
@@ -36,7 +36,7 @@ This template requires two server-side functions deployed via run402's functions
 
 Deploy functions via:
 ```
-POST /admin/v1/projects/:id/functions
+POST /projects/v1/admin/:id/functions
 Authorization: Bearer <service_key>
 { "name": "create-note", "code": "<contents of create-note.js>" }
 ```

@@ -21,11 +21,11 @@ Before starting, verify you have these capabilities. If ANY are missing, tell th
 - Create and edit files on the local filesystem
 - Run shell commands (Node.js must be available)
 - Make HTTP requests (fetch/curl)
-- Manage a crypto wallet private key (for x402 payments — testnet, free)
+- Manage a crypto wallet private key (for payments — testnet, free)
 
 **Required npm packages** (install if not present):
 ```
-npm install viem @x402/core @x402/evm @x402/fetch
+npm install viem @x402/fetch@^2 @x402/evm@^2
 ```
 
 ---
@@ -49,16 +49,18 @@ Check the user's requests against these lists at EVERY step. If a feature is imp
 - File storage (upload, download, signed URLs, S3-backed)
 - Static site hosting (deploy HTML/CSS/JS, get a shareable URL, SPA support)
 - Serverless functions (Node.js — for server-side logic like password hashing)
-- AI image generation (via generate-image service)
+- AI image generation (via generate-image service, $0.03/image)
 - Subdomains (myapp.run402.com — free)
+- Bundle deploy (one API call deploys everything: DB + migrations + RLS + functions + site + subdomain)
 - Multiple tiers: Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)
 - Testnet (Base Sepolia) — completely free via faucet
+- Publish & fork (make apps forkable by other agents)
 
 ### What run402 CANNOT do
 
 | Not Possible | Tell the user | Alternative |
 |---|---|---|
-| Custom domain names (myapp.com) | "You can't use your own domain, but you can get a memorable URL like myapp.run402.com." | Claim a subdomain via `POST /v1/subdomains` |
+| Custom domain names (myapp.com) | "You can't use your own domain, but you can get a memorable URL like myapp.run402.com." | Claim a subdomain via `POST /subdomains/v1` |
 | Server-side compute beyond run402 functions | "Most of your app runs in the browser. For things like password hashing, we use built-in serverless functions." | Use run402 functions (Node.js) |
 | Real-time WebSocket connections | "Live instant updates aren't available, but the app can check for new stuff every few seconds." | Polling (fetch every 3-10 seconds) |
 | Email / SMS / push notifications | "The app can't send emails, texts, or push notifications, but it can show alerts inside the app." | In-app notifications, badge counters |
@@ -72,13 +74,15 @@ Check the user's requests against these lists at EVERY step. If a feature is imp
 
 ## Budget Awareness
 
-**Testnet (default):** Faucet gives $0.25 USDC per 24 hours.
-- Project creation: $0.10
-- Each deployment: $0.05
-- This means: 1 project + 3 deploys per faucet drip
+**Pay-per-tier model:** Subscribe to a tier once, then create unlimited projects, deploy sites, and iterate — all free with wallet auth.
 
-**Track spending internally.** Before each deployment, check if the wallet has sufficient funds. If funds are low, warn the user:
-> "We've used up our free test funds for today. We can either wait until tomorrow for more, or I can make several changes at once before deploying to use our remaining budget wisely."
+**Testnet (default):** Faucet gives $0.25 USDC per 24 hours.
+- Tier subscription (Prototype): $0.10
+- Projects, deploys, redeploys: **free** with active tier
+- Only AI image generation costs per-call ($0.03/image)
+- This means: **2 full tier subscriptions per faucet drip**, with unlimited deploys each
+
+Budget is rarely a concern on testnet. The only time to warn the user is if the faucet rate-limits (1 drip per 24h per IP) or if they want AI image generation (which adds up at $0.03 each).
 
 ---
 
@@ -220,7 +224,7 @@ Map the app_spec to run402 services. Every app uses at minimum: database + REST 
 | Row-Level Security | When data access varies by user |
 | File Storage | When `app_spec.features.file_uploads` is true |
 | Serverless Functions | When server-side logic is needed (password hashing, matching algorithms) |
-| AI Image Generation | When the app generates images from prompts |
+| AI Image Generation | When the app generates images from prompts ($0.03/image) |
 | Static Hosting | Always |
 
 Plan database tables: what columns, foreign keys, RLS template per table, seed data needed.
@@ -237,7 +241,9 @@ Plan database tables: what columns, foreign keys, RLS template per table, seed d
 | Hobby | $5.00 | 30 days | 1 GB | 5M |
 | Team | $20.00 | 30 days | 10 GB | 50M |
 
-Tell the user: "I'll set this up as a free prototype first. It'll last 7 days — plenty of time to try it out. If you love it, we can make it permanent later."
+Once subscribed, all projects and deploys are free. No per-deploy fees.
+
+Tell the user: "I'll set this up as a free prototype first. It'll last 7 days — plenty of time to try it out. You can change and redeploy as many times as you want. If you love it, we can make it permanent later."
 
 **Output:** `selected_tier` ("prototype"), `payment_network` ("base-sepolia").
 
@@ -305,7 +311,7 @@ const balance = await publicClient.readContract({
   args: [walletAddress],
 });
 
-const MIN_REQUIRED = 150000n; // 0.15 USDC (6 decimals) — covers project + deploy
+const MIN_REQUIRED = 100000n; // 0.10 USDC (6 decimals) — covers tier subscription
 if (balance >= MIN_REQUIRED) {
   // Skip faucet
 } else {
@@ -313,31 +319,42 @@ if (balance >= MIN_REQUIRED) {
 }
 ```
 
-**Step 2 — Call faucet (only if balance < $0.15):**
+**Step 2 — Call faucet (only if balance < $0.10):**
 
 ```
-POST https://api.run402.com/v1/faucet
+POST https://api.run402.com/faucet/v1
 Content-Type: application/json
 
 { "address": "0x...wallet_address" }
 ```
 
-Response: `{ "transactionHash": "0x...", "amount": "0.25", "token": "USDC", "network": "base-sepolia" }`
+Response: `{ "transaction_hash": "0x...", "amount_usd_micros": 250000, "token": "USDC", "network": "base-sepolia" }`
 
 Rate limit: 1 drip per 24 hours per IP. If 429, tell user to wait.
 
+**IMPORTANT:** Wait for the faucet transaction to confirm before proceeding (~5s on Base Sepolia):
+
+```javascript
+await publicClient.waitForTransactionReceipt({ hash: faucetTxHash });
+```
+
+Without this, the tier subscription may fail with `insufficient_funds`.
+
 **Output:** `wallet_address`, `faucet_tx`
 
-### Step 10: Provision Project
+### Step 10: Subscribe & Create Project
 
-Create the run402 project with x402 payment:
+This is a two-part step: subscribe to a tier (x402 payment), then create a project (wallet auth, free).
+
+**Part 1 — Subscribe to tier (x402 payment, $0.10):**
 
 ```javascript
 import { privateKeyToAccount } from 'viem/accounts';
 import { createPublicClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';
-import { wrapFetchWithPayment, x402Client } from '@x402/fetch';
-import { ExactEvmScheme, toClientEvmSigner } from '@x402/evm';
+import { x402Client, wrapFetchWithPayment } from '@x402/fetch';
+import { ExactEvmScheme } from '@x402/evm/exact/client';
+import { toClientEvmSigner } from '@x402/evm';
 
 // 1. Set up wallet — pass account object directly (NOT walletClient)
 const account = privateKeyToAccount(WALLET_PRIVATE_KEY);
@@ -353,20 +370,42 @@ client.register('eip155:84532', new ExactEvmScheme(signer));
 // 4. Wrap fetch for automatic 402 handling
 const fetchPaid = wrapFetchWithPayment(fetch, client);
 
-// 5. Create project
-const res = await fetchPaid('https://api.run402.com/v1/projects', {
+// 5. Subscribe to prototype tier
+const subRes = await fetchPaid('https://api.run402.com/tiers/v1/subscribe/prototype', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ name: 'app-name-slug', tier: 'prototype' })
+  body: JSON.stringify({})
 });
-const project = await res.json();
+const sub = await subRes.json();
+// -> { wallet, tier: "prototype", lease_expires_at: "2026-03-21T..." }
 ```
 
 **Common gotchas:**
 - `toClientEvmSigner(account, publicClient)` — pass `account` directly, NOT `walletClient`
+- `import { ExactEvmScheme } from '@x402/evm/exact/client'` — note the `/exact/client` subpath
 - `new ExactEvmScheme(signer)` — MUST use `new`
 - `new x402Client()` — MUST use `new`
-- `client.register('eip155:84532', ...)` — use CAIP-2 network ID
+- `client.register('eip155:84532', ...)` — use CAIP-2 Base Sepolia ID specifically, NOT `eip155:*`
+
+**Part 2 — Create project (wallet auth, free):**
+
+```javascript
+// Sign wallet auth headers
+const timestamp = Math.floor(Date.now() / 1000).toString();
+const signature = await account.signMessage({ message: `run402:${timestamp}` });
+
+const res = await fetch('https://api.run402.com/projects/v1', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Run402-Wallet': account.address,
+    'X-Run402-Signature': signature,
+    'X-Run402-Timestamp': timestamp,
+  },
+  body: JSON.stringify({ name: 'app-name-slug' })
+});
+const project = await res.json();
+```
 
 **Response (201):**
 ```json
@@ -374,8 +413,9 @@ const project = await res.json();
   "project_id": "prj_...",
   "anon_key": "eyJ...",
   "service_key": "eyJ...",
+  "schema_slot": "p0042",
   "tier": "prototype",
-  "lease_expires_at": "2026-03-18T..."
+  "lease_expires_at": "2026-03-21T..."
 }
 ```
 
@@ -390,7 +430,7 @@ Tell the user: "Your project is set up! I've created a secure space for your app
 Execute SQL via the admin endpoint:
 
 ```
-POST https://api.run402.com/admin/v1/projects/{project_id}/sql
+POST https://api.run402.com/projects/v1/admin/{project_id}/sql
 Content-Type: text/plain
 Authorization: Bearer {service_key}
 
@@ -407,6 +447,7 @@ CREATE TABLE todos (
 - Allowed: CREATE TABLE, ALTER TABLE, CREATE INDEX, INSERT, UPDATE, DELETE, SELECT
 - Blocked (403): CREATE EXTENSION, COPY PROGRAM, ALTER SYSTEM, SET search_path, GRANT/REVOKE
 - Use `gen_random_uuid()` for UUID PKs, `timestamptz` for timestamps, `text` for strings, `jsonb` for flexible data
+- Both `SERIAL` and `BIGINT GENERATED ALWAYS AS IDENTITY` work for auto-increment
 
 **Schema reload delay:** After creating tables, wait 500ms before the next API call. The API needs time to recognize new schema.
 
@@ -424,7 +465,7 @@ Tell the user: "I've set up the storage for your app."
 Apply RLS policies to control data access:
 
 ```
-POST https://api.run402.com/admin/v1/projects/{project_id}/rls
+POST https://api.run402.com/projects/v1/admin/{project_id}/rls
 Content-Type: application/json
 Authorization: Bearer {service_key}
 
@@ -438,12 +479,13 @@ Authorization: Bearer {service_key}
 
 | Template | Read | Write | Use when |
 |----------|------|-------|----------|
-| `public_read` | Everyone | Admin only (service_key) | Reference data, shared content users shouldn't modify |
+| `public_read` | Everyone | Authenticated users only | Public content that signed-in users can create/edit (blogs, forums, leaderboards, shared reference data) |
 | `public_read_write` | Everyone | Everyone | Open collaboration (voting, shared lists without auth) |
 | `user_owns_rows` | Row owner only | Row owner only | Personal data. Requires `owner_column` parameter. |
 
 **Decision guide:**
-- App has auth → `user_owns_rows` for personal data, `public_read` for shared data
+- App has auth + public content → `public_read` for shared posts/scores, `user_owns_rows` for private data
+- App has auth + private data only → `user_owns_rows` for personal data, `public_read` for reference data
 - App has no auth → `public_read_write` for everything
 - Mixed → Different templates per table (separate API calls)
 
@@ -480,7 +522,7 @@ async function api(path, options = {}) {
 }
 ```
 
-**IMPORTANT:** The API URL is `https://api.run402.com` (with `api.` subdomain).
+**IMPORTANT:** The API URL is `https://api.run402.com` (with `api.` subdomain). `run402.com` is a static docs site — POSTing there returns 405.
 
 **Read data:**
 ```javascript
@@ -498,21 +540,31 @@ await api('/rest/v1/todos', {
 
 **Auth (if needed):**
 ```javascript
-// Signup
-const { id, email } = await api('/auth/v1/signup', {
+// Signup (creates user, does NOT return a token)
+await api('/auth/v1/signup', {
   method: 'POST',
   body: JSON.stringify({ email, password })
 });
 
-// Login
-const { access_token, user } = await api('/auth/v1/token?grant_type=password', {
+// Login (returns access_token + refresh_token)
+const { access_token, user } = await api('/auth/v1/token', {
   method: 'POST',
   body: JSON.stringify({ email, password })
 });
 
-// Authenticated requests
+// Authenticated requests — add access_token as Authorization header
 headers: { 'Authorization': 'Bearer ' + access_token }
+
+// Refresh token
+const data = await api('/auth/v1/token?grant_type=refresh_token', {
+  method: 'POST',
+  body: JSON.stringify({ refresh_token })
+});
 ```
+
+**IMPORTANT:** Signup does NOT return an access token. Always call `/auth/v1/token` after signup to log the user in.
+
+**IMPORTANT:** Always use `<script type="module">` — the code patterns above use `await` at the top level, which only works in module scripts. A plain `<script>` tag will cause a silent syntax error and a blank page.
 
 **File structure:** Generate a single `index.html` with inline CSS and JS. If complex, split into `index.html`, `style.css`, `app.js`.
 
@@ -544,13 +596,14 @@ Review against this checklist. Fix issues before deploying.
 
 **Auth (if applicable):**
 - [ ] Signup calls `/auth/v1/signup`?
-- [ ] Login calls `/auth/v1/token?grant_type=password`?
+- [ ] Login calls `/auth/v1/token` (NOT `/auth/v1/token?grant_type=password`)?
+- [ ] Login is called after signup (signup doesn't return a token)?
 - [ ] `access_token` stored and used in `Authorization` header?
 - [ ] Logout clears the token?
 
 **RLS compatibility:**
 - [ ] `user_owns_rows`: every INSERT includes the owner column?
-- [ ] `public_read`: writes only via service_key?
+- [ ] `public_read`: writes require authenticated user (access_token in header)?
 
 **UI/UX:**
 - [ ] Loading states while fetching?
@@ -573,12 +626,21 @@ Tell the user: "Everything looks good! Deploying your app now..."
 
 ### Step 15: Deploy to run402
 
-Deploy the static site (x402-gated, $0.05):
+Deploy the static site (wallet auth, free with active tier):
 
 ```javascript
-const res = await fetchPaid('https://api.run402.com/v1/deployments', {
+// Sign wallet auth headers
+const timestamp = Math.floor(Date.now() / 1000).toString();
+const signature = await account.signMessage({ message: `run402:${timestamp}` });
+
+const res = await fetch('https://api.run402.com/deployments/v1', {
   method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Run402-Wallet': account.address,
+    'X-Run402-Signature': signature,
+    'X-Run402-Timestamp': timestamp,
+  },
   body: JSON.stringify({
     name: 'app-name',
     project: project_id,
@@ -588,31 +650,21 @@ const res = await fetchPaid('https://api.run402.com/v1/deployments', {
 const deployment = await res.json();
 ```
 
-**Response:** `{ "id": "dpl-...", "url": "https://dpl-....sites.run402.com", "status": "READY" }`
-
-**Auth model reference:**
-
-| Endpoint | Auth Method |
-|----------|-------------|
-| `POST /v1/projects` | `x-402-payment` header |
-| `POST /v1/deployments` | `x-402-payment` header |
-| `POST /admin/v1/projects/{id}/sql` | `Authorization: Bearer {service_key}` |
-| `POST /v1/subdomains` | `Authorization: Bearer {service_key}` |
-| `GET /rest/v1/...` | `apikey` header (`anon_key`) |
+**Response:** `{ "id": "dpl_...", "url": "https://dpl-....sites.run402.com", "status": "READY" }`
 
 **Claim a subdomain (default yes):**
 
 Derive subdomain from app name: lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric (except hyphens), truncate to 63 chars.
 
 ```
-POST https://api.run402.com/v1/subdomains
+POST https://api.run402.com/subdomains/v1
 Content-Type: application/json
 Authorization: Bearer {service_key}
 
 { "name": "myapp", "deployment_id": "{deployment_id}" }
 ```
 
-Subdomain rules: 3-63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no reserved words (api, www, admin, etc.). Free, idempotent (upserts).
+Subdomain rules: 3-63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no consecutive hyphens, no reserved words (api, www, admin, sites, mail, ftp, cdn, static). Free, idempotent (upserts — safe to call on every deploy).
 
 If claiming fails: fall back to the raw deployment URL. Don't retry in a loop.
 
@@ -633,7 +685,7 @@ If subdomain claimed:
 >
 > **{subdomain_url}**
 >
-> Share it with anyone — they can use it right away. Try it out and let me know what you think! I can make changes anytime."
+> Share it with anyone — they can use it right away. Try it out and let me know what you think! I can make changes anytime — redeploying is free."
 
 If no subdomain:
 > "Your app is live! Here's your link:
@@ -642,7 +694,7 @@ If no subdomain:
 >
 > Want a shorter URL like https://myapp.run402.com? I can set that up."
 
-Briefly mention: 7-day prototype lease, works on phones and computers, you can iterate.
+Briefly mention: 7-day prototype lease, works on phones and computers, unlimited redeploys.
 
 ---
 
@@ -668,7 +720,7 @@ For each piece of feedback:
 
 **Feature additions:** Add JS functionality. If new data storage needed:
 ```
-POST https://api.run402.com/admin/v1/projects/{project_id}/sql
+POST https://api.run402.com/projects/v1/admin/{project_id}/sql
 Authorization: Bearer {service_key}
 
 ALTER TABLE todos ADD COLUMN priority text DEFAULT 'normal';
@@ -685,11 +737,11 @@ Tell the user: "I've made those changes! Let me put the updated version online."
 
 ### Step 19: Redeploy
 
-Deploy updated app (same process as Step 15, costs $0.05).
+Deploy updated app (same process as Step 15 — wallet auth, free with active tier).
 
 If subdomain exists, reassign it to the new deployment:
 ```
-POST https://api.run402.com/v1/subdomains
+POST https://api.run402.com/subdomains/v1
 Content-Type: application/json
 Authorization: Bearer {service_key}
 
@@ -710,15 +762,16 @@ Congratulate the user:
 > Share this link with anyone — it works on phones and computers."
 
 **Lease reminder (prototype tier):**
-> "Your app will stay live for 7 days (until {lease_expires_at}). After that, it goes into read-only mode. If you want to keep it running longer, just let me know and I'll help you upgrade — starts at $5/month."
+> "Your app will stay live for 7 days (until {lease_expires_at}). After that, it goes into read-only mode for a week, then gets archived. If you want to keep it running longer, just let me know and I'll help you upgrade — starts at $5/month."
 
 **Upgrade options:**
 
 | Option | Price | How |
 |--------|-------|-----|
-| Renew prototype | $0.10 | `POST /v1/projects/{id}/renew` (x402) |
-| Upgrade to Hobby | $5.00 | `POST /v1/projects/{id}/renew {"tier": "hobby"}` (x402) |
-| Upgrade to Team | $20.00 | `POST /v1/projects/{id}/renew {"tier": "team"}` (x402) |
+| Renew Prototype | $0.10 | `POST /tiers/v1/renew/prototype` (x402) |
+| Upgrade to Hobby | $5.00 | `POST /tiers/v1/upgrade/hobby` (x402) |
+| Upgrade to Team | $20.00 | `POST /tiers/v1/upgrade/team` (x402) |
+| Credit card (for humans) | Any amount | Send user to `https://run402.com/billing?wallet={wallet_address}` |
 
 **Mandatory feedback ask:**
 > "Would you like to share feedback with the bld402 team? It only takes a minute and helps improve the platform."
@@ -734,10 +787,11 @@ If yes → Step 21. If no → thank them and wrap up.
     "anon_key": "...",
     "service_key": "...",
     "api_url": "https://api.run402.com",
+    "wallet_address": "0x...",
     "deployment_url": "...",
     "subdomain_url": "...",
-    "tables": [...],
-    "rls": {...},
+    "tables": ["..."],
+    "rls": {"...": "..."},
     "lease_expires_at": "...",
     "tier": "prototype",
     "iteration_count": 0,
@@ -752,25 +806,56 @@ If the user agrees to share feedback:
 
 1. Write an agent summary: template used, issues hit, what went well, suggestions, iteration count
 2. Ask the user for their input: "Anything you'd like to add?"
-3. Combine into a message and send to the bld402 feedback endpoint:
+3. Combine into a message and send via the run402 message endpoint:
 
-```
-POST https://api.run402.com/v1/feedback
-Content-Type: application/json
+```javascript
+// Sign wallet auth headers
+const timestamp = Math.floor(Date.now() / 1000).toString();
+const signature = await account.signMessage({ message: `run402:${timestamp}` });
 
-{
-  "project_id": "{project_id}",
-  "app_name": "{app_name}",
-  "template": "{template_name}",
-  "iterations": {iteration_count},
-  "agent_notes": "...",
-  "user_notes": "..."
-}
+await fetch('https://api.run402.com/message/v1', {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'X-Run402-Wallet': account.address,
+    'X-Run402-Signature': signature,
+    'X-Run402-Timestamp': timestamp,
+  },
+  body: JSON.stringify({
+    message: `bld402 feedback | App: ${app_name} | Template: ${template} | Iterations: ${iteration_count}\n\nAgent notes: ${agent_notes}\n\nUser notes: ${user_notes}`
+  })
+});
 ```
 
 > "Feedback sent — thanks! The bld402 team will use it to make the platform better."
 
-If feedback endpoint is unavailable, skip gracefully — do not block the conversation.
+If the message endpoint is unavailable, skip gracefully — do not block the conversation.
+
+---
+
+## Wallet Auth Helper
+
+Several endpoints use wallet auth (project creation, deploy, message). Reuse this pattern:
+
+```javascript
+async function walletAuthFetch(url, options = {}) {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const signature = await account.signMessage({ message: `run402:${timestamp}` });
+
+  return fetch(url, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Run402-Wallet': account.address,
+      'X-Run402-Signature': signature,
+      'X-Run402-Timestamp': timestamp,
+      ...options.headers,
+    }
+  });
+}
+```
+
+Timestamp must be within 30 seconds of server time (fresh signature per request).
 
 ---
 
@@ -778,7 +863,7 @@ If feedback endpoint is unavailable, skip gracefully — do not block the conver
 
 At each step, maintain these in your working memory:
 
-**Always carry forward:** `project_id`, `anon_key`, `service_key`, `api_url`, `app_spec`
+**Always carry forward:** `project_id`, `anon_key`, `service_key`, `api_url`, `wallet_address`, `account`, `app_spec`
 
 **Carry during build:** `tables_created`, `rls_configured`, `app_files`, `selected_templates`
 
@@ -790,19 +875,61 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 
 ## Quick Reference — API Endpoints
 
+### Tier & Billing (x402 payment)
+
 | Action | Method | Endpoint | Auth |
 |--------|--------|----------|------|
-| Get test funds | POST | `/v1/faucet` | None |
-| Create project | POST | `/v1/projects` | x402 payment |
-| Run SQL | POST | `/admin/v1/projects/{id}/sql` | service_key |
-| Check schema | GET | `/admin/v1/projects/{id}/schema` | service_key |
-| Apply RLS | POST | `/admin/v1/projects/{id}/rls` | service_key |
-| Deploy site | POST | `/v1/deployments` | x402 payment |
-| Check deploy | GET | `/v1/deployments/{id}` | None |
-| Claim subdomain | POST | `/v1/subdomains` | service_key |
-| CRUD data | GET/POST/PATCH/DELETE | `/rest/v1/{table}` | anon_key |
-| Signup | POST | `/auth/v1/signup` | anon_key |
-| Login | POST | `/auth/v1/token?grant_type=password` | anon_key |
-| Renew project | POST | `/v1/projects/{id}/renew` | x402 payment |
+| Subscribe to tier | POST | `/tiers/v1/subscribe/:tier` | x402 payment |
+| Renew tier | POST | `/tiers/v1/renew/:tier` | x402 payment |
+| Upgrade tier | POST | `/tiers/v1/upgrade/:tier` | x402 payment |
+| Check tier status | GET | `/tiers/v1/status` | Wallet auth |
+| Generate image | POST | `/generate-image/v1` | x402 ($0.03) |
+
+### Project & Deploy (wallet auth — free with tier)
+
+| Action | Method | Endpoint | Auth |
+|--------|--------|----------|------|
+| Get test funds | POST | `/faucet/v1` | None |
+| Create project | POST | `/projects/v1` | Wallet auth |
+| Deploy site | POST | `/deployments/v1` | Wallet auth |
+| Bundle deploy | POST | `/deploy/v1` | Wallet auth |
+| Check deploy | GET | `/deployments/v1/:id` | None |
+| Send message | POST | `/message/v1` | Wallet auth |
+
+### Admin (service_key)
+
+| Action | Method | Endpoint | Auth |
+|--------|--------|----------|------|
+| Run SQL | POST | `/projects/v1/admin/:id/sql` | service_key |
+| Check schema | GET | `/projects/v1/admin/:id/schema` | service_key |
+| Apply RLS | POST | `/projects/v1/admin/:id/rls` | service_key |
+| Check usage | GET | `/projects/v1/admin/:id/usage` | service_key |
+| Deploy function | POST | `/projects/v1/admin/:id/functions` | service_key |
+| Set secret | POST | `/projects/v1/admin/:id/secrets` | service_key |
+| Claim subdomain | POST | `/subdomains/v1` | service_key |
+
+### Client API (anon_key / access_token)
+
+| Action | Method | Endpoint | Auth |
+|--------|--------|----------|------|
+| CRUD data | GET/POST/PATCH/DELETE | `/rest/v1/:table` | apikey |
+| Signup | POST | `/auth/v1/signup` | apikey |
+| Login | POST | `/auth/v1/token` | apikey |
+| Refresh token | POST | `/auth/v1/token?grant_type=refresh_token` | apikey |
+| Get current user | GET | `/auth/v1/user` | Bearer token |
+| Logout | POST | `/auth/v1/logout` | Bearer token |
+| Upload file | POST | `/storage/v1/object/:bucket/*` | apikey |
+| Download file | GET | `/storage/v1/object/:bucket/*` | apikey |
+| Invoke function | POST | `/functions/v1/:name` | apikey |
+
+### Auth Model
+
+| Auth Method | Headers | Used for |
+|-------------|---------|----------|
+| **x402 payment** | `x-402-payment: <signed-payment>` | Tier subscribe/renew/upgrade, image generation |
+| **Wallet auth** | `X-Run402-Wallet`, `X-Run402-Signature`, `X-Run402-Timestamp` | Project creation, deploy, bundle deploy, message, ping |
+| **service_key** | `Authorization: Bearer {service_key}` | Admin SQL, RLS, schema, usage, functions, secrets, subdomains |
+| **apikey** | `apikey: {anon_key}` | REST data, auth, storage, function invocation |
+| **Bearer token** | `Authorization: Bearer {access_token}` | User-scoped operations (from login) |
 
 **Base URL for all endpoints:** `https://api.run402.com`

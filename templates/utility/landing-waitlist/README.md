@@ -22,7 +22,7 @@ Product launch page with email signup form. Hero section, features grid, and cal
 
 - `{{APP_NAME}}` — App/product title (appears in page title and hero)
 - `{{APP_TAGLINE}}` — Hero subtitle text
-- `{{API_URL}}` — run402 API URL (https://run402.com)
+- `{{API_URL}}` — run402 API URL (https://api.run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 
 ## Features

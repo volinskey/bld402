@@ -15,7 +15,7 @@ Host creates custom bingo games, players join with a code and get unique shuffle
 ## Customization Points
 
 - `{{APP_NAME}}` — App title
-- `{{API_URL}}` — run402 API URL (https://run402.com)
+- `{{API_URL}}` — run402 API URL (https://api.run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 
 ## Features

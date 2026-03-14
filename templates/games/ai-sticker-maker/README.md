@@ -15,7 +15,7 @@ Generate AI sticker images from text prompts. Public gallery with likes.
 ## Customization Points
 
 - `{{APP_NAME}}` — App title
-- `{{API_URL}}` — run402 API URL (https://run402.com)
+- `{{API_URL}}` — run402 API URL (https://api.run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 
 ## Features

@@ -15,7 +15,7 @@ Anonymous gift exchange — organizer creates a group, members join, server-side
 ## Customization Points
 
 - `{{APP_NAME}}` — App title
-- `{{API_URL}}` — run402 API URL (https://run402.com)
+- `{{API_URL}}` — run402 API URL (https://api.run402.com)
 - `{{ANON_KEY}}` — Project anon_key from project creation
 - `{{SERVICE_KEY}}` — Project service_key (needed for draw-names function only)
 
@@ -43,7 +43,7 @@ See `schema.sql` for full schema (groups + members tables).
 ## Lambda Function
 
 The `draw-names.js` function must be deployed to the project:
-1. Deploy via `POST /admin/v1/projects/:id/functions`
+1. Deploy via `POST /projects/v1/admin/:id/functions`
 2. Function receives `{ group_id, service_key }`
 3. Generates circular shuffle (A→B→C→A, no self-assignments)
 4. Writes `assigned_to` for each member using service_key

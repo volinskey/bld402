@@ -32,7 +32,7 @@ async function signup(email, password) {
 // === Login ===
 
 async function login(email, password) {
-  const data = await api('/auth/v1/token?grant_type=password', {
+  const data = await api('/auth/v1/token', {
     method: 'POST',
     body: JSON.stringify({ email, password })
   });

@@ -1,7 +1,7 @@
 # bld402-mcp — Validate & Launch Plan
 
 **Repo:** https://github.com/kychee-com/bld402-mcp
-**Status:** Built (14 MCP tools), not yet published to npm
+**Status:** Built (15 MCP tools), not yet published to npm
 **Goal:** Validate the MCP server works end-to-end, then update bld402.com to guide users to it.
 
 ---
@@ -143,6 +143,9 @@ Test with real AI agents to verify the MCP server works in practice.
 | 67 | Call `bld402_set_secret` without a project | Clear error: "Run bld402_create_project first" | |
 | 68 | Call `bld402_invoke_function` without a project | Clear error: "Run bld402_create_project first" | |
 | 69 | Call `bld402_get_function_logs` for a function that doesn't exist | Returns error or "no logs found" | |
+| 70 | Call `bld402_generate_image` with prompt "a blue cat" | Returns image data, costs $0.03 | |
+| 71 | Call `bld402_generate_image` with aspect "landscape" | Returns landscape image | |
+| 72 | Call `bld402_generate_image` without wallet | Clear error: "Run bld402_setup first" | |
 
 ### A9: Template with Functions (paste-locker end-to-end)
 
@@ -150,14 +153,14 @@ Test with real AI agents to verify the MCP server works in practice.
 
 | # | Test | Expected | Pass? |
 |---|------|----------|-------|
-| 70 | Create project `"test-paste-locker"` | Project created | |
-| 71 | Get template `"paste-locker"` | Returns schema.sql, rls.json, index.html, + functions (create-note, read-note) | |
-| 72 | Run schema.sql | Tables created | |
-| 73 | Setup RLS from template rls.json | RLS applied | |
-| 74 | Deploy function `create-note` with template code | Function deployed, URL returned | |
-| 75 | Deploy function `read-note` with template code | Function deployed, URL returned | |
-| 76 | Deploy site with index.html (anon_key injected) | Live URL returned | |
-| 77 | Open app, create a paste, read it back with password | Full flow works | |
+| 73 | Create project `"test-paste-locker"` | Project created | |
+| 74 | Get template `"paste-locker"` | Returns schema.sql, rls.json, index.html, + functions (create-note, read-note) + deploy guidance | |
+| 75 | Run schema.sql | Tables created | |
+| 76 | Setup RLS from template rls.json | RLS applied | |
+| 77 | Deploy function `create-note` with template code | Function deployed, URL returned | |
+| 78 | Deploy function `read-note` with template code | Function deployed, URL returned | |
+| 79 | Deploy site with index.html (anon_key injected) | Live URL returned | |
+| 80 | Open app, create a paste, read it back with password | Full flow works | |
 
 ### A10: All 13 Templates Deploy
 
@@ -165,24 +168,28 @@ Verify every single template can be deployed end-to-end.
 
 | # | Template | Deploys? | App works? | Extra tools needed | Notes |
 |---|----------|----------|------------|--------------------|-------|
-| 78 | shared-todo | | | none | |
-| 79 | landing-waitlist | | | none | |
-| 80 | voting-booth | | | none | |
-| 81 | paste-locker | | | deploy_function x2 | create-note, read-note functions |
-| 82 | micro-blog | | | none | has auth |
-| 83 | photo-wall | | | none | has auth + frontend file upload |
-| 84 | secret-santa | | | deploy_function, set_secret | draw-names function + possible secrets |
-| 85 | flash-cards | | | none | has auth |
-| 86 | hangman | | | none | |
-| 87 | trivia-night | | | none | |
-| 88 | ai-sticker-maker | | | none | image generation is frontend-side x402 |
-| 89 | bingo-card-generator | | | none | |
-| 90 | memory-match | | | none | |
+| 81 | shared-todo | | | none | |
+| 82 | landing-waitlist | | | none | |
+| 83 | voting-booth | | | none | |
+| 84 | paste-locker | | | deploy_function x2 | create-note, read-note functions |
+| 85 | micro-blog | | | none | has auth |
+| 86 | photo-wall | | | upload_file (optional) | has auth + frontend file upload |
+| 87 | secret-santa | | | deploy_function, set_secret | draw-names function + possible secrets |
+| 88 | flash-cards | | | none | has auth |
+| 89 | hangman | | | none | |
+| 90 | trivia-night | | | none | |
+| 91 | ai-sticker-maker | | | generate_image | uses $0.03/image generation |
+| 92 | bingo-card-generator | | | none | |
+| 93 | memory-match | | | generate_image (optional) | AI art for card faces |
 
-**Notes:**
-- Templates with serverless functions (paste-locker, secret-santa) need the agent to call `bld402_deploy_function` for each function file and `bld402_set_secret` for any required API keys.
-- Photo-wall uses file uploads — frontend handles these via the storage API, but the agent can use `bld402_upload_file` to seed test data.
-- AI-sticker-maker uses image generation which costs $0.03/image via x402 (not handled by bld402-mcp — the frontend calls the API directly).
+### A11: Session Persistence
+
+| # | Test | Expected | Pass? |
+|---|------|----------|-------|
+| 94 | Complete A3 (full build), then kill and restart the MCP server | — | |
+| 95 | Call `bld402_status` after restart | Shows same wallet, tier, project, deployment URL as before restart | |
+| 96 | Call `bld402_deploy` with updated files after restart | Redeploy works, subdomain reassigned | |
+| 97 | Check `~/.config/run402/bld402-session.json` exists | File contains all session fields | |
 
 ---
 
@@ -277,10 +284,12 @@ After D is live:
 
 ---
 
-## Known Gaps to Address
+## Resolved Gaps
 
-1. **Session state is in-memory only** — If the MCP server restarts mid-build, state is lost. Consider persisting session to `~/.config/run402/bld402-session.json`.
+All previously identified gaps have been addressed:
 
-2. **Template function files not auto-deployed** — `bld402_get_template` returns function code, but the agent needs to know to call `bld402_deploy_function` for each one. Add guidance in the tool response when functions are present.
+1. **Session persistence** — Session state now persists to `~/.config/run402/bld402-session.json`. MCP server restarts resume where they left off. (Tested in A11)
 
-3. **AI image generation ($0.03/image) is frontend-side x402** — The bld402-mcp server doesn't proxy image generation. The frontend calls the run402 API directly with the user's wallet. This works but the agent can't test it.
+2. **Template function guidance** — `bld402_get_template` now includes explicit deploy-order instructions when a template has serverless functions, telling the agent exactly which functions to deploy and in what order. (Tested in A9)
+
+3. **Image generation** — `bld402_generate_image` tool handles x402 payment ($0.03/image) automatically from the wallet, same as tier subscription. (Tested in A8 #70-72, A10 #91)

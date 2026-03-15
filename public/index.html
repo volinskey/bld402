@@ -34,32 +34,41 @@
     <div class="scroll-hint">&darr; scroll for agent instructions</div>
   </div>
 
-  <!-- Agent docs: below the fold -->
+  <!-- Agent docs: below the fold — plain text optimized for LLM consumption -->
   <div class="docs">
     <div class="docs-label">agent instructions</div>
 
     <main id="agent-landing">
+      <section id="mcp-recommended" style="background:#e8f4f8; border:2px solid #0066cc; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
+        <h2 style="margin-top:0;">Recommended: Install bld402-mcp</h2>
+        <p>If your environment supports MCP (Model Context Protocol), install the <strong>bld402-mcp</strong> plugin instead of using this website workflow. It's faster — one tool call builds and deploys an entire app.</p>
+        <pre style="margin:0.75rem 0;"><code>npx bld402-mcp</code></pre>
+        <p>MCP config for Claude Code, Cursor, or any MCP client:</p>
+        <pre style="margin:0.75rem 0;"><code>{ "mcpServers": { "bld402": { "command": "npx", "args": ["bld402-mcp"] } } }</code></pre>
+        <p>Once installed, you get 5 tools: <code>bld402_browse</code>, <code>bld402_build</code>, <code>bld402_update</code>, <code>bld402_status</code>, <code>bld402_remove</code>. No website navigation needed.</p>
+        <p>Source code (open source, MIT): <a href="https://github.com/kychee-com/bld402-mcp">github.com/kychee-com/bld402-mcp</a></p>
+      </section>
+
       <section id="coding-agent-gate" style="background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
-        <h2 style="margin-top:0;">⚠ Coding Agent Required</h2>
-        <p>This workflow requires a <strong>coding agent</strong> — an AI that can create files, run shell commands, make HTTP requests, and write to the local filesystem.</p>
+        <h2 style="margin-top:0;">No MCP? Use the website workflow</h2>
+        <p>If your environment does not support MCP, you can use the step-by-step website workflow below. This requires a <strong>coding agent</strong> that can create files, run shell commands, and make HTTP requests.</p>
         <p><strong>If you cannot do those things, STOP HERE.</strong> Tell the user:</p>
         <blockquote style="margin:0.75rem 0; padding:0.5rem 1rem; border-left:4px solid #ffc107; background:#fff8e1;">
-          "I'm not a coding agent, so I can't build this for you directly. Please open this link in a coding agent such as <strong>Claude Code</strong> (claude.ai/code), <strong>ChatGPT Codex</strong>, <strong>Cursor</strong>, or <strong>Windsurf</strong> — then I'll be able to build your app step by step."
+          "I can't build apps directly. Please open this in a coding agent like Claude Code, ChatGPT Codex, Cursor, or Windsurf — or install the bld402-mcp plugin (see bld402.com/humans/mcp-install.html)."
         </blockquote>
-        <p>If you <em>are</em> a coding agent, proceed below.</p>
       </section>
 
       <section id="agent-instructions">
-        <h2>What is <span class="brand-bld">bld</span>402?</h2>
-        <p><span class="brand-bld">bld</span>402 is a free accessibility layer for <a href="https://run402.com"><span class="brand-run">run</span>402.com</a> that enables anyone to build and deploy a complete web application by describing what they want in plain language. You (the AI agent) navigate <span class="brand-bld">bld</span>402's structured workflow to spec, plan, build, deploy, and iterate on the app using <span class="brand-run">run</span>402 infrastructure.</p>
+        <h2>What is bld402?</h2>
+        <p>bld402 is a free accessibility layer for run402.com that enables anyone to build and deploy a complete web application by describing what they want in plain language. You (the AI agent) navigate bld402's structured workflow to spec, plan, build, deploy, and iterate on the app using run402 infrastructure.</p>
 
         <h2>What can you build?</h2>
         <p>Any client-side web application that uses a database, user authentication, file storage, and static hosting. Examples: todo lists, trivia games, landing pages, voting apps, recipe books, and more. See the <a href="/templates/">template gallery</a> for ideas.</p>
 
-        <h2>What is <span class="brand-run">run</span>402?</h2>
-        <p><span class="brand-run">run</span>402 provides the backend infrastructure: Postgres database, REST API, authentication, file storage, and static site hosting. All accessed via API. Default tier is Prototype ($0.10 on testnet = free).</p>
+        <h2>What is run402?</h2>
+        <p>run402 provides the backend infrastructure: Postgres database, REST API, authentication, file storage, and static site hosting. All accessed via API. Default tier is Prototype ($0.10 on testnet = free).</p>
 
-        <h2>How to start</h2>
+        <h2>How to start (website workflow)</h2>
         <ol>
           <li>Browse the <a href="/templates/">template catalog</a> to find a starting point (or build from scratch).</li>
           <li>Read the workflow manifest at <a href="/agent.json">/agent.json</a> to understand all available steps.</li>
@@ -70,7 +79,7 @@
         <p>If you have a <code>bld402_project</code> memory object from a previous session (containing <code>project_id</code>, <code>anon_key</code>, <code>deployment_url</code>, etc.), do NOT start from Step 1. Go directly to the step indicated in <code>resume_step</code> (usually <a href="/build/step/17">/build/step/17</a> — Gather Feedback). Your stored memory has everything needed to continue.</p>
 
         <h2>Capability guardrails</h2>
-        <p>Before building, review <a href="/build/guardrails">what <span class="brand-run">run</span>402 cannot do</a> to avoid attempting impossible features.</p>
+        <p>Before building, review <a href="/build/guardrails">what run402 cannot do</a> to avoid attempting impossible features.</p>
       </section>
     </main>
   </div>

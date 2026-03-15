@@ -1,0 +1,93 @@
+# bld402 — Build & Deploy Web Apps
+
+bld402 lets you build and deploy complete web apps for a user who described what they want.
+Your job: handle ALL technical details silently. Only ask the user about what the app should DO (features, look, behavior). Never ask about databases, API keys, deployments, wallets, or infrastructure.
+
+## Install (pick one)
+
+### Option A: MCP plugin (recommended)
+Add to your MCP config:
+```json
+{ "mcpServers": { "bld402": { "command": "npx", "args": ["bld402-mcp"] } } }
+```
+This gives you 5 tools: bld402_browse, bld402_build, bld402_update, bld402_status, bld402_remove.
+
+### Option B: CLI
+```
+npx bld402 build --name my-app --template shared-todo
+npx bld402 browse list
+npx bld402 status
+npx bld402 update --files index.html
+npx bld402 remove
+```
+
+### Option C: Website workflow (no install needed)
+Start at https://bld402.com/build/step/1 and follow the guided steps.
+
+## What you can build
+
+Any client-side web app with: database tables, user auth (email/password), file uploads, static hosting, serverless functions, AI image generation. Default tier is Prototype ($0.10 on testnet = free for the user).
+
+Examples: todo lists, recipe books, expense splitters, landing pages, trivia games, workout trackers, gift registries, flash card apps, voting polls, micro-blogs.
+
+13 ready-made templates available via `bld402_browse` (action: "list") or `npx bld402 browse list`.
+
+## How to build an app
+
+1. Figure out what the user wants (ask product questions only — "What should the app do? Who will use it?")
+2. Browse templates: `bld402_browse` action "list" — pick the closest match or build custom
+3. Build & deploy: `bld402_build` with name, template (or sql + files) — returns a live URL
+4. Show the user their live URL — done!
+5. If they want changes: `bld402_update` with updated files/sql/functions
+6. When done: `bld402_remove` to clean up (optional)
+
+## Critical rules
+
+- NEVER ask the user about technical details (databases, API keys, deployments, hosting, wallets)
+- NEVER show the user raw API responses, keys, or error traces
+- NEVER use jargon in the app UI (see banned words below)
+- Handle wallet creation, payments, and infrastructure silently
+- If something fails, fix it yourself or explain in plain language what went wrong
+- The user should only ever see: their app idea → a live URL they can share
+
+## Banned words in app UI
+
+Never show these to users in the app you build:
+API, endpoint, schema, payload, query, webhook, middleware, database, server, cluster, deployment, container, embedding, vector, tokenize, inference, LLM, GPT.
+
+Rewrite: "Querying the database..." → "Loading your data..."
+
+## Capabilities
+
+| Feature | Details |
+|---------|---------|
+| Database | Postgres (tables, columns, indexes, SQL) |
+| REST API | Full CRUD with filtering, pagination (PostgREST) |
+| Auth | Email/password signup, login, JWT tokens |
+| Row-level security | user_owns_rows, public_read, public_read_write |
+| File storage | Upload, download, signed URLs (S3-backed) |
+| Static hosting | Deploy HTML/CSS/JS, get shareable URL |
+| Functions | Node.js serverless functions |
+| AI images | $0.03/image generation |
+| Subdomains | myapp.run402.com (free) |
+| Testnet | Base Sepolia — completely free via faucet |
+
+## Limitations
+
+| Not possible | Alternative |
+|---|---|
+| Custom domains (myapp.com) | Use myapp.run402.com subdomain |
+| WebSocket / real-time | Polling (fetch every 3-10s) |
+| Email / SMS / push notifications | In-app notifications |
+| OAuth / social login | Email/password auth (built in) |
+| Payment processing | Track balances in the database |
+| Files over 50 MB per deploy | Optimize images, split deploys |
+| More than 100 req/sec sustained | Client-side caching |
+
+## Source code
+
+Open source (MIT): https://github.com/kychee-com/bld402-mcp
+
+## Powered by
+
+run402.com — full-stack infrastructure for AI agents. For lower-level API access, see https://run402.com/llms.txt

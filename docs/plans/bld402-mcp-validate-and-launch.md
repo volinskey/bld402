@@ -23,37 +23,13 @@ Add MCP pages to the bld402.com website per the original plan spec.
 Website root: `c:\Workspace-Kychee\bld402\public\`
 Follow existing page patterns (GA4 tag, style.css, nav, Inter/JetBrains fonts).
 
-- [ ] 1.1: Create `/humans/mcp.html` — "What is MCP?" explainer page
-  - Simple explainer: "MCP lets your AI assistant use tools. bld402-mcp gives it the tools to build and deploy web apps for you."
-  - Diagram: You → AI Agent → bld402-mcp → run402 → Live App
-  - Link to install guide
-
-- [ ] 1.2: Create `/humans/mcp-install.html` — Install guide
-  - Step-by-step for Claude Code, Cursor, Codex
-  - JSON config snippet for each
-  - "Ask your agent to build something"
-  - CLI install alternative: `npm i -g bld402-mcp && bld402 build --template shared-todo --name my-app`
-
-- [ ] 1.3: Create `/humans/mcp-faq.html` — MCP FAQ
-  - Q&A content: what it does, cost, safety, what it builds, which assistants, install, 7-day lifecycle, sharing
-  - Match existing FAQ page style
-
-- [ ] 1.4: Create `/humans/mcp-safety.html` — Safety page
-  - What bld402-mcp can/cannot do
-  - Cost limits (testnet, prototype $0.10)
-  - Data handling (no local file access, sandboxed to run402)
-
-- [ ] 1.5: Update homepage (`/humans/index.html`) with MCP section
-  - "Install bld402-mcp and let your AI build for you"
-  - One-liner: `npx bld402-mcp`
-  - Link to /humans/mcp.html
-
-- [ ] 1.6: Add MCP link to site navigation
-  - Add "MCP" link to nav in all humans/ pages
-  - Link to /humans/mcp.html
-
-- [ ] 1.7: Deploy website updates
-  - Commit and push bld402 repo
+- [x] 1.1: Create `/humans/mcp.html` — "What is MCP?" explainer page
+- [x] 1.2: Create `/humans/mcp-install.html` — Install guide
+- [x] 1.3: Create `/humans/mcp-faq.html` — MCP FAQ
+- [x] 1.4: Create `/humans/mcp-safety.html` — Safety page
+- [x] 1.5: Update homepage (`/humans/index.html`) with MCP section
+- [x] 1.6: Add MCP link to site navigation
+- [~] 1.7: Deploy website updates
 
 ---
 

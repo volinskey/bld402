@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) — GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0QPPMMMWP1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0QPPMMMWP1');
+    (function(){var p=new URLSearchParams(location.search),k=['gclid','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];for(var i=0;i<k.length;i++){var v=p.get(k[i]);if(v)try{localStorage.setItem('x402_'+k[i],v)}catch(e){}}if(p.get('gclid'))try{localStorage.setItem('x402_gclid_ts',''+Date.now())}catch(e){}})();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>Install bld402-mcp — bld402</title>
+  <meta name="description" content="Step-by-step install guide for bld402-mcp. Works with Claude Code, Cursor, and any MCP-compatible assistant.">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <p class="top-banner"><a href="/">&larr; Back to <span class="brand-bld">bld</span>402.com</a></p>
+  <header class="site-header">
+    <a href="/humans/" class="logo"><span class="accent">bld</span>402</a>
+    <nav class="human-nav" aria-label="Main navigation">
+      <a href="/humans/about.html">About</a>
+      <a href="/humans/how-it-works.html">How It Works</a>
+      <a href="/humans/showcase.html">Showcase</a>
+      <a href="/humans/templates.html">Templates</a>
+      <a href="/humans/mcp.html">MCP</a>
+      <a href="/humans/faq.html">FAQ</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page">
+    <h1>Install <span class="brand-bld">bld</span>402-mcp</h1>
+    <p class="muted small">One config change. Then ask your AI assistant to build something.</p>
+
+    <h2>Claude Code</h2>
+
+    <p>Add this to your Claude Code MCP config (<code>~/.claude/claude_desktop_config.json</code> or project <code>.mcp.json</code>):</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "bld402": {
+      "command": "npx",
+      "args": ["bld402-mcp"]
+    }
+  }
+}</code></pre>
+
+    <p>Then ask Claude: <em>"What templates does bld402 have?"</em> or <em>"Build me a shared todo app."</em></p>
+
+    <h2>Cursor</h2>
+
+    <p>Open Cursor Settings &rarr; MCP Servers &rarr; Add new server:</p>
+
+    <pre><code>{
+  "mcpServers": {
+    "bld402": {
+      "command": "npx",
+      "args": ["bld402-mcp"]
+    }
+  }
+}</code></pre>
+
+    <p>Then ask Cursor: <em>"Build me a hangman game with bld402."</em></p>
+
+    <h2>Other MCP-compatible tools</h2>
+
+    <p>Any tool that supports Model Context Protocol can use <span class="brand-bld">bld</span>402-mcp. The config is the same — point to <code>npx bld402-mcp</code> as the command.</p>
+
+    <h2>Command-line (no AI assistant)</h2>
+
+    <p>You can also use the <code>bld402</code> CLI directly:</p>
+
+    <pre><code># Install globally
+npm install -g bld402-mcp
+
+# Browse templates
+bld402 browse list
+
+# Build an app
+bld402 build --name my-app --template shared-todo
+
+# Check status
+bld402 status
+
+# Remove when done
+bld402 remove</code></pre>
+
+    <h2>What happens next?</h2>
+
+    <ol>
+      <li>Your assistant discovers 5 tools: browse, build, update, status, remove</li>
+      <li>Ask it to build something — it picks a template or builds from scratch</li>
+      <li>It handles everything: wallet, payments, database, security, hosting</li>
+      <li>You get a live URL like <code>my-app.run402.com</code></li>
+      <li>Ask for changes anytime — updates are free</li>
+    </ol>
+
+    <h2>Requirements</h2>
+
+    <ul>
+      <li><strong>Node.js 18+</strong> — needed to run the MCP server</li>
+      <li><strong>Internet connection</strong> — to reach the <a href="https://run402.com">run402</a> API</li>
+      <li>No sign-up, no API keys, no credit card needed</li>
+    </ul>
+
+    <div class="cta-group">
+      <a href="/humans/mcp.html" class="btn-secondary">&larr; What is MCP?</a>
+      <a href="/humans/mcp-faq.html" class="btn-secondary">FAQ &rarr;</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <a href="/humans/legal.html">Legal</a> &middot;
+    <a href="/humans/terms.html">Terms</a> &middot;
+    <a href="/humans/privacy.html">Privacy</a> &middot;
+    <a href="/humans/mcp-safety.html">Safety</a>
+    <br><br>
+    &copy; 2025-2026 Kychee Technologies. <span class="brand-bld">bld</span>402 is powered by <a href="https://run402.com"><span class="brand-run">run</span>402</a>.
+  </footer>
+</body>
+</html>

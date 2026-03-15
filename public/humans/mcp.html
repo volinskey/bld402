@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) — GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0QPPMMMWP1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0QPPMMMWP1');
+    (function(){var p=new URLSearchParams(location.search),k=['gclid','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];for(var i=0;i<k.length;i++){var v=p.get(k[i]);if(v)try{localStorage.setItem('x402_'+k[i],v)}catch(e){}}if(p.get('gclid'))try{localStorage.setItem('x402_gclid_ts',''+Date.now())}catch(e){}})();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>What is MCP? — bld402</title>
+  <meta name="description" content="MCP lets your AI assistant use tools. bld402-mcp gives it the tools to build and deploy web apps for you.">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <p class="top-banner"><a href="/">&larr; Back to <span class="brand-bld">bld</span>402.com</a></p>
+  <header class="site-header">
+    <a href="/humans/" class="logo"><span class="accent">bld</span>402</a>
+    <nav class="human-nav" aria-label="Main navigation">
+      <a href="/humans/about.html">About</a>
+      <a href="/humans/how-it-works.html">How It Works</a>
+      <a href="/humans/showcase.html">Showcase</a>
+      <a href="/humans/templates.html">Templates</a>
+      <a href="/humans/mcp.html">MCP</a>
+      <a href="/humans/faq.html">FAQ</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page">
+    <h1>What is MCP?</h1>
+    <p class="muted small">Give your AI assistant the power to build and deploy web apps.</p>
+
+    <p><strong>MCP</strong> (Model Context Protocol) is a standard that lets AI assistants use tools. Think of it as giving your assistant hands — instead of just talking about code, it can actually build and deploy things.</p>
+
+    <p><strong><span class="brand-bld">bld</span>402-mcp</strong> is a set of tools that plug into any MCP-compatible assistant. Once installed, your assistant can build complete web apps, deploy them to a live URL, and iterate on them — all from a single conversation.</p>
+
+    <h2>How it works</h2>
+
+    <div style="margin: 2rem 0;">
+      <div class="card" style="margin-bottom: 16px;">
+        <h3>You describe what you want</h3>
+        <p>"Build me a trivia game where friends can join with a code."</p>
+      </div>
+      <div style="text-align: center; font-size: 24px; color: #9CA3AF; margin: 8px 0;">&darr;</div>
+      <div class="card" style="margin-bottom: 16px;">
+        <h3>Your AI assistant uses <span class="brand-bld">bld</span>402-mcp</h3>
+        <p>It picks a template (or builds from scratch), sets up the database, configures security, and deploys the site.</p>
+      </div>
+      <div style="text-align: center; font-size: 24px; color: #9CA3AF; margin: 8px 0;">&darr;</div>
+      <div class="card" style="margin-bottom: 16px;">
+        <h3><span class="brand-bld">bld</span>402-mcp talks to <span class="brand-run">run</span>402</h3>
+        <p>All the infrastructure — database, hosting, security, payments — is handled by <a href="https://run402.com">run402.com</a>.</p>
+      </div>
+      <div style="text-align: center; font-size: 24px; color: #9CA3AF; margin: 8px 0;">&darr;</div>
+      <div class="card">
+        <h3>You get a live app</h3>
+        <p>A shareable link like <code>trivia.run402.com</code> that works on any device. Built in minutes.</p>
+      </div>
+    </div>
+
+    <h2>What tools does it include?</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tool</th>
+          <th>What it does</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>bld402_browse</code></td>
+          <td>Browse 13 ready-made templates, get source code, or read the build guide</td>
+        </tr>
+        <tr>
+          <td><code>bld402_build</code></td>
+          <td>Build and deploy a complete web app in one call — returns a live URL</td>
+        </tr>
+        <tr>
+          <td><code>bld402_update</code></td>
+          <td>Update a deployed app: change the UI, add database columns, update functions</td>
+        </tr>
+        <tr>
+          <td><code>bld402_status</code></td>
+          <td>Check what's deployed: project, database tables, live URL</td>
+        </tr>
+        <tr>
+          <td><code>bld402_remove</code></td>
+          <td>Delete the app and clean up when you're done</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h2>Which AI assistants support it?</h2>
+    <ul>
+      <li><strong>Claude Code</strong> — full support</li>
+      <li><strong>Cursor</strong> — full support</li>
+      <li><strong>ChatGPT Codex</strong> — MCP support varies</li>
+      <li>Any tool that supports <strong>Model Context Protocol</strong></li>
+    </ul>
+
+    <p>You can also use the <code>bld402</code> command-line tool directly, without an AI assistant.</p>
+
+    <div class="cta-group">
+      <a href="/humans/mcp-install.html" class="btn-primary">Install Guide</a>
+      <a href="/humans/mcp-faq.html" class="btn-secondary">MCP FAQ</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <a href="/humans/legal.html">Legal</a> &middot;
+    <a href="/humans/terms.html">Terms</a> &middot;
+    <a href="/humans/privacy.html">Privacy</a> &middot;
+    <a href="/humans/mcp-safety.html">Safety</a>
+    <br><br>
+    &copy; 2025-2026 Kychee Technologies. <span class="brand-bld">bld</span>402 is powered by <a href="https://run402.com"><span class="brand-run">run</span>402</a>.
+  </footer>
+</body>
+</html>

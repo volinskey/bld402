@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Google tag (gtag.js) — GA4 -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-0QPPMMMWP1"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-0QPPMMMWP1');
+    (function(){var p=new URLSearchParams(location.search),k=['gclid','utm_source','utm_medium','utm_campaign','utm_term','utm_content'];for(var i=0;i<k.length;i++){var v=p.get(k[i]);if(v)try{localStorage.setItem('x402_'+k[i],v)}catch(e){}}if(p.get('gclid'))try{localStorage.setItem('x402_gclid_ts',''+Date.now())}catch(e){}})();
+  </script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <title>MCP Safety — bld402</title>
+  <meta name="description" content="What bld402-mcp can and cannot do. Cost limits, testnet explanation, and data handling.">
+  <link rel="stylesheet" href="/src/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+</head>
+<body>
+  <a href="#main" class="skip-link">Skip to content</a>
+  <p class="top-banner"><a href="/">&larr; Back to <span class="brand-bld">bld</span>402.com</a></p>
+  <header class="site-header">
+    <a href="/humans/" class="logo"><span class="accent">bld</span>402</a>
+    <nav class="human-nav" aria-label="Main navigation">
+      <a href="/humans/about.html">About</a>
+      <a href="/humans/how-it-works.html">How It Works</a>
+      <a href="/humans/showcase.html">Showcase</a>
+      <a href="/humans/templates.html">Templates</a>
+      <a href="/humans/mcp.html">MCP</a>
+      <a href="/humans/faq.html">FAQ</a>
+    </nav>
+  </header>
+
+  <main id="main" class="page">
+    <h1>MCP Safety</h1>
+    <p class="muted small">What <span class="brand-bld">bld</span>402-mcp can and cannot do.</p>
+
+    <h2>What it CAN do</h2>
+    <ul>
+      <li>Create web apps on <a href="https://run402.com">run402</a> servers</li>
+      <li>Set up databases, user accounts, and file storage</li>
+      <li>Deploy serverless functions</li>
+      <li>Deploy static websites with custom subdomains</li>
+      <li>Delete apps you've created</li>
+    </ul>
+
+    <h2>What it CANNOT do</h2>
+    <ul>
+      <li>Access your local files or filesystem</li>
+      <li>Send emails, SMS, or push notifications</li>
+      <li>Access other websites or APIs on your behalf</li>
+      <li>Install software on your computer</li>
+      <li>Read your browser history or cookies</li>
+      <li>Access anything outside of <span class="brand-run">run</span>402 infrastructure</li>
+    </ul>
+
+    <h2>Cost limits</h2>
+
+    <p><span class="brand-bld">bld</span>402-mcp uses <strong>testnet money</strong> (Base Sepolia USDC) by default. This is free — it is not real money. There is no risk of unexpected charges.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Tier</th>
+          <th>Cost</th>
+          <th>Duration</th>
+          <th>What you get</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Prototype</td>
+          <td>$0.10 (testnet)</td>
+          <td>7 days</td>
+          <td>Database, hosting, 5 functions, 250 MB storage</td>
+        </tr>
+        <tr>
+          <td>Hobby</td>
+          <td>$5.00</td>
+          <td>30 days</td>
+          <td>Database, hosting, 25 functions, 1 GB storage</td>
+        </tr>
+        <tr>
+          <td>Team</td>
+          <td>$20.00</td>
+          <td>30 days</td>
+          <td>Database, hosting, 100 functions, 10 GB storage</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>The prototype tier uses testnet USDC from a free faucet. You will never be charged real money unless you explicitly upgrade to Hobby or Team.</p>
+
+    <h2>Data handling</h2>
+
+    <ul>
+      <li><strong>Wallet key</strong> is stored locally at <code>~/.config/run402/wallet.json</code> with restricted file permissions</li>
+      <li><strong>Session data</strong> (project ID, API keys) is stored locally at <code>~/.config/run402/bld402-session.json</code></li>
+      <li><strong>App data</strong> (database contents, uploaded files) lives on <span class="brand-run">run</span>402 servers (AWS, US region)</li>
+      <li><strong>No telemetry</strong> — <span class="brand-bld">bld</span>402-mcp does not send analytics or usage data anywhere</li>
+      <li><strong>No third-party services</strong> — all communication is between your machine and <code>api.run402.com</code></li>
+    </ul>
+
+    <h2>Open source</h2>
+
+    <p><span class="brand-bld">bld</span>402-mcp is open source under the MIT license. You can inspect every line of code on <a href="https://github.com/kychee-com/bld402-mcp">GitHub</a>.</p>
+
+    <div class="cta-group">
+      <a href="/humans/mcp-install.html" class="btn-primary">Install Guide</a>
+      <a href="/humans/mcp-faq.html" class="btn-secondary">FAQ</a>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <a href="/humans/legal.html">Legal</a> &middot;
+    <a href="/humans/terms.html">Terms</a> &middot;
+    <a href="/humans/privacy.html">Privacy</a> &middot;
+    <a href="/humans/mcp-safety.html">Safety</a>
+    <br><br>
+    &copy; 2025-2026 Kychee Technologies. <span class="brand-bld">bld</span>402 is powered by <a href="https://run402.com"><span class="brand-run">run</span>402</a>.
+  </footer>
+</body>
+</html>

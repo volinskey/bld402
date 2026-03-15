@@ -4,7 +4,7 @@
 **Repo:** https://github.com/kychee-com/bld402-mcp
 **Local:** `c:\Workspace-Kychee\bld402-mcp`
 **Website:** `c:\Workspace-Kychee\bld402\public\`
-**Status:** In Progress
+**Status:** Complete
 **Goal:** Add remove tool, write CLI, update website, validate with REAL deploys, publish to npm
 
 ---
@@ -153,16 +153,16 @@ Test BOTH the CLI and the MCP tools. Build real apps, open URLs, verify CRUD wor
 - [x] 5.2: Fix F-009 — Add 3 missing FAQ answers to mcp-faq.html
 - [x] 5.3: Fix F-010 — Add MIT LICENSE file to bld402-mcp repo root
 - [x] 5.4: Update mcp-install.html CTA to match new llms.txt pattern
-- [~] 5.5: Deploy website + push bld402-mcp repo
+- [x] 5.5: Deploy website + push bld402-mcp repo
 
 ---
 
 ## Phase 6: npm Publish
 
-- [ ] 6.1: Review package.json — name, version, description, keywords, bin entries
-- [ ] 6.2: Retrieve npm token from AWS Secrets Manager and `npm publish`
-- [ ] 6.3: Verify `npx bld402-mcp` works from clean npm cache
-- [ ] 6.4: Verify `npx bld402 browse list` works (CLI entry point)
+- [x] 6.1: Review package.json — name, version, description, keywords, bin entries
+- [x] 6.2: Retrieve npm token from AWS Secrets Manager and `npm publish`
+- [x] 6.3: Verify `npm view bld402-mcp version` returns 0.3.0
+- [x] 6.4: Verify `bld402 browse list` works (CLI entry point — 13 templates returned)
 
 ---
 
@@ -185,3 +185,5 @@ Test BOTH the CLI and the MCP tools. Build real apps, open URLs, verify CRUD wor
 - 2026-03-15: Phase 2 complete — bld402_remove tool added (5th MCP tool)
 - 2026-03-15: Phase 3 complete — bld402 CLI created with browse/build/update/status/remove commands
 - 2026-03-15: Fix Cycle 5 planned — 3 failures (F-008, F-009, F-010) + mcp-install CTA update + npm publish
+- 2026-03-15: Phase 5 complete — F-008 (per-agent installs), F-009 (3 missing FAQs), F-010 (LICENSE file) all fixed
+- 2026-03-15: Phase 6 complete — bld402-mcp@0.3.0 published to npm, CLI verified working

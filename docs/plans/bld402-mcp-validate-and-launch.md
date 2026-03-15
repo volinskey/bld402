@@ -166,6 +166,18 @@ Test BOTH the CLI and the MCP tools. Build real apps, open URLs, verify CRUD wor
 
 ---
 
+## Phase 7: Fix Cycle 7 — APP_NAME Injection + README
+
+**Source:** system-test-report (Cycle 6)
+
+- [x] 7.1: Fix F-012 — Add `{{APP_NAME}}` replacement to inject.ts with humanized name (e.g., "test-red-team" -> "Test Red Team"). Pass app name from build.ts and update.ts.
+- [x] 7.2: Fix F-011 — Create README.md with description, install instructions for 5 agents, quick-start example, CLI usage, and link to bld402.com.
+- [x] 7.3: Build TypeScript (`npx tsc`)
+- [x] 7.4: Bump version to 0.3.1, publish to npm
+- [x] 7.5: Commit and push both repos
+
+---
+
 ## Implementation Notes
 
 - **Bundle deploy API:** `POST /deploy/v1` does project + SQL + RLS + functions + secrets + site + subdomain in one call. Used by `bld402_build`.

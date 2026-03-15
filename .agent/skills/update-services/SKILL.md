@@ -1,11 +1,11 @@
 ---
 name: update-services
-description: Sync run402 repo and update the service catalog at docs/run402-services.md with current backend capabilities.
+description: Sync run402 repo, update the service catalog, review the API for drift, update bld402-mcp tool implementations, and fix bld402.com website issues.
 ---
 
-# Update Services — sync and update run402 service catalog
+# Update Services — full run402 sync for bld402
 
-Sync the run402 repo, scan its source code and MCP tools for the full list of services it provides, then update the reference file in bld402 and print a summary.
+Sync the run402 repo, scan for services, update the catalog, then propagate any API changes into the bld402 MCP server and the bld402.com website. This is the single command that keeps everything downstream of run402 in sync.
 
 ## Workflow
 
@@ -113,17 +113,184 @@ Use consistent column alignment. The short name on the left, display name on the
 
 ### 6. Update AGENTS.md (if it exists)
 
-If bld402 has an `AGENTS.md` with a services or reference section, add or update a "run402 Services" table pointing to `docs/run402-services.md`.
+If bld402 has an `AGENTS.md` with a services or reference section, update the "run402 Backend Services" table to match the new catalog. If no `AGENTS.md` exists, skip this step.
 
-If no `AGENTS.md` exists, skip this step.
+---
+
+## API Drift Review (Steps 7–8)
+
+After the service catalog is updated, review the actual run402 API surface against all downstream consumers. The goal is to catch any mismatch before it reaches users.
+
+### 7. Review run402 API against bld402 references
+
+Build a complete endpoint map from run402's route files (Step 2 sources). Then compare this map against every place bld402 documents or calls run402 endpoints:
+
+| Consumer | Location | What to check |
+|----------|----------|---------------|
+| **Service catalog** | `docs/run402-services.md` | Endpoint paths match route files. No stale endpoints listed. |
+| **bld402 SKILL.md** | `.agent/skills/bld402/SKILL.md` → "Quick Reference — API Endpoints" section | Every endpoint in the table exists in run402. Auth methods match. No missing new endpoints. |
+| **bld402 SKILL.md** | `.agent/skills/bld402/SKILL.md` → Guardrails ("What run402 CAN do" / "CANNOT do") | Capabilities list matches actual services (e.g., if run402 added a new service, it should appear in CAN do). |
+| **agent.json** | `public/agent.json` → step instructions and inputs | Any step that references an endpoint path or auth method is current. |
+| **Step pages** | `public/build/step/*.html` | API URLs, endpoint paths, auth headers, and example payloads are correct. |
+| **Guardrails page** | `public/build/guardrails.html` | Capability list matches actual services. |
+| **Human-facing pages** | `public/humans/how-it-works.html`, `public/humans/faq.html`, `public/humans/templates.html` | Service counts, feature descriptions, and pricing are current. |
+| **CRITICAL-REVIEW.md** | `.agent/skills/bld402/CRITICAL-REVIEW.md` | Check if previously flagged issues are now fixed in run402 (e.g., wrong API URL, missing services). Mark resolved items. |
+
+**Known drift patterns to watch for:**
+- `https://run402.com` vs `https://api.run402.com` — all API calls must use `api.run402.com`
+- Endpoint path format changes (e.g., `/admin/v1/projects/:id/sql` vs `/projects/v1/admin/:id/sql`)
+- New auth methods or header name changes
+- New services with no bld402 coverage
+- Removed or deprecated endpoints still referenced
+- Tier pricing or limit changes
+- New MCP tools in run402 not mapped in the catalog
+
+**Output of this step:** A drift report listing every mismatch found, organized by severity:
+
+```
+API Drift Report
+────────────────────────────────────────────────────
+
+CRITICAL (blocks basic flow):
+  - [location]: [issue]
+
+HIGH (breaks specific feature):
+  - [location]: [issue]
+
+LOW (stale docs / cosmetic):
+  - [location]: [issue]
+
+No drift found:
+  - [location]: ✓ all endpoints match
+```
+
+### 8. Fix all drift in bld402 repo
+
+For each issue in the drift report, fix it in place:
+
+| Severity | Action |
+|----------|--------|
+| CRITICAL | Fix immediately. These block the primary build/deploy flow. |
+| HIGH | Fix now. These break specific features or templates. |
+| LOW | Fix now if trivial (< 1 min). Otherwise note for later. |
+
+**Files commonly needing fixes:**
+
+| File | Common fixes |
+|------|-------------|
+| `.agent/skills/bld402/SKILL.md` | API endpoint table, auth model table, guardrails lists |
+| `public/agent.json` | Step instructions, endpoint references in `instruction` fields |
+| `public/build/step/*.html` | API URLs, code examples, endpoint paths |
+| `public/build/guardrails.html` | Capability lists |
+| `public/humans/how-it-works.html` | Feature descriptions, step counts |
+| `public/humans/faq.html` | Pricing, capability claims |
+| `public/humans/templates.html` | Template count, service coverage |
+| `.agent/skills/bld402/CRITICAL-REVIEW.md` | Mark resolved issues, add new ones |
+
+After fixes, re-verify by spot-checking 2–3 fixed locations to confirm correctness.
+
+---
+
+## bld402-mcp Update (Steps 9–11)
+
+### 9. Review bld402-mcp against run402 API
+
+**Repo:** `C:/Workspace-Kychee/bld402-mcp`
+
+Compare the MCP tool implementations against the current run402 API:
+
+| File | What to check |
+|------|---------------|
+| `src/config.ts` | `API_BASE` is `https://api.run402.com` (not `https://run402.com`) |
+| `src/client.ts` | HTTP method, path, headers, and body format for each API call match run402's route handlers |
+| `src/wallet.ts` | Wallet auth header names (`X-Run402-Wallet`, `X-Run402-Signature`, `X-Run402-Timestamp`) match run402's middleware |
+| `src/tools/*.ts` | Each tool's API calls use correct endpoints, auth, and request/response shapes |
+| `src/templates.ts` | Template metadata matches `templates/` directory in bld402 repo |
+| `src/index.ts` | Tool descriptions, parameter schemas, and registered tool names are accurate |
+
+**Cross-reference with the endpoint map from Step 7.** Every API call in bld402-mcp must exist in run402's route files. Every required endpoint in run402 that bld402-mcp should use must have a corresponding call.
+
+**Check for:**
+- Wrong base URL (must be `https://api.run402.com`)
+- Changed endpoint paths or HTTP methods
+- New required headers or removed headers
+- Changed request body fields (added required fields, renamed fields)
+- Changed response body shape (field renames, nested structure changes)
+- New run402 endpoints that bld402-mcp should use but doesn't
+- Deprecated endpoints that bld402-mcp still calls
+- Tier pricing or limits that are hardcoded and now wrong
+
+### 10. Fix bld402-mcp issues
+
+For each mismatch found in Step 9, fix it directly in the bld402-mcp source:
+
+- Update endpoint paths in `src/client.ts` or `src/tools/*.ts`
+- Update auth headers in `src/wallet.ts`
+- Update parameter schemas in tool registration (`src/index.ts`)
+- Update hardcoded values (tier prices, limits, URLs)
+- Update template metadata if templates were added/removed
+
+### 11. Verify bld402-mcp builds
+
+```bash
+cd "C:/Workspace-Kychee/bld402-mcp" && npx tsc --noEmit
+```
+
+If TypeScript compilation fails, fix the errors before proceeding. The MCP must compile cleanly.
+
+If bld402-mcp repo is not found at the expected path, warn the user and skip Steps 9–11. Do not error out — the service catalog and website fixes (Steps 1–8) are still valuable on their own.
+
+---
+
+## Summary & Commit (Step 12)
+
+### 12. Print full summary
+
+Print a combined report covering all three areas:
+
+```
+/update-services — Complete
+────────────────────────────────────────────────────
+
+SERVICE CATALOG (docs/run402-services.md)
+  Added:    [list or "none"]
+  Updated:  [list or "none"]
+  Removed:  [list or "none"]
+  Total:    N services
+
+API DRIFT (bld402 repo)
+  CRITICAL fixes: N
+  HIGH fixes:     N
+  LOW fixes:      N
+  Skipped:        N (noted for later)
+
+MCP UPDATE (bld402-mcp)
+  Endpoint fixes:  N
+  Schema fixes:    N
+  Build status:    ✓ compiles | ✗ errors (details)
+
+WEBSITE (bld402.com)
+  Pages fixed:     N
+  Pages checked:   N (all clean)
+
+Files modified:
+  - docs/run402-services.md
+  - AGENTS.md
+  - [list all other modified files]
+```
+
+---
 
 ## Edge Cases
 
 - **run402 repo not found at expected path:** Error immediately: "run402 repo not found at `C:/Workspace-Kychee/run402`. Cannot update services."
+- **bld402-mcp repo not found:** Warn and skip Steps 9–11. Complete all other steps.
 - **git pull fails:** Warn but continue with local state.
-- **New service found in run402:** Add it to the catalog.
-- **Service removed from run402:** Remove it from the catalog.
-- **`docs/run402-services.md` has manual annotations:** Preserve them. Only update the structured service entries.
+- **New service found in run402:** Add to catalog. Check if bld402 SKILL.md, website, or MCP need updates for the new service.
+- **Service removed from run402:** Remove from catalog. Check if bld402 still references it anywhere and clean up.
+- **`docs/run402-services.md` has manual annotations:** Preserve them. Only update structured entries.
+- **No drift found:** Report "No drift found" — this is a valid and good outcome.
+- **bld402-mcp has uncommitted changes:** Warn the user before modifying. Do not discard their work.
 
 ## Automation Interface
 
@@ -131,7 +298,18 @@ If no `AGENTS.md` exists, skip this step.
 
 **Output:**
 - `docs/run402-services.md` — updated service catalog
-- Terminal summary of all services
+- Drift report (terminal)
+- Fixes applied to bld402 repo files
+- Fixes applied to bld402-mcp repo (if present)
+- Combined terminal summary
 
 **Artifacts updated/created:**
 - `docs/run402-services.md`
+- `AGENTS.md`
+- `.agent/skills/bld402/SKILL.md` (if API drift found)
+- `.agent/skills/bld402/CRITICAL-REVIEW.md` (if issues resolved or new ones found)
+- `public/agent.json` (if step instructions had drift)
+- `public/build/step/*.html` (if endpoint references had drift)
+- `public/build/guardrails.html` (if capabilities changed)
+- `public/humans/*.html` (if feature descriptions or pricing changed)
+- `C:/Workspace-Kychee/bld402-mcp/src/**` (if MCP tool implementations had drift)

@@ -492,3 +492,47 @@ Each template page should show:
 | 3 | FAQ answers are accurate | |
 | 4 | Safety page matches actual behavior | |
 | 5 | A new user with only the website instructions can get a working app | |
+
+---
+
+## Fix Cycle 1 — System Test Failures
+
+**Source:** `docs/plans/bld402-mcp_system_test.md` (Cycle 1, verdict: FAIL)
+**Date:** 2026-03-15
+**Findings:** 5 failures accepted, 0 disputed, 0 needs-info
+
+### F-001: Wrong Tier Subscription Endpoint (P0 Critical)
+
+- [x] In `src/wallet.ts` line 156, change `/tiers/v1/subscribe/${tier}` to `/tiers/v1/${tier}`
+- [x] Verify endpoint path matches run402 API docs (`POST /tiers/v1/:tier`)
+
+### F-002: `bld402_update` Requires `files` — Cannot Run SQL-Only Updates (P1)
+
+- [x] In `src/tools/update.ts`, add `.optional()` to the `files` field in `updateSchema`
+- [x] Update `handleUpdate` function signature to make `files` optional
+- [x] Guard the index.html validation (line 67) — skip if `args.files` is undefined
+- [x] Skip redeploy step (Steps 4-6: injection, redeploy, subdomain reassign) when `files` is undefined
+- [x] Skip smoke test when no files were deployed
+- [x] Adjust return message to reflect what was actually changed
+
+### F-003: Wallet Address Not EIP-55 Checksummed (P1)
+
+- [x] In `src/wallet.ts` `createWallet()`, replace manual address derivation (lines 45-52) with `privateKeyToAccount(privateKey).address`
+- [x] Remove unused imports (`createECDH` from `node:crypto`, `keccak_256` from `@noble/hashes`) if no longer needed elsewhere
+
+### F-004: Injection Placeholder Variant Inconsistency (P3)
+
+- [x] Extract the 4-variant ANON_KEY injection logic from `build.ts` `injectAnonKey()` into a shared utility
+- [x] Update `update.ts` to use the shared injection function instead of its inline 2-variant logic
+- [x] Both build and update paths must handle: `{ANON_KEY}`, `'ANON_KEY_PLACEHOLDER'`, `"ANON_KEY_PLACEHOLDER"`, bare `ANON_KEY_PLACEHOLDER`
+
+### F-005: Session Stores Wrong Subdomain URL for Reserved Names (P2)
+
+- [x] In `src/tools/build.ts` line 361, change the `subdomainUrl` fallback from `https://${args.name}.run402.com` to `result.site_url || undefined`
+- [x] Verify `liveUrl` computation on line 365 still works correctly with this change
+
+### Verification
+
+- [x] Run `npx tsc --noEmit` — zero errors
+- [x] Run `npm run build` — produces dist/
+- [x] Commit all fixes (b02644e)

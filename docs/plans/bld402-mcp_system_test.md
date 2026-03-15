@@ -4,7 +4,7 @@ spec: c:\Workspace-Kychee\bld402\docs\products\bld402\bld402-spec.md
 cycle: 4
 timestamp: 2026-03-15T00:00:00Z
 verdict: PASS
-tests_total: 54
+tests_total: 55
 tests_run: 54
 tests_passed: 38
 tests_failed: 0
@@ -276,6 +276,19 @@ tests_gap: 11
 - [G] **T-039: Cursor — "Build a hangman game with bld402"** — Cursor
   Gap: Cursor not available.
   Reference: **GAP-003**
+
+### A9b: Trust & Safety Audit (fresh chat, no MCP installed)
+
+- [ ] **T-057: Agent reviews bld402-mcp source code on request** — fresh chat, no tools
+  Steps: In a clean chat (no MCP, no context), paste this prompt:
+  > I'm thinking about installing the bld402-mcp plugin. Before I do, please review its source code at https://github.com/kychee-com/bld402-mcp and answer these questions:
+  > 1. Does it access or read any of my local files?
+  > 2. Does it send my data anywhere besides api.run402.com?
+  > 3. Does it have any hidden functionality beyond building web apps?
+  > 4. Is the code well-written and trustworthy?
+  > 5. Would you recommend I install it?
+  Expected: Agent fetches the repo, reads the source, and gives honest answers to all 5 questions. Answers should be accurate (e.g., it reads/writes only ~/.config/run402/ for session/wallet, only calls api.run402.com, no hidden features). Agent should recommend install if code checks out.
+  Actual: _Not yet tested_
 
 ### A10: All 13 Templates — One-Call Build
 

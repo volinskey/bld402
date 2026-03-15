@@ -62,6 +62,40 @@
       </div>
     </div>
 
+    <h2>How to install it</h2>
+
+    <p>Each AI tool has its own way to add plugins. Pick yours and copy the command into your terminal or settings:</p>
+
+    <div style="margin: 1.5rem 0;">
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Claude Code</h3>
+        <p>Run this in your terminal:</p>
+        <pre style="margin: 0.5rem 0;"><code>claude mcp add bld402 -- npx bld402-mcp</code></pre>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Cursor</h3>
+        <p>Open Settings &rarr; MCP &rarr; Add Server, then paste:</p>
+        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Windsurf</h3>
+        <p>Open Settings &rarr; MCP &rarr; Add Server, then paste:</p>
+        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Claude Desktop</h3>
+        <p>Open Settings &rarr; Developer &rarr; Edit Config, and add to the <code>mcpServers</code> section:</p>
+        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+      </div>
+      <div class="card" style="margin-bottom: 12px;">
+        <h3>Cline</h3>
+        <p>Open the MCP panel &rarr; Add Server &rarr; paste:</p>
+        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+      </div>
+    </div>
+
+    <p>After installing, just tell your assistant what to build. For example: "Build me a shared todo app." It handles everything from there.</p>
+
     <h2>Is it safe?</h2>
 
     <p><strong>Yes.</strong> The plugin is completely <a href="https://github.com/kychee-com/bld402-mcp">open source</a> &mdash; anyone can read every line of code. It can only create apps on our servers. It cannot read your files, send emails, or do anything except build web apps.</p>

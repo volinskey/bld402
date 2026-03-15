@@ -39,6 +39,9 @@
     <h1>Plugin FAQ</h1>
     <p class="muted small">Common questions about the <span class="brand-bld">bld</span>402 plugin for your AI assistant.</p>
 
+    <h2>Do I need to know how to code?</h2>
+    <p>No. You describe what you want in everyday language &mdash; "build me a to-do list" or "make a recipe sharing site." Your AI assistant handles all the technical work. You never see code, terminals, or configuration files unless you want to.</p>
+
     <h2>What does the plugin do?</h2>
     <p>It gives your AI assistant the ability to build and deploy real web apps for you. You describe what you want in plain language, and your assistant handles everything &mdash; the database, the website, the hosting, the link you can share.</p>
 
@@ -72,6 +75,12 @@
 
     <h2>Can other people use my app?</h2>
     <p>Yes! You get a shareable link (like <code>myapp.run402.com</code>) that works on any phone or computer. No sign-up needed for your users.</p>
+
+    <h2>What happens to my data?</h2>
+    <p>The plugin stores a small settings file on your computer (in <code>~/.config/run402/</code>) to remember your current project. When you build an app, the data you create (database, uploaded files) is stored on our servers at <code>api.run402.com</code>. We don't send your data anywhere else &mdash; no analytics, no third parties. You can delete everything at any time by asking your assistant to "remove my app."</p>
+
+    <h2>What if something goes wrong?</h2>
+    <p>Your AI assistant handles errors automatically. If a build fails, it will try to fix the issue or explain what happened in plain language. You can always say "check bld402 status" to see the state of your app. If you're stuck, just start over &mdash; building a new app takes seconds and costs nothing on the free tier.</p>
 
     <h2>Is the code open source?</h2>
     <p>Yes. The entire plugin is open source under the MIT license. You can read, modify, and redistribute it freely. The source code is at <a href="https://github.com/kychee-com/bld402-mcp">github.com/kychee-com/bld402-mcp</a>.</p>

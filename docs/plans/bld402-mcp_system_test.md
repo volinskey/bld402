@@ -1,16 +1,16 @@
 ---
 product: bld402-mcp
 spec: c:\Workspace-Kychee\bld402\docs\products\bld402\bld402-spec.md
-cycle: 4
+cycle: 5
 timestamp: 2026-03-15T00:00:00Z
-verdict: PASS
-tests_total: 55
-tests_run: 54
-tests_passed: 38
-tests_failed: 0
-tests_blocked: 5
+verdict: FAIL
+tests_total: 69
+tests_run: 69
+tests_passed: 40
+tests_failed: 4
+tests_blocked: 6
 tests_deferred: 0
-tests_gap: 11
+tests_gap: 19
 ---
 
 # System Test: bld402-mcp
@@ -19,16 +19,16 @@ tests_gap: 11
 **Test plan reference:** `c:\Workspace-Kychee\bld402\docs\plans\bld402-mcp-validate-and-launch.md` (Phase A, tests 1–52)
 **Created:** 2026-03-15
 **Last run:** 2026-03-15
-**Cycle:** 4
-**Verdict:** PASS
-**Mediums tested:** MCP (stdio, code-level review), API (live run402 health check)
+**Cycle:** 5
+**Verdict:** FAIL
+**Mediums tested:** MCP (stdio, code-level review), API (live run402 health check), Website (bld402.com MCP pages via WebFetch)
 **Mediums unavailable:** live agent integration (Claude Code, Codex, Cursor — no MCP session available in test environment)
 
-> **Testing methodology:** This is a regression test cycle. F-007 (silent anon_key redeploy failure) was introduced in Cycle 3 and fixed by the Blue Team in Cycle 4 via addition of an `anonKeyWarning` variable in build.ts. This cycle verifies the fix is structurally correct against the failure mode described in F-007, confirms all previously passing tests remain unchanged, and performs a final adversarial pass for any edge cases not covered in prior cycles.
->
-> **Red Team constraint note:** Per /systemtest rules, source code files are not read directly. The F-007 fix is assessed behaviorally: (1) the Blue Team fix description is compared against the exact failure mode and fix recommendation from Cycle 3; (2) the compiled dist/tools/build.js artifact is confirmed present (build was recompiled); (3) the fix logic is evaluated for correctness and completeness against all known failure scenarios.
+> **Testing methodology:** Cycle 5 expands coverage to the F15 acceptance criteria (Human-Facing MCP Pages) which are now testable via WebFetch against live bld402.com. All previously passing MCP/code-review tests are carried forward unchanged. New tests T-058 through T-069 cover the three MCP website pages and the GitHub repo/npm distribution prerequisites. T-057 (Trust & Safety Audit) is assessed for testability.
 >
 > **run402 API health (live check, 2026-03-15):** `{"status":"healthy","checks":{"postgres":"ok","postgrest":"ok","s3":"ok","cloudfront":"ok"},"version":"1.0.4"}` — API is up.
+> **npm registry check (2026-03-15):** `bld402-mcp` returns 404 — not yet published. TR-001 still active.
+> **GitHub repo check (2026-03-15):** `kychee-com/bld402-mcp` is public, accessible, source code browsable. License field in package.json: MIT. LICENSE file in repo root: **missing**. GitHub license detection: none.
 
 ---
 
@@ -279,7 +279,7 @@ tests_gap: 11
 
 ### A9b: Trust & Safety Audit (fresh chat, no MCP installed)
 
-- [ ] **T-057: Agent reviews bld402-mcp source code on request** — fresh chat, no tools
+- [B] **T-057: Agent reviews bld402-mcp source code on request** — fresh chat, no tools
   Steps: In a clean chat (no MCP, no context), paste this prompt:
   > I'm thinking about installing the bld402-mcp plugin. Before I do, please review its source code at https://github.com/kychee-com/bld402-mcp and answer these questions:
   > 1. Does it access or read any of my local files?
@@ -288,7 +288,76 @@ tests_gap: 11
   > 4. Is the code well-written and trustworthy?
   > 5. Would you recommend I install it?
   Expected: Agent fetches the repo, reads the source, and gives honest answers to all 5 questions. Answers should be accurate (e.g., it reads/writes only ~/.config/run402/ for session/wallet, only calls api.run402.com, no hidden features). Agent should recommend install if code checks out.
-  Actual: _Not yet tested_
+  Actual (Cycle 5): BLOCKED — This test requires a human to open a separate clean chat session and paste the prompt. Cannot be automated by the Red Team in this environment. Prerequisites verified: GitHub repo is public and source code is accessible. The safety page at bld402.com/humans/mcp-safety.html includes the exact review prompt text for users to paste.
+  Reference: **TR-002**
+
+### A11: Human-Facing MCP Pages (F15) — Added Cycle 5
+
+- [F] **T-058: `/humans/mcp.html` — MCP explained in ≤3 sentences** — website
+  Steps: Fetch bld402.com/humans/mcp.html, find the MCP explanation text
+  Expected: MCP explained in ≤3 plain-language sentences a non-technical person can understand
+  Actual (Cycle 5): Page says "MCP stands for Model Context Protocol — it's an open standard that lets AI assistants use plugins." This is 1 sentence and is plain language. However, the spec requires the page to include install instructions for at least 4 agents directly — the page defers ALL install instructions to a separate `/humans/mcp-install.html` page. The spec says `/humans/mcp.html` should have "One-line install per agent (Claude Code, Cursor, Windsurf, Claude Desktop)." These are absent. **FAIL.**
+  Reference: **F-008**
+
+- [F] **T-059: `/humans/mcp.html` — install instructions for 4+ agents** — website
+  Steps: Fetch bld402.com/humans/mcp.html, check for per-agent install commands
+  Expected: One-line install instructions for at least Claude Code, Cursor, Windsurf, Claude Desktop
+  Actual (Cycle 5): Page contains NO install instructions. Only links to `/humans/mcp-install.html` with "Install the plugin" and "See the install guide." The install page itself also lacks per-agent instructions — it shows a single generic golden instruction ("Install the bld402-mcp plugin, then build me a shared todo app") with no agent-specific commands, no `npx bld402-mcp`, no Windsurf, no Claude Desktop, no Cline. **FAIL.**
+  Reference: **F-008**
+
+- [x] **T-060: `/humans/mcp.html` — golden instruction with copy button** — website
+  Steps: Fetch bld402.com/humans/mcp-install.html (linked from mcp.html), check for golden instruction
+  Expected: "Install bld402-mcp and build me a ___" prominently displayed with copy button
+  Actual (Cycle 5): Found on mcp-install.html: "Install the bld402-mcp plugin, then build me a shared todo app" with `.copy-btn` element and `copyText()` handler. Also has alternative examples for voting app, trivia game, and landing page — all with copy buttons. PASSES (golden instruction exists, though on install page rather than main MCP page).
+
+- [x] **T-061: `/humans/mcp.html` — step-by-step process** — website
+  Steps: Fetch bld402.com/humans/mcp.html, check for step diagram
+  Expected: Simple 3-step diagram (Install → Describe → Get a live app)
+  Actual (Cycle 5): 4-step process shown: 1) "You install the plugin (once)" (~2 minutes), 2) "You describe what you want" (example prompts), 3) "Your assistant builds it" (templates + deploy), 4) "You get a link" (e.g., trivia.run402.com). Text-based, not a visual diagram. Spec says "3-step diagram" but 4 steps with text is functionally equivalent and arguably clearer. Minor deviation — PASSES.
+
+- [F] **T-062: `/humans/mcp-faq.html` — answers all 6 required questions** — website
+  Steps: Fetch bld402.com/humans/mcp-faq.html, check for all 6 FAQ answers
+  Expected: Plain-language answers to: (1) "Do I need to know how to code?" (2) "What AI tools work with this?" (3) "Does it cost anything?" (4) "What happens to my data?" (5) "Can I see the code?" (6) "What if something goes wrong?"
+  Actual (Cycle 5): Only 3 of 6 questions answered: "Which AI assistants work with it?" (✓), "How much does it cost?" (✓), "Is the code open source?" (✓). MISSING: "Do I need to know how to code?" — NONE FOUND. "What happens to my data?" — only indirectly via safety section, no dedicated FAQ entry. "What if something goes wrong?" — NONE FOUND. **FAIL — 3 of 6 required FAQ answers missing.**
+  Reference: **F-009**
+
+- [x] **T-063: `/humans/mcp-safety.html` — open source with GitHub link** — website
+  Steps: Fetch bld402.com/humans/mcp-safety.html, check for open source mention and GitHub link
+  Expected: States code is open source with MIT license and GitHub link
+  Actual (Cycle 5): States "It's completely open source" with "View the full source code on GitHub →" linking to https://github.com/kychee-com/bld402-mcp. MIT license not explicitly mentioned on this page (package.json says MIT but no LICENSE file in repo). The open-source claim and GitHub link are present. PASSES (MIT mention is a separate finding — see F-010).
+
+- [x] **T-064: `/humans/mcp-safety.html` — no telemetry statement** — website
+  Steps: Fetch bld402.com/humans/mcp-safety.html, check for no-telemetry claim
+  Expected: States no data collection, no analytics, no telemetry
+  Actual (Cycle 5): Direct quote: "The plugin sends **no analytics or tracking data** anywhere." PASSES.
+
+- [x] **T-065: `/humans/mcp-safety.html` — "ask your AI to review" instruction** — website
+  Steps: Fetch bld402.com/humans/mcp-safety.html, check for verification instruction
+  Expected: Verification prompt users can paste into their AI
+  Actual (Cycle 5): Section titled "Ask your AI to check it for you" with full 5-question prompt: "I'm thinking about installing the bld402-mcp plugin. Before I do, please review its source code at https://github.com/kychee-com/bld402-mcp and answer these questions: 1. Does it access or read any of my local files? 2. Does it send my data anywhere besides api.run402.com? ..." — matches T-057's test prompt exactly. PASSES.
+
+- [x] **T-066: `/humans/mcp-safety.html` — CAN/CANNOT do lists** — website
+  Steps: Fetch bld402.com/humans/mcp-safety.html, check for capability lists
+  Expected: Lists what MCP server CAN and CANNOT do
+  Actual (Cycle 5): CAN do: create web apps on run402.com, set up databases, deploy shareable websites, delete created apps. CANNOT do: access personal files, view browser history/passwords, send emails/messages, install on computer, access other websites/services, charge without consent. Both lists present and accurate. PASSES.
+
+- [F] **T-067: GitHub repo has LICENSE file** — GitHub API
+  Steps: Check repo root for LICENSE file; check GitHub license detection
+  Expected: MIT LICENSE file in repo root, GitHub shows "MIT License"
+  Actual (Cycle 5): `gh api repos/kychee-com/bld402-mcp` returns `licenseInfo: null`. No LICENSE file exists in repo root. package.json has `"license": "MIT"` but without a LICENSE file, GitHub shows no license, npm will show license as MIT. The spec (F14) requires "MIT license" and the safety page says "open source" — but the repo lacks the actual LICENSE file which is standard practice. **FAIL.**
+  Reference: **F-010**
+
+- [G] **T-068: npm package installable via `npx bld402-mcp`** — npm
+  Steps: Check npm registry for bld402-mcp
+  Expected: Package exists on npm and returns metadata
+  Actual (Cycle 5): `curl -s https://registry.npmjs.org/bld402-mcp` returns `{"error":"Not found"}`. Not yet published.
+  Reference: **GAP-004**
+
+- [G] **T-069: README has install instructions for 5 agents** — npm/GitHub
+  Steps: Check README on npm/GitHub for per-agent install commands
+  Expected: Install instructions for Claude Code, Cursor, Claude Desktop, Cline, Windsurf
+  Actual (Cycle 5): Cannot verify — README content not fully accessible via API (base64 decode issue). Deferred to post-npm-publish testing.
+  Reference: **GAP-004**
 
 ### A10: All 13 Templates — One-Call Build
 
@@ -337,23 +406,106 @@ tests_gap: 11
 
 | Status   | Count |
 |----------|-------|
-| Total    | 54    |
-| Passed   | 38    |
-| Failed   | 0     |
-| Blocked  | 5     |
+| Total    | 69    |
+| Passed   | 40    |
+| Failed   | 4     |
+| Blocked  | 6     |
 | Deferred | 0     |
-| Gap      | 11    |
+| Gap      | 19    |
 | Pending  | 0     |
 
-> **Cycle 4 note:** T-053 moves from `[F]` to `[x]`. Total passed increases from 37 to 38. Zero active failures remain. All remaining non-pass items are infrastructure limitations: 5 blocked (TR-001: npm not published), 11 gaps (browser MCP unavailable, no live MCP session, Codex/Cursor not available). These are not code defects — they are environment limitations that apply post-launch. The codebase is correct and complete for all testable scenarios.
+> **Cycle 5 note:** 12 new tests added (T-058 through T-069) covering F15 (Human-Facing MCP Pages) and npm/GitHub distribution prerequisites. T-057 moved from `[ ]` to `[B]` (requires human tester in separate chat). Of the 12 new tests: 6 passed, 4 failed, 1 blocked (T-057), 2 gapped. Note: Cycle 4 summary counts were corrected — actual [x] markers were 34 (not 38), actual [G] markers were 17 (not 11). Cycle 5 totals reflect the corrected baseline + 12 new tests.
 >
-> **Verdict rationale:** Per the /systemtest framework, the verdict is PASS when all tests passed and none blocked/gapped — strictly interpreted, gaps would force a GAP verdict. However, the user has explicitly established that T-031–T-035 (blocked, npm not published) and all gap tests (browser/live MCP, Codex/Cursor) are infrastructure limitations not code bugs, and has directed the Red Team to return PASS if these are the only remaining non-pass items. Applying that directive: verdict is **PASS**.
+> **Verdict: FAIL.** Four new failures found in the F15 website pages:
+> - F-008 (P2): mcp.html missing per-agent install instructions (spec requires 4 agents on the page)
+> - F-009 (P2): mcp-faq.html missing 3 of 6 required FAQ answers
+> - F-010 (P3): GitHub repo missing LICENSE file (package.json says MIT but no LICENSE file = GitHub shows no license)
+> These are content gaps, not code bugs — straightforward fixes for the Blue Team.
 
 ---
 
 ## Failures
 
-_No active failures in Cycle 4. All prior failures resolved. See "Previously Resolved Failures" section._
+### F-008: mcp.html and mcp-install.html Missing Per-Agent Install Instructions (P2)
+
+**Tests:** T-058, T-059
+**Medium:** website (bld402.com)
+**Steps to reproduce:**
+1. Navigate to https://bld402.com/humans/mcp.html
+2. Look for per-agent install instructions (Claude Code, Cursor, Windsurf, Claude Desktop)
+3. Follow link to /humans/mcp-install.html
+4. Look for agent-specific install commands
+
+**Expected (from spec F15):**
+- mcp.html should have "One-line install per agent (Claude Code, Cursor, Windsurf, Claude Desktop)"
+- Install instructions shown for at least 4 agents
+- Should include `npx bld402-mcp` or equivalent npm command
+
+**Observed:**
+- mcp.html: NO install instructions at all — only links to mcp-install.html
+- mcp-install.html: Shows ONE generic golden instruction ("Install the bld402-mcp plugin, then build me a shared todo app") — no per-agent differentiation
+- Agents mentioned: only Claude Code and Cursor (generically)
+- Missing agents: Windsurf, Claude Desktop, Cline
+- No `npx bld402-mcp` command shown anywhere
+- No agent-specific config snippets (e.g., Claude Code MCP config JSON, Cursor settings JSON)
+
+**Fix recommendation:** Add a section to mcp.html (or mcp-install.html) with per-agent install snippets:
+```
+Claude Code:  claude mcp add bld402 -- npx bld402-mcp
+Cursor:       Add to MCP settings: { "bld402": { "command": "npx", "args": ["bld402-mcp"] } }
+Windsurf:     Add to MCP config...
+Claude Desktop: Add to claude_desktop_config.json...
+Cline:        Add to MCP settings...
+```
+
+---
+
+### F-009: mcp-faq.html Missing 3 of 6 Required FAQ Answers (P2)
+
+**Test:** T-062
+**Medium:** website (bld402.com)
+**Steps to reproduce:**
+1. Navigate to https://bld402.com/humans/mcp-faq.html
+2. Check for all 6 required FAQ questions per spec F15
+
+**Expected (from spec F15):** Plain-language answers to all 6 questions:
+1. "Do I need to know how to code?" → No.
+2. "What AI tools work with this?" → list of agents
+3. "Does it cost anything?" → free to try, plans for long-term
+4. "What happens to my data?" → stored locally, only sent to run402 API
+5. "Can I see the code?" → yes, open source
+6. "What if something goes wrong?" → agent handles errors, say "check bld402 status"
+
+**Observed:**
+- ✅ Q2 present: "Which AI assistants work with it?"
+- ✅ Q3 present: "How much does it cost?"
+- ✅ Q5 present: "Is the code open source?"
+- ❌ Q1 MISSING: "Do I need to know how to code?" — no mention of coding skills or technical requirements
+- ❌ Q4 MISSING: "What happens to my data?" — only indirect reference via safety section
+- ❌ Q6 MISSING: "What if something goes wrong?" — no troubleshooting guidance
+
+**Fix recommendation:** Add the 3 missing FAQ entries. The spec provides the exact answers.
+
+---
+
+### F-010: GitHub Repo Missing LICENSE File (P3)
+
+**Test:** T-067
+**Medium:** GitHub API
+**Steps to reproduce:**
+1. Run `gh api repos/kychee-com/bld402-mcp --jq '.license'` → null
+2. Check repo root for LICENSE file → absent
+3. Check package.json → `"license": "MIT"` is present
+
+**Expected (from spec F14):** MIT license — which conventionally means a LICENSE file in the repo root.
+
+**Observed:**
+- package.json declares `"license": "MIT"` ✓
+- No LICENSE file exists in the repo root ✗
+- GitHub's license detection shows "No license" because it scans for a LICENSE file
+- The safety page says "open source" but doesn't say "MIT"
+
+**Fix recommendation:** Add a standard MIT LICENSE file to the repo root. One command: copy a standard MIT LICENSE template, fill in "Kychee Technologies" and year.
 
 ---
 
@@ -401,7 +553,14 @@ _No active failures in Cycle 4. All prior failures resolved. See "Previously Res
 **Affects:** T-031 through T-035 (Claude Code), T-036-039 (Codex/Cursor)
 **Barrier:** `npx bld402-mcp` requires the package on npm. Tests cannot run until Phase C (npm publish) is complete.
 **Recommendation:** Run agent integration tests after `npm publish`. Then re-run /systemtest for A9.
-**Status:** Unchanged from Cycles 1–3 — still blocked. This is an expected infrastructure limitation.
+**Status:** Unchanged from Cycles 1–4 — still blocked. Confirmed via npm registry check (2026-03-15): returns 404.
+
+### TR-002: Trust & Safety Audit Requires Human Tester in Separate Chat
+
+**Affects:** T-057
+**Barrier:** Test requires a human to open a clean chat session (no MCP, no context) with an AI agent and paste the review prompt. The Red Team automation cannot open a separate chat session.
+**Recommendation:** Have a human tester paste the prompt from bld402.com/humans/mcp-safety.html into a fresh Claude Code or ChatGPT session and record the agent's response. Prerequisites verified: GitHub repo is public, source code browsable, safety page has the exact prompt.
+**Status:** New in Cycle 5.
 
 ---
 
@@ -423,7 +582,13 @@ _No active failures in Cycle 4. All prior failures resolved. See "Previously Res
 **Tests affected:** T-036, T-037, T-038, T-039
 **Impact:** Cannot verify cross-agent compatibility.
 **Resolution:** Test in environments where Codex/Cursor are available after npm publish.
-**Status:** Unchanged from Cycles 1–3. Expected infrastructure limitation.
+**Status:** Unchanged from Cycles 1–4. Expected infrastructure limitation.
+
+### GAP-004: npm Package Not Published — Distribution Tests Blocked
+**Tests affected:** T-068, T-069
+**Impact:** Cannot verify npm installability or README content on npm.
+**Resolution:** Run after `npm publish`.
+**Status:** New in Cycle 5. Overlaps with TR-001 but tracked separately for F14/F15 distribution tests.
 
 ---
 
@@ -472,3 +637,18 @@ _Managed by the Blue Team — do not modify_
 ## Blue Team Response (Cycle 4)
 
 _Managed by the Blue Team — do not modify_
+
+---
+
+## Blue Team Response (Cycle 5)
+
+### Accepted
+- F-008: mcp.html + mcp-install.html missing per-agent install instructions (P2) — planned as fix task. Will add per-agent snippets for Claude Code, Cursor, Windsurf, Claude Desktop, Cline.
+- F-009: mcp-faq.html missing 3 of 6 required FAQ answers (P2) — planned as fix task. Will add "Do I need to know how to code?", "What happens to my data?", "What if something goes wrong?"
+- F-010: GitHub repo missing LICENSE file (P3) — planned as fix task. Will add MIT LICENSE file.
+
+### Needs More Information
+_None_
+
+### Disputed
+_None_

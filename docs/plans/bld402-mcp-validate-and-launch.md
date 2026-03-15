@@ -145,15 +145,24 @@ Test BOTH the CLI and the MCP tools. Build real apps, open URLs, verify CRUD wor
 
 ---
 
-## Phase 5: npm Publish (LAST)
+## Phase 5: Fix Cycle 5 — Website Content Fixes
 
-Only after Phase 4 passes with REAL deploys.
+**Source:** system-test-report (Cycle 5)
 
-- [ ] 5.1: Review package.json — name, version, description, keywords, bin entries
-- [ ] 5.2: `npm publish` from bld402-mcp repo
-- [ ] 5.3: Verify `npx bld402-mcp` works from clean npm cache
-- [ ] 5.4: Verify `npx bld402 browse list` works (CLI entry point)
-- [ ] 5.5: Test Claude Code MCP config snippet with published package
+- [x] 5.1: Fix F-008 — Add per-agent install instructions to mcp.html (Claude Code, Cursor, Windsurf, Claude Desktop, Cline)
+- [x] 5.2: Fix F-009 — Add 3 missing FAQ answers to mcp-faq.html
+- [x] 5.3: Fix F-010 — Add MIT LICENSE file to bld402-mcp repo root
+- [x] 5.4: Update mcp-install.html CTA to match new llms.txt pattern
+- [~] 5.5: Deploy website + push bld402-mcp repo
+
+---
+
+## Phase 6: npm Publish
+
+- [ ] 6.1: Review package.json — name, version, description, keywords, bin entries
+- [ ] 6.2: Retrieve npm token from AWS Secrets Manager and `npm publish`
+- [ ] 6.3: Verify `npx bld402-mcp` works from clean npm cache
+- [ ] 6.4: Verify `npx bld402 browse list` works (CLI entry point)
 
 ---
 
@@ -175,3 +184,4 @@ Only after Phase 4 passes with REAL deploys.
 - 2026-03-15: Phase 1 complete — 4 MCP pages + nav + homepage section added to bld402.com
 - 2026-03-15: Phase 2 complete — bld402_remove tool added (5th MCP tool)
 - 2026-03-15: Phase 3 complete — bld402 CLI created with browse/build/update/status/remove commands
+- 2026-03-15: Fix Cycle 5 planned — 3 failures (F-008, F-009, F-010) + mcp-install CTA update + npm publish

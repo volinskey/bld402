@@ -29,7 +29,7 @@ Follow existing page patterns (GA4 tag, style.css, nav, Inter/JetBrains fonts).
 - [x] 1.4: Create `/humans/mcp-safety.html` — Safety page
 - [x] 1.5: Update homepage (`/humans/index.html`) with MCP section
 - [x] 1.6: Add MCP link to site navigation
-- [~] 1.7: Deploy website updates
+- [x] 1.7: Deploy website updates
 
 ---
 
@@ -38,22 +38,18 @@ Follow existing page patterns (GA4 tag, style.css, nav, Inter/JetBrains fonts).
 Add a 5th tool to delete/archive a deployed project. Required for cleanup during testing.
 API: `DELETE /v1/projects/:id` (service_key auth, free)
 
-- [ ] 2.1: Create `src/tools/remove.ts`
+- [x] 2.1: Create `src/tools/remove.ts`
   - Parameters: none (uses session's projectId) or optional `project_id`
   - Flow: load session → validate → `DELETE /v1/projects/:id` with service_key → clear session → confirm
   - Also release subdomain: `DELETE /subdomains/v1/:name` with service_key
   - Clear session state after successful delete
   - Error if no active project
 
-- [ ] 2.2: Register in `src/index.ts`
+- [x] 2.2: Register in `src/index.ts`
   - Add 5th tool: `bld402_remove` — "Delete the current app and clean up. Releases the subdomain and archives the project."
 
-- [ ] 2.3: Build and verify
-  - `npx tsc --noEmit` — zero errors
-  - `npm run build` — 5 tools in dist/
-  - Verify tool count
-
-- [ ] 2.4: Commit and push
+- [x] 2.3: Build and verify
+- [x] 2.4: Commit and push
 
 ---
 
@@ -62,7 +58,7 @@ API: `DELETE /v1/projects/:id` (service_key auth, free)
 Write a CLI that mirrors the MCP tools so the product can be tested without an MCP client.
 Same binary package — add a `bld402` CLI entry point alongside `bld402-mcp`.
 
-- [ ] 3.1: Create `src/cli.ts` — CLI entry point
+- [x] 3.1: Create `src/cli.ts` — CLI entry point
   - `#!/usr/bin/env node`
   - Parse commands: `bld402 browse`, `bld402 build`, `bld402 update`, `bld402 status`, `bld402 remove`
   - Use same tool handlers (handleBrowse, handleBuild, etc.)
@@ -85,17 +81,9 @@ Same binary package — add a `bld402` CLI entry point alongside `bld402-mcp`.
   - For `--functions`: accept `--function name:path` (read code from file)
   - `--help` for each command
 
-- [ ] 3.2: Add `bld402` bin entry to `package.json`
-  - `"bin": { "bld402-mcp": "dist/index.js", "bld402": "dist/cli.js" }`
-
-- [ ] 3.3: Build and verify
-  - `npx tsc --noEmit` — zero errors
-  - `npm run build`
-  - `node dist/cli.js --help` works
-  - `node dist/cli.js browse list` returns templates
-  - `node dist/cli.js status` returns session state
-
-- [ ] 3.4: Commit and push
+- [x] 3.2: Add `bld402` bin entry to `package.json`
+- [x] 3.3: Build and verify
+- [x] 3.4: Commit and push
 
 ---
 
@@ -184,3 +172,6 @@ Only after Phase 4 passes with REAL deploys.
 - 2026-03-15: Phase 0 complete — 15 tools simplified to 4
 - 2026-03-15: Fix Cycles 1-3 — 7 bugs fixed (F-001 through F-007)
 - 2026-03-15: Plan restructured — website first, add remove tool, write CLI, real validation, publish last
+- 2026-03-15: Phase 1 complete — 4 MCP pages + nav + homepage section added to bld402.com
+- 2026-03-15: Phase 2 complete — bld402_remove tool added (5th MCP tool)
+- 2026-03-15: Phase 3 complete — bld402 CLI created with browse/build/update/status/remove commands

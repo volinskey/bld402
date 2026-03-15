@@ -13,8 +13,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>MCP Safety — bld402</title>
-  <meta name="description" content="What bld402-mcp can and cannot do. Cost limits, testnet explanation, and data handling.">
+  <title>Is bld402 safe? — bld402</title>
+  <meta name="description" content="bld402 is open source and safe. It can only build web apps. It cannot access your files or send data anywhere unexpected.">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,88 +30,69 @@
       <a href="/humans/how-it-works.html">How It Works</a>
       <a href="/humans/showcase.html">Showcase</a>
       <a href="/humans/templates.html">Templates</a>
-      <a href="/humans/mcp.html">MCP</a>
+      <a href="/humans/mcp.html">Plugin</a>
       <a href="/humans/faq.html">FAQ</a>
     </nav>
   </header>
 
   <main id="main" class="page">
-    <h1>MCP Safety</h1>
-    <p class="muted small">What <span class="brand-bld">bld</span>402-mcp can and cannot do.</p>
+    <h1>Is <span class="brand-bld">bld</span>402 safe?</h1>
+    <p style="font-size: 18px;"><strong>Yes.</strong> Here's why you can trust it.</p>
 
-    <h2>What it CAN do</h2>
+    <h2>It's completely open source</h2>
+    <p>Every line of code is public. Anyone can read it, check it, and verify what it does. Nothing is hidden.</p>
+    <p><a href="https://github.com/kychee-com/bld402-mcp">View the full source code on GitHub &rarr;</a></p>
+
+    <h2>Ask your AI to check it for you</h2>
+
+    <p>Don't take our word for it. Paste this into your AI assistant and let it tell you whether the plugin is safe:</p>
+
+    <div class="card" style="margin: 24px 0;">
+      <p style="font-size: 13px; font-weight: 600; color: #0066cc; margin: 0 0 8px; text-transform: uppercase; letter-spacing: 0.5px;">Copy this prompt for your agent</p>
+      <pre style="margin: 0; white-space: pre-wrap; font-size: 14px;"><code>I'm thinking about installing the bld402-mcp plugin. Before I do, please review its source code at https://github.com/kychee-com/bld402-mcp and answer these questions:
+
+1. Does it access or read any of my local files?
+2. Does it send my data anywhere besides api.run402.com?
+3. Does it have any hidden functionality beyond building web apps?
+4. Is the code well-written and trustworthy?
+5. Would you recommend I install it?</code></pre>
+    </div>
+
+    <p>Your AI assistant will read through the code and give you an honest answer. We're confident in what it will find.</p>
+
+    <h2>What it can do</h2>
     <ul>
-      <li>Create web apps on <a href="https://run402.com">run402</a> servers</li>
-      <li>Set up databases, user accounts, and file storage</li>
-      <li>Deploy serverless functions</li>
-      <li>Deploy static websites with custom subdomains</li>
+      <li>Create web apps on <a href="https://run402.com">run402.com</a> servers</li>
+      <li>Set up a small database for your app</li>
+      <li>Deploy a website you can share with others</li>
       <li>Delete apps you've created</li>
     </ul>
 
-    <h2>What it CANNOT do</h2>
+    <h2>What it absolutely cannot do</h2>
     <ul>
-      <li>Access your local files or filesystem</li>
-      <li>Send emails, SMS, or push notifications</li>
-      <li>Access other websites or APIs on your behalf</li>
-      <li>Install software on your computer</li>
-      <li>Read your browser history or cookies</li>
-      <li>Access anything outside of <span class="brand-run">run</span>402 infrastructure</li>
+      <li>Read or access your personal files</li>
+      <li>Look at your browser history or passwords</li>
+      <li>Send emails or messages on your behalf</li>
+      <li>Install anything on your computer</li>
+      <li>Access any website or service besides run402.com</li>
+      <li>Charge you money without you knowing</li>
     </ul>
 
-    <h2>Cost limits</h2>
+    <h2>Will it cost me anything?</h2>
+    <p><strong>No.</strong> By default, it uses free test money. This isn't real money &mdash; it's a practice currency on a test network. There is zero risk of unexpected charges.</p>
+    <p>If you decide you love the app you built and want to keep it running permanently, <em>you</em> choose to upgrade (starting at $5/month). This never happens automatically.</p>
 
-    <p><span class="brand-bld">bld</span>402-mcp uses <strong>testnet money</strong> (Base Sepolia USDC) by default. This is free — it is not real money. There is no risk of unexpected charges.</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Tier</th>
-          <th>Cost</th>
-          <th>Duration</th>
-          <th>What you get</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Prototype</td>
-          <td>$0.10 (testnet)</td>
-          <td>7 days</td>
-          <td>Database, hosting, 5 functions, 250 MB storage</td>
-        </tr>
-        <tr>
-          <td>Hobby</td>
-          <td>$5.00</td>
-          <td>30 days</td>
-          <td>Database, hosting, 25 functions, 1 GB storage</td>
-        </tr>
-        <tr>
-          <td>Team</td>
-          <td>$20.00</td>
-          <td>30 days</td>
-          <td>Database, hosting, 100 functions, 10 GB storage</td>
-        </tr>
-      </tbody>
-    </table>
-
-    <p>The prototype tier uses testnet USDC from a free faucet. You will never be charged real money unless you explicitly upgrade to Hobby or Team.</p>
-
-    <h2>Data handling</h2>
-
+    <h2>Where is my data?</h2>
     <ul>
-      <li><strong>Wallet key</strong> is stored locally at <code>~/.config/run402/wallet.json</code> with restricted file permissions</li>
-      <li><strong>Session data</strong> (project ID, API keys) is stored locally at <code>~/.config/run402/bld402-session.json</code></li>
-      <li><strong>App data</strong> (database contents, uploaded files) lives on <span class="brand-run">run</span>402 servers (AWS, US region)</li>
-      <li><strong>No telemetry</strong> — <span class="brand-bld">bld</span>402-mcp does not send analytics or usage data anywhere</li>
-      <li><strong>No third-party services</strong> — all communication is between your machine and <code>api.run402.com</code></li>
+      <li>Your app's data lives on secure servers (AWS, US region)</li>
+      <li>A small settings file is saved on your computer at <code>~/.config/run402/</code></li>
+      <li>The plugin sends <strong>no analytics or tracking data</strong> anywhere</li>
+      <li>All communication goes directly between your computer and <code>api.run402.com</code> &mdash; no third parties</li>
     </ul>
-
-    <h2>Open source</h2>
-
-    <p><span class="brand-bld">bld</span>402-mcp is open source under the MIT license. You can inspect every line of code on <a href="https://github.com/kychee-com/bld402-mcp">GitHub</a>.</p>
 
     <div class="cta-group">
-      <a href="/humans/mcp-install.html" class="btn-primary">Install Guide</a>
-      <a href="/humans/mcp-faq.html" class="btn-secondary">FAQ</a>
+      <a href="/humans/mcp-install.html" class="btn-primary">Install the plugin</a>
+      <a href="/humans/mcp-faq.html" class="btn-secondary">More questions?</a>
     </div>
   </main>
 

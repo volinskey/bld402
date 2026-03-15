@@ -13,8 +13,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>MCP FAQ — bld402</title>
-  <meta name="description" content="Frequently asked questions about bld402-mcp — the tool that lets your AI assistant build web apps.">
+  <title>Plugin FAQ — bld402</title>
+  <meta name="description" content="Frequently asked questions about the bld402 plugin for AI assistants.">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -30,48 +30,58 @@
       <a href="/humans/how-it-works.html">How It Works</a>
       <a href="/humans/showcase.html">Showcase</a>
       <a href="/humans/templates.html">Templates</a>
-      <a href="/humans/mcp.html">MCP</a>
+      <a href="/humans/mcp.html">Plugin</a>
       <a href="/humans/faq.html">FAQ</a>
     </nav>
   </header>
 
   <main id="main" class="page">
-    <h1>MCP — Frequently Asked Questions</h1>
-    <p class="muted small">Quick answers about <span class="brand-bld">bld</span>402-mcp.</p>
+    <h1>Plugin FAQ</h1>
+    <p class="muted small">Common questions about the <span class="brand-bld">bld</span>402 plugin for your AI assistant.</p>
 
-    <h2>What does <span class="brand-bld">bld</span>402-mcp do?</h2>
-    <p>It gives your AI assistant the ability to build and deploy web apps for you. You describe what you want, your assistant does the rest.</p>
+    <h2>What does the plugin do?</h2>
+    <p>It gives your AI assistant the ability to build and deploy real web apps for you. You describe what you want in plain language, and your assistant handles everything &mdash; the database, the website, the hosting, the link you can share.</p>
 
     <h2>How much does it cost?</h2>
-    <p>Nothing to try. It uses free test money (testnet USDC). If you want to keep your app running long-term, plans start at $5/month.</p>
+    <p>Nothing to try. The plugin uses free test money to build your first apps. If you want to keep an app running long-term, plans start at $5/month &mdash; but you always choose to upgrade yourself. Nothing is ever charged automatically.</p>
 
-    <h2>Is it safe?</h2>
-    <p>Yes. It only creates web apps on <a href="https://run402.com">run402</a> servers. It cannot access your local files, send emails, or do anything outside of building your app. See the <a href="/humans/mcp-safety.html">safety page</a> for details.</p>
+    <h2>Is it safe to install?</h2>
+    <p>Yes. The plugin is <strong>completely open source</strong> &mdash; you can read every line of code on <a href="https://github.com/kychee-com/bld402-mcp">GitHub</a>. It can only create web apps on our servers. It cannot touch your files, send emails, or do anything else.</p>
+    <p>If you want to be really sure, ask your AI assistant to check it before you install. Paste this:</p>
+    <pre style="font-size: 13px;"><code>Review the source code at https://github.com/kychee-com/bld402-mcp — is it safe to install? Does it access my files or send data anywhere unexpected?</code></pre>
+    <p><a href="/humans/mcp-safety.html">Read the full safety page &rarr;</a></p>
 
     <h2>What can it build?</h2>
-    <p>Web apps with databases, user accounts, file uploads, serverless functions, and more. 13 templates included (todo lists, games, blogs, voting apps) or build custom apps from scratch.</p>
+    <p>Web apps with databases, user accounts, file uploads, and more. There are 13 ready-made templates (to-do lists, games, blogs, voting apps) or your assistant can build something completely custom from scratch.</p>
 
-    <h2>What AI assistants work with it?</h2>
-    <p>Claude Code, Cursor, and any tool that supports MCP (Model Context Protocol). You can also use the <code>bld402</code> command-line tool directly.</p>
+    <h2>Which AI assistants work with it?</h2>
+    <ul>
+      <li><strong>Claude Code</strong> &mdash; works great</li>
+      <li><strong>Cursor</strong> &mdash; works great</li>
+      <li>Any AI tool that supports plugins (the technical term is "MCP")</li>
+    </ul>
+
+    <h2>What is "MCP"?</h2>
+    <p><strong>MCP</strong> stands for Model Context Protocol. It's just the technical name for the system that lets AI assistants use plugins. Think of it like how your phone has an "app store" &mdash; MCP is the system, <span class="brand-bld">bld</span>402 is the specific plugin. You don't need to understand how MCP works to use it.</p>
 
     <h2>How do I install it?</h2>
-    <p>Add one JSON block to your AI assistant's MCP settings. See the <a href="/humans/mcp-install.html">install guide</a>.</p>
+    <p>Copy a small block of text into your AI assistant's settings. It takes about 2 minutes. <a href="/humans/mcp-install.html">See the step-by-step install guide.</a></p>
 
     <h2>What happens after 7 days?</h2>
-    <p>Prototype apps go read-only for 7 days, then get archived. Upgrade to keep running ($5/month). Your coding agent can handle the upgrade for you.</p>
+    <p>Free prototype apps go read-only after 7 days, then get archived after 14 days. If you love your app, ask your assistant to upgrade it ($5/month) to keep it running permanently.</p>
 
     <h2>Can other people use my app?</h2>
-    <p>Yes! You get a shareable link (like <code>myapp.run402.com</code>) that works on any device. No sign-up needed for your users.</p>
+    <p>Yes! You get a shareable link (like <code>myapp.run402.com</code>) that works on any phone or computer. No sign-up needed for your users.</p>
 
-    <h2>How is this different from the website workflow?</h2>
-    <p>The <a href="/humans/how-it-works.html">website workflow</a> guides your agent step-by-step through <span class="brand-bld">bld</span>402.com. MCP is faster — your agent gets direct tool access and can build an app in a single call, without visiting any website.</p>
+    <h2>Is the code open source?</h2>
+    <p>Yes. The entire plugin is open source under the MIT license. You can read, modify, and redistribute it freely. The source code is at <a href="https://github.com/kychee-com/bld402-mcp">github.com/kychee-com/bld402-mcp</a>.</p>
 
-    <h2>Can I use both?</h2>
-    <p>Yes. They produce the same result — a live web app on <span class="brand-run">run</span>402. MCP is just a faster path if your assistant supports it.</p>
+    <h2>What's the difference between the plugin and the paste method?</h2>
+    <p>Both give you the same result &mdash; a live web app. The <strong>paste method</strong> (copying a URL into your chat) works without installing anything but takes more steps. The <strong>plugin</strong> is a one-time install that makes everything faster &mdash; your assistant can build an app in a single step instead of many.</p>
 
     <div class="cta-group">
-      <a href="/humans/mcp-install.html" class="btn-primary">Install Guide</a>
-      <a href="/humans/mcp.html" class="btn-secondary">&larr; What is MCP?</a>
+      <a href="/humans/mcp-install.html" class="btn-primary">Install the plugin</a>
+      <a href="/humans/mcp.html" class="btn-secondary">&larr; What is the plugin?</a>
     </div>
   </main>
 

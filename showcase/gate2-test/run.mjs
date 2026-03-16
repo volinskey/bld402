@@ -216,6 +216,18 @@ const client = new x402Client();
 client.register("eip155:84532", new ExactEvmScheme(signer));
 const fetchPaid = wrapFetchWithPayment(fetch, client);
 
+// ── Wallet auth headers (EIP-4361) ───────────────────────────────
+async function walletAuthHeaders() {
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const message = `run402:${timestamp}`;
+  const signature = await account.signMessage({ message });
+  return {
+    "X-Run402-Wallet": account.address,
+    "X-Run402-Signature": signature,
+    "X-Run402-Timestamp": timestamp,
+  };
+}
+
 // ── Faucet ──────────────────────────────────────────────────────
 async function ensureFaucet() {
   console.log("\nRequesting testnet USDC from faucet...");
@@ -254,7 +266,7 @@ async function pinProject(projectId, serviceKey) {
     return false;
   }
   console.log(`  Pinning project ${projectId}...`);
-  const res = await fetch(`${API_URL}/admin/v1/projects/${projectId}/pin`, {
+  const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/pin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -271,12 +283,41 @@ async function pinProject(projectId, serviceKey) {
   }
 }
 
+// ── Ensure active tier ───────────────────────────────────────────
+async function ensureTier() {
+  console.log("\nChecking tier status...");
+  const walletHeaders = await walletAuthHeaders();
+  const statusRes = await fetch(`${API_URL}/tiers/v1/status`, {
+    headers: { ...walletHeaders },
+  });
+  if (statusRes.ok) {
+    const status = await statusRes.json();
+    if (status.active) {
+      console.log(`  Active tier: ${status.tier} (expires ${status.lease_expires_at})`);
+      return;
+    }
+  }
+  console.log("  No active tier — subscribing to prototype...");
+  const subRes = await fetchPaid(`${API_URL}/tiers/v1/prototype`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+  });
+  if (subRes.ok) {
+    const data = await subRes.json();
+    console.log(`  Subscribed to ${data.tier} (expires ${data.lease_expires_at})`);
+  } else {
+    const text = await subRes.text();
+    throw new Error(`Tier subscription failed (${subRes.status}): ${text}`);
+  }
+}
+
 // ── Provision project ───────────────────────────────────────────
 async function provisionProject(name) {
   console.log(`\nProvisioning project: bld402-gate2-${name}...`);
-  const res = await fetchPaid(`${API_URL}/v1/projects`, {
+  const walletHeaders = await walletAuthHeaders();
+  const res = await fetch(`${API_URL}/projects/v1`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...walletHeaders },
     body: JSON.stringify({ name: `bld402-gate2-${name}` }),
   });
   if (!res.ok) {
@@ -293,7 +334,7 @@ async function provisionProject(name) {
 async function runSQL(projectId, serviceKey, sqlFile, label) {
   const sql = readFileSync(join(ROOT, sqlFile), "utf-8");
   console.log(`Running ${label || sqlFile}...`);
-  const res = await fetch(`${API_URL}/admin/v1/projects/${projectId}/sql`, {
+  const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/sql`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -320,7 +361,7 @@ async function applyRLS(projectId, serviceKey, rlsFile) {
   const results = [];
   for (const policy of rls.policies) {
     console.log(`  Applying RLS template '${policy.template}' to tables: ${policy.tables.map(t => t.table).join(", ")}...`);
-    const res = await fetch(`${API_URL}/admin/v1/projects/${projectId}/rls`, {
+    const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/rls`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -348,7 +389,7 @@ async function deployFunctions(projectId, serviceKey, functions) {
   for (const fn of functions) {
     console.log(`  Deploying function: ${fn.name}...`);
     const code = readFileSync(join(ROOT, fn.file), "utf-8");
-    const res = await fetch(`${API_URL}/admin/v1/projects/${projectId}/functions`, {
+    const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/functions`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -381,9 +422,10 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
   html = html.replace(/\{\{APP_NAME\}\}/g, "Gate 2 Test");
 
   console.log(`Deploying HTML from ${templateDir}/index.html...`);
-  const deployRes = await fetchPaid(`${API_URL}/v1/deployments`, {
+  const walletHeaders = await walletAuthHeaders();
+  const deployRes = await fetch(`${API_URL}/deployments/v1`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", ...walletHeaders },
     body: JSON.stringify({
       name: `bld402-gate2-${subdomain}`,
       project: projectId,
@@ -401,7 +443,7 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
   // Claim subdomain
   let subdomainUrl = null;
   console.log(`  Claiming subdomain '${subdomain}'...`);
-  const subRes = await fetch(`${API_URL}/v1/subdomains`, {
+  const subRes = await fetch(`${API_URL}/subdomains/v1`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -618,7 +660,7 @@ async function nukeProject(projectId, serviceKey) {
 
   // Release subdomains
   try {
-    const subRes = await fetch(`${API_URL}/v1/subdomains`, {
+    const subRes = await fetch(`${API_URL}/subdomains/v1`, {
       headers: {
         apikey: serviceKey,
         Authorization: `Bearer ${serviceKey}`,
@@ -630,7 +672,7 @@ async function nukeProject(projectId, serviceKey) {
         for (const sub of subs) {
           const name = sub.name || sub.subdomain;
           if (name) {
-            await fetch(`${API_URL}/v1/subdomains/${name}`, {
+            await fetch(`${API_URL}/subdomains/v1/${name}`, {
               method: "DELETE",
               headers: {
                 apikey: serviceKey,
@@ -647,7 +689,7 @@ async function nukeProject(projectId, serviceKey) {
   }
 
   // Archive project
-  const archiveRes = await fetch(`${API_URL}/v1/projects/${projectId}`, {
+  const archiveRes = await fetch(`${API_URL}/projects/v1/${projectId}`, {
     method: "DELETE",
     headers: {
       apikey: serviceKey,
@@ -680,8 +722,9 @@ async function runGate2(templateFilter) {
     process.exit(1);
   }
 
-  // Ensure wallet is funded
+  // Ensure wallet is funded and has active tier
   await ensureFaucet();
+  await ensureTier();
 
   const evidence = {
     timestamp: new Date().toISOString(),

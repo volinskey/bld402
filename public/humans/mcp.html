@@ -13,8 +13,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <title>What is the bld402 plugin? — bld402</title>
-  <meta name="description" content="The bld402 plugin lets your AI assistant build and deploy real web apps for you. Free, open source, and safe.">
+  <title>What is the run402 plugin? — bld402</title>
+  <meta name="description" content="The run402 plugin lets your AI assistant build and deploy real web apps for you. Free, open source, and safe.">
   <link rel="stylesheet" href="/src/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -36,8 +36,8 @@
   </header>
 
   <main id="main" class="page">
-    <h1>What is the <span class="brand-bld">bld</span>402 plugin?</h1>
-    <p>It's a small add-on for your AI assistant (like Claude Code, Cursor, or similar tools). Once installed, your assistant gains the ability to build and deploy real web apps for you.</p>
+    <h1>What is the <span class="brand-run">run</span>402 plugin?</h1>
+    <p>It's a small add-on (also called an MCP server) for your AI assistant (like Claude Code, Cursor, or similar tools). Once connected, your assistant gains the ability to build and deploy real web apps for you via run402.</p>
 
     <p>Think of it like installing an app on your phone. Before you install it, your phone can't do that thing. After you install it, it can. Same idea &mdash; before the plugin, your AI assistant can only talk about code. After the plugin, it can actually build and launch a working app.</p>
 
@@ -70,27 +70,27 @@
       <div class="card" style="margin-bottom: 12px;">
         <h3>Claude Code</h3>
         <p>Run this in your terminal:</p>
-        <pre style="margin: 0.5rem 0;"><code>claude mcp add bld402 -- npx bld402-mcp</code></pre>
+        <pre style="margin: 0.5rem 0;"><code>claude mcp add run402 -- npx -y run402-mcp</code></pre>
       </div>
       <div class="card" style="margin-bottom: 12px;">
         <h3>Cursor</h3>
         <p>Open Settings &rarr; MCP &rarr; Add Server, then paste:</p>
-        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+        <pre style="margin: 0.5rem 0;"><code>{ "run402": { "command": "npx", "args": ["run402-mcp"] } }</code></pre>
       </div>
       <div class="card" style="margin-bottom: 12px;">
         <h3>Windsurf</h3>
         <p>Open Settings &rarr; MCP &rarr; Add Server, then paste:</p>
-        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+        <pre style="margin: 0.5rem 0;"><code>{ "run402": { "command": "npx", "args": ["run402-mcp"] } }</code></pre>
       </div>
       <div class="card" style="margin-bottom: 12px;">
         <h3>Claude Desktop</h3>
         <p>Open Settings &rarr; Developer &rarr; Edit Config, and add to the <code>mcpServers</code> section:</p>
-        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+        <pre style="margin: 0.5rem 0;"><code>{ "run402": { "command": "npx", "args": ["run402-mcp"] } }</code></pre>
       </div>
       <div class="card" style="margin-bottom: 12px;">
         <h3>Cline</h3>
         <p>Open the MCP panel &rarr; Add Server &rarr; paste:</p>
-        <pre style="margin: 0.5rem 0;"><code>{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }</code></pre>
+        <pre style="margin: 0.5rem 0;"><code>{ "run402": { "command": "npx", "args": ["run402-mcp"] } }</code></pre>
       </div>
     </div>
 
@@ -98,11 +98,11 @@
 
     <h2>Is it safe?</h2>
 
-    <p><strong>Yes.</strong> The plugin is completely <a href="https://github.com/kychee-com/bld402-mcp">open source</a> &mdash; anyone can read every line of code. It can only create apps on our servers. It cannot read your files, send emails, or do anything except build web apps.</p>
+    <p><strong>Yes.</strong> The plugin is completely <a href="https://github.com/kychee-com/run402-mcp">open source</a> &mdash; anyone can read every line of code. It can only create apps on our servers. It cannot read your files, send emails, or do anything except build web apps.</p>
 
     <p>If you want to be extra careful, paste this into your AI assistant and it will review the plugin's code for you:</p>
 
-    <pre><code>Review the source code at https://github.com/kychee-com/bld402-mcp and tell me: is it safe to install? Does it access my files, send data anywhere unexpected, or do anything besides build web apps on run402.com?</code></pre>
+    <pre><code>Review the source code at https://github.com/kychee-com/run402-mcp and tell me: is it safe to install? Does it access my files, send data anywhere unexpected, or do anything besides build web apps on run402.com?</code></pre>
 
     <p><a href="/humans/mcp-safety.html">Read the full safety page &rarr;</a></p>
 
@@ -110,7 +110,7 @@
 
     <p>You might see the term "MCP" in the install guide. It stands for <strong>Model Context Protocol</strong> &mdash; it's an open standard that lets AI assistants use plugins. Companies like Anthropic, OpenAI, and others all support it, which means a plugin built for MCP works across many different AI tools.</p>
 
-    <p>It works just like browser extensions or phone apps. MCP is the platform (like an app store), and <span class="brand-bld">bld</span>402-mcp is the specific plugin you're installing. The install takes about 2 minutes and the guide walks you through every step.</p>
+    <p>It works just like browser extensions or phone apps. MCP is the platform (like an app store), and <span class="brand-run">run</span>402-mcp is the specific plugin you're installing. The install takes about 2 minutes and the guide walks you through every step.</p>
 
     <div class="cta-group">
       <a href="/humans/mcp-install.html" class="btn-primary">Install the plugin</a>

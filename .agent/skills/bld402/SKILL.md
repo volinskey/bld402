@@ -11,6 +11,27 @@ Guide a non-technical user through building and deploying a complete web applica
 
 ---
 
+## run402-mcp (Recommended)
+
+If you have **run402-mcp** installed, use its MCP tools instead of the raw HTTP calls described below. The mapping:
+
+| Skill Step | run402-mcp Tool | What it does |
+|---|---|---|
+| Steps 7-8 (Wallet + Faucet + Tier) | `set_tier` | Handles wallet, faucet, and tier subscription |
+| Step 9 (Create Project) | `provision_postgres_project` | Creates project with DB |
+| Step 10 (Schema) | `run_sql` | Executes SQL DDL/DML |
+| Step 12 (REST verify) | `rest_query` | PostgREST CRUD operations |
+| Step 13 (Deploy site) | `deploy_site` | Deploys HTML/CSS/JS |
+| Step 14 (Subdomain) | `claim_subdomain` | Claims myapp.run402.com |
+| Steps 15-16 (Upload files) | `upload_file` | Stores files in S3 |
+
+Install: `claude mcp add run402 -- npx -y run402-mcp`
+Full docs: https://run402.com/llms.txt
+
+If run402-mcp is NOT available, use the raw HTTP workflow below.
+
+---
+
 ## Prerequisites
 
 Before starting, verify you have these capabilities. If ANY are missing, tell the user:

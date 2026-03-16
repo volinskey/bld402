@@ -42,13 +42,13 @@
 
     <main id="agent-landing">
       <section id="mcp-recommended" style="background:#e8f4f8; border:2px solid #0066cc; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
-        <h2 style="margin-top:0;">Recommended: Install bld402-mcp</h2>
-        <p>If your environment supports MCP (Model Context Protocol), install the <strong>bld402-mcp</strong> plugin instead of using this website workflow. It's faster — one tool call builds and deploys an entire app.</p>
-        <pre style="margin:0.75rem 0;"><code>npx bld402-mcp</code></pre>
+        <h2 style="margin-top:0;">Recommended: Install run402-mcp</h2>
+        <p>If your environment supports MCP (Model Context Protocol), install the <strong>run402-mcp</strong> plugin instead of using this website workflow. It gives you direct access to databases, deployments, and hosting.</p>
+        <pre style="margin:0.75rem 0;"><code>npx run402-mcp</code></pre>
         <p>MCP config for Claude Code, Cursor, or any MCP client:</p>
-        <pre style="margin:0.75rem 0;"><code>{ "mcpServers": { "bld402": { "command": "npx", "args": ["bld402-mcp"] } } }</code></pre>
-        <p>Once installed, you get 5 tools: <code>bld402_browse</code>, <code>bld402_build</code>, <code>bld402_update</code>, <code>bld402_status</code>, <code>bld402_remove</code>. No website navigation needed.</p>
-        <p>Source code (open source, MIT): <a href="https://github.com/kychee-com/bld402-mcp">github.com/kychee-com/bld402-mcp</a></p>
+        <pre style="margin:0.75rem 0;"><code>{ "mcpServers": { "run402": { "command": "npx", "args": ["run402-mcp"] } } }</code></pre>
+        <p>Tools: <code>provision_postgres_project</code>, <code>run_sql</code>, <code>rest_query</code>, <code>upload_file</code>, <code>deploy_site</code>, <code>claim_subdomain</code>, <code>delete_subdomain</code>, <code>set_tier</code>.</p>
+        <p>Full docs: <a href="https://run402.com/llms.txt">run402.com/llms.txt</a> &nbsp;|&nbsp; Source code (MIT): <a href="https://github.com/kychee-com/run402-mcp">github.com/kychee-com/run402-mcp</a></p>
       </section>
 
       <section id="coding-agent-gate" style="background:#fff3cd; border:2px solid #ffc107; border-radius:8px; padding:1rem 1.25rem; margin-bottom:1.5rem;">
@@ -56,7 +56,7 @@
         <p>If your environment does not support MCP, you can use the step-by-step website workflow below. This requires a <strong>coding agent</strong> that can create files, run shell commands, and make HTTP requests.</p>
         <p><strong>If you cannot do those things, STOP HERE.</strong> Tell the user:</p>
         <blockquote style="margin:0.75rem 0; padding:0.5rem 1rem; border-left:4px solid #ffc107; background:#fff8e1;">
-          "I can't build apps directly. Please open this in a coding agent like Claude Code, ChatGPT Codex, Cursor, or Windsurf — or install the bld402-mcp plugin (see bld402.com/humans/mcp-install.html)."
+          "I can't build apps directly. Please open this in a coding agent like Claude Code, ChatGPT Codex, Cursor, or Windsurf — or install the run402-mcp plugin (see bld402.com/humans/mcp-install.html)."
         </blockquote>
       </section>
 

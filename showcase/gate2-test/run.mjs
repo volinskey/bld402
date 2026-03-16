@@ -37,6 +37,11 @@ const WALLET_FILE = join(SHOWCASE_DIR, ".wallet");
 const API_URL = "https://api.run402.com";
 const EVIDENCE_FILE = join(__dirname, "evidence.json");
 
+// CLI flags
+const KEEP_PROJECTS = process.argv.includes("--keep") || process.env.GATE2_KEEP_PROJECTS === "1";
+const PIN_PROJECTS = process.argv.includes("--pin");
+const ADMIN_KEY = process.env.ADMIN_KEY || "";
+
 // ── Template definitions ────────────────────────────────────────
 const TEMPLATES = [
   {
@@ -185,7 +190,13 @@ const TEMPLATES = [
 // ── Wallet setup ────────────────────────────────────────────────
 let privateKey;
 if (existsSync(WALLET_FILE)) {
-  privateKey = readFileSync(WALLET_FILE, "utf-8").trim();
+  const raw = readFileSync(WALLET_FILE, "utf-8").trim();
+  if (!raw.startsWith("0x") || raw.length < 64) {
+    console.error("ERROR: showcase/.wallet exists but looks corrupted. Refusing to overwrite.");
+    console.error("  Delete it manually if you want a new wallet: rm showcase/.wallet");
+    process.exit(1);
+  }
+  privateKey = raw;
   console.log("Loaded existing wallet from showcase/.wallet");
 } else {
   privateKey = generatePrivateKey();
@@ -208,24 +219,55 @@ const fetchPaid = wrapFetchWithPayment(fetch, client);
 // ── Faucet ──────────────────────────────────────────────────────
 async function ensureFaucet() {
   console.log("\nRequesting testnet USDC from faucet...");
+
+  // Use admin faucet (no rate limit) if ADMIN_KEY is set
+  const isAdmin = !!ADMIN_KEY;
+  const faucetUrl = isAdmin ? `${API_URL}/faucet/v1/admin` : `${API_URL}/faucet/v1`;
+  const headers = { "Content-Type": "application/json" };
+  if (isAdmin) headers["X-Admin-Key"] = ADMIN_KEY;
+
   try {
-    const res = await fetch(`${API_URL}/v1/faucet`, {
+    const res = await fetch(faucetUrl, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ address: account.address }),
     });
     if (res.ok) {
       const data = await res.json();
-      console.log(`Faucet: ${data.amount} ${data.token} on ${data.network}`);
+      console.log(`Faucet${isAdmin ? " (admin)" : ""}: ${data.amount_usd_micros / 1_000_000} ${data.token} on ${data.network}`);
       console.log("Waiting 5s for faucet tx to settle...");
       await new Promise(r => setTimeout(r, 5000));
     } else if (res.status === 429) {
-      console.log("Faucet rate-limited — wallet already funded");
+      console.log("Faucet rate-limited — wallet already funded (use ADMIN_KEY to bypass)");
     } else {
       console.log(`Faucet returned ${res.status} — continuing with existing balance`);
     }
   } catch (err) {
     console.log("Faucet request failed:", err.message, "— continuing");
+  }
+}
+
+// ── Pin project (admin) ──────────────────────────────────────────
+async function pinProject(projectId, serviceKey) {
+  if (!ADMIN_KEY) {
+    console.log("  No ADMIN_KEY — skipping pin");
+    return false;
+  }
+  console.log(`  Pinning project ${projectId}...`);
+  const res = await fetch(`${API_URL}/admin/v1/projects/${projectId}/pin`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceKey}`,
+      "X-Admin-Key": ADMIN_KEY,
+    },
+  });
+  if (res.ok) {
+    console.log("  Pinned (lease will not expire)");
+    return true;
+  } else {
+    console.log(`  Pin failed (${res.status}): ${await res.text()}`);
+    return false;
   }
 }
 
@@ -731,12 +773,26 @@ async function runGate2(templateFilter) {
         entry.checks.push(...apiChecks);
       }
 
-      // 8. Nuke project
-      const nukeChecks = await nukeProject(
-        project.project_id,
-        project.service_key
-      );
-      entry.checks.push(...nukeChecks);
+      // 7b. Pin project (if --pin)
+      if (PIN_PROJECTS) {
+        await pinProject(project.project_id, project.service_key);
+      }
+
+      // 8. Nuke project (skip if --keep)
+      if (KEEP_PROJECTS) {
+        console.log("\n  --keep: Skipping project cleanup (project preserved)");
+        entry.checks.push({
+          check: "Project preserved (--keep)",
+          passed: true,
+          detail: `project_id: ${project.project_id}`,
+        });
+      } else {
+        const nukeChecks = await nukeProject(
+          project.project_id,
+          project.service_key
+        );
+        entry.checks.push(...nukeChecks);
+      }
 
       // Verdict
       const allPassed = entry.checks.every(c => c.passed);
@@ -787,6 +843,8 @@ async function runGate2(templateFilter) {
 }
 
 // ── Run ─────────────────────────────────────────────────────────
-const filter = process.argv[2] || null;
+if (KEEP_PROJECTS) console.log("Mode: --keep (projects will NOT be deleted)");
+if (PIN_PROJECTS) console.log("Mode: --pin (projects will be pinned)");
+const filter = process.argv.slice(2).find(a => !a.startsWith("--")) || null;
 const evidence = await runGate2(filter);
 process.exit(evidence.templates.every(t => t.verdict === "PASS") ? 0 : 1);

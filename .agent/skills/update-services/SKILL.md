@@ -1,11 +1,11 @@
 ---
 name: update-services
-description: Sync run402 repo, update the service catalog, review the API for drift, update bld402-mcp tool implementations, and fix bld402.com website issues.
+description: Sync run402 repo, update the service catalog, review the API for drift, and fix bld402.com website issues.
 ---
 
 # Update Services — full run402 sync for bld402
 
-Sync the run402 repo, scan for services, update the catalog, then propagate any API changes into the bld402 MCP server and the bld402.com website. This is the single command that keeps everything downstream of run402 in sync.
+Sync the run402 repo, scan for services, update the catalog, then propagate any API changes into the bld402.com website. This is the single command that keeps everything downstream of run402 in sync.
 
 ## Workflow
 
@@ -191,60 +191,9 @@ After fixes, re-verify by spot-checking 2–3 fixed locations to confirm correct
 
 ---
 
-## bld402-mcp Update (Steps 9–11)
+## Summary & Commit (Step 9)
 
-### 9. Review bld402-mcp against run402 API
-
-**Repo:** `C:/Workspace-Kychee/bld402-mcp`
-
-Compare the MCP tool implementations against the current run402 API:
-
-| File | What to check |
-|------|---------------|
-| `src/config.ts` | `API_BASE` is `https://api.run402.com` (not `https://run402.com`) |
-| `src/client.ts` | HTTP method, path, headers, and body format for each API call match run402's route handlers |
-| `src/wallet.ts` | Wallet auth header names (`X-Run402-Wallet`, `X-Run402-Signature`, `X-Run402-Timestamp`) match run402's middleware |
-| `src/tools/*.ts` | Each tool's API calls use correct endpoints, auth, and request/response shapes |
-| `src/templates.ts` | Template metadata matches `templates/` directory in bld402 repo |
-| `src/index.ts` | Tool descriptions, parameter schemas, and registered tool names are accurate |
-
-**Cross-reference with the endpoint map from Step 7.** Every API call in bld402-mcp must exist in run402's route files. Every required endpoint in run402 that bld402-mcp should use must have a corresponding call.
-
-**Check for:**
-- Wrong base URL (must be `https://api.run402.com`)
-- Changed endpoint paths or HTTP methods
-- New required headers or removed headers
-- Changed request body fields (added required fields, renamed fields)
-- Changed response body shape (field renames, nested structure changes)
-- New run402 endpoints that bld402-mcp should use but doesn't
-- Deprecated endpoints that bld402-mcp still calls
-- Tier pricing or limits that are hardcoded and now wrong
-
-### 10. Fix bld402-mcp issues
-
-For each mismatch found in Step 9, fix it directly in the bld402-mcp source:
-
-- Update endpoint paths in `src/client.ts` or `src/tools/*.ts`
-- Update auth headers in `src/wallet.ts`
-- Update parameter schemas in tool registration (`src/index.ts`)
-- Update hardcoded values (tier prices, limits, URLs)
-- Update template metadata if templates were added/removed
-
-### 11. Verify bld402-mcp builds
-
-```bash
-cd "C:/Workspace-Kychee/bld402-mcp" && npx tsc --noEmit
-```
-
-If TypeScript compilation fails, fix the errors before proceeding. The MCP must compile cleanly.
-
-If bld402-mcp repo is not found at the expected path, warn the user and skip Steps 9–11. Do not error out — the service catalog and website fixes (Steps 1–8) are still valuable on their own.
-
----
-
-## Summary & Commit (Step 12)
-
-### 12. Print full summary
+### 9. Print full summary
 
 Print a combined report covering all three areas:
 
@@ -264,11 +213,6 @@ API DRIFT (bld402 repo)
   LOW fixes:      N
   Skipped:        N (noted for later)
 
-MCP UPDATE (bld402-mcp)
-  Endpoint fixes:  N
-  Schema fixes:    N
-  Build status:    ✓ compiles | ✗ errors (details)
-
 WEBSITE (bld402.com)
   Pages fixed:     N
   Pages checked:   N (all clean)
@@ -284,13 +228,11 @@ Files modified:
 ## Edge Cases
 
 - **run402 repo not found at expected path:** Error immediately: "run402 repo not found at `C:/Workspace-Kychee/run402`. Cannot update services."
-- **bld402-mcp repo not found:** Warn and skip Steps 9–11. Complete all other steps.
 - **git pull fails:** Warn but continue with local state.
-- **New service found in run402:** Add to catalog. Check if bld402 SKILL.md, website, or MCP need updates for the new service.
+- **New service found in run402:** Add to catalog. Check if bld402 SKILL.md or website need updates for the new service.
 - **Service removed from run402:** Remove from catalog. Check if bld402 still references it anywhere and clean up.
 - **`docs/run402-services.md` has manual annotations:** Preserve them. Only update structured entries.
 - **No drift found:** Report "No drift found" — this is a valid and good outcome.
-- **bld402-mcp has uncommitted changes:** Warn the user before modifying. Do not discard their work.
 
 ## Automation Interface
 
@@ -300,7 +242,6 @@ Files modified:
 - `docs/run402-services.md` — updated service catalog
 - Drift report (terminal)
 - Fixes applied to bld402 repo files
-- Fixes applied to bld402-mcp repo (if present)
 - Combined terminal summary
 
 **Artifacts updated/created:**
@@ -312,4 +253,3 @@ Files modified:
 - `public/build/step/*.html` (if endpoint references had drift)
 - `public/build/guardrails.html` (if capabilities changed)
 - `public/humans/*.html` (if feature descriptions or pricing changed)
-- `C:/Workspace-Kychee/bld402-mcp/src/**` (if MCP tool implementations had drift)

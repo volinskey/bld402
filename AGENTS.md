@@ -4,6 +4,8 @@
 
 A free accessibility layer for [run402.com](https://run402.com) that lets anyone build and deploy web apps by describing what they want to an AI agent. Static site on AWS Amplify — no build tools, pure HTML/CSS/JS.
 
+**MCP consolidation (2026-03-16):** bld402-mcp has been consolidated into [run402-mcp](https://github.com/kychee-com/run402-mcp). bld402.com now routes users to install run402-mcp for MCP tooling. The bld402-mcp NPM package is unpublished.
+
 ## Project Structure
 
 | Path | Purpose |
@@ -38,7 +40,7 @@ A free accessibility layer for [run402.com](https://run402.com) that lets anyone
 
 | Skill | Description |
 |-------|-------------|
-| `/update-services` | Sync run402 repo, update service catalog, review API for drift, update bld402-mcp, and fix bld402.com |
+| `/update-services` | Sync run402 repo, update service catalog, review API for drift, and fix bld402.com |
 | `/review-templates` | Review all templates against run402 services and suggest per-template improvements |
 | `/idea-templates` | Find undemo'd run402 services and propose new template ideas |
 
@@ -90,9 +92,15 @@ Gate 2 tests MUST run **one template at a time, sequentially**. If a template fa
 
 **Order:** shared-todo → landing-waitlist → hangman → trivia-night → voting-booth → paste-locker
 
-## Testing Cleanup — MANDATORY
+## Testing Cleanup
 
-**Every test that provisions a run402 project MUST clean it up before the session ends.** No orphaned projects.
+**By default, test projects are cleaned up after each run.** Use `--keep` flag to preserve projects (and their wallet funds) between test cycles. Use `--pin` with `ADMIN_KEY` to pin test projects so leases never expire.
+
+```bash
+node showcase/gate2-test/run.mjs shared-todo --keep     # Test one template, keep project
+node showcase/gate2-test/run.mjs --keep --pin            # Test all, keep and pin
+node scripts/fund-wallet.mjs 1.00                        # Top up test wallet via admin faucet
+```
 
 ### Rules
 

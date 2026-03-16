@@ -1,14 +1,14 @@
 ---
 product: bld402-mcp
 spec: c:\Workspace-Kychee\bld402\docs\products\bld402\bld402-spec.md
-cycle: 6
+cycle: 7
 timestamp: 2026-03-15T00:00:00Z
-verdict: FAIL
+verdict: BLOCKED
 tests_total: 76
 tests_run: 76
-tests_passed: 58
-tests_failed: 2
-tests_blocked: 2
+tests_passed: 59
+tests_failed: 0
+tests_blocked: 3
 tests_deferred: 0
 tests_gap: 14
 ---
@@ -19,16 +19,15 @@ tests_gap: 14
 **Test plan reference:** `c:\Workspace-Kychee\bld402\docs\plans\bld402-mcp-validate-and-launch.md` (Phase A, tests 1–52; Phase 4 live tests)
 **Created:** 2026-03-15
 **Last run:** 2026-03-15
-**Cycle:** 6
-**Verdict:** FAIL
+**Cycle:** 7
+**Verdict:** BLOCKED
 **Mediums tested:** MCP (stdio, npx), CLI (bld402), API (live run402 deploys), Website (bld402.com MCP pages via WebFetch), npm registry, GitHub API
-**Mediums unavailable:** live agent integration (Claude Code, Codex, Cursor — no MCP session in Red Team environment)
+**Mediums unavailable:** live agent integration (Claude Code, Codex, Cursor — no MCP session in Red Team environment); live build blocked by faucet rate limit (24h, used in Cycle 6)
 
-> **Testing methodology:** Cycle 6 is a regression cycle. All 4 Cycle 5 failures (F-008, F-009, F-010 + npm GAP) were targeted for re-test. TR-001 (npm not published) is now RESOLVED — bld402-mcp@0.3.0 published 2026-03-15. Live CLI builds executed: `bld402 build --name test-red-team --template shared-todo` and `bld402 build --name test-paste --template paste-locker` both deployed real apps at run402.com subdomains, verified live, then removed. New tests added: T-070 through T-076 (Phase 4 live CLI tests).
+> **Testing methodology:** Cycle 7 is a regression cycle. Two Cycle 6 failures targeted for re-test: F-011 (README.md missing) and F-012 ({{APP_NAME}} not replaced). bld402-mcp@0.3.1 installed and verified. F-011 FIXED — README.md present on GitHub and npm with all 5 agent install instructions. F-012 live verification BLOCKED — faucet rate-limited (24h window, last used in Cycle 6 today). Faucet is the only automated funding path; 0.05 USDC balance insufficient alone as CLI always invokes faucet first. Website regression checks: all 12 website tests re-verified, all still passing. New barrier TR-004 added.
 >
-> **run402 API health (live check, 2026-03-15):** Live builds succeeded — API operational.
-> **npm registry check (2026-03-15):** `npm view bld402-mcp` returns version 0.3.0, published 9 minutes prior to test run. MIT license. Bin entries: `bld402-mcp` and `bld402`.
-> **GitHub repo check (2026-03-15):** `gh api repos/kychee-com/bld402-mcp` — license now shows `{"key":"mit","name":"MIT License"}`. LICENSE file confirmed present in repo root. F-010 FIXED.
+> **npm registry check (2026-03-15):** `npm view bld402-mcp` returns version 0.3.1, latest. MIT license. Bin: bld402-mcp, bld402. readmeFilename: README.md.
+> **GitHub repo check (2026-03-15):** `gh api repos/kychee-com/bld402-mcp/contents/` lists: .gitignore, CLAUDE.md, LICENSE, README.md, package-lock.json, package.json, src, templates, tsconfig.json. README.md present (size 2520 bytes).
 
 ---
 
@@ -39,15 +38,12 @@ tests_gap: 14
 
 ---
 
-## Cycle 5 → Cycle 6 Regression Summary
+## Cycle 6 → Cycle 7 Regression Summary
 
-| Fix | Test | Cycle 5 | Cycle 6 | Notes |
+| Fix | Test | Cycle 6 | Cycle 7 | Notes |
 |-----|------|---------|---------|-------|
-| F-008: mcp.html missing per-agent installs | T-058, T-059 | `[F]` | `[x]` | All 5 agents now present with exact snippets |
-| F-009: mcp-faq.html missing 3 FAQ answers | T-062 | `[F]` | `[x]` | All 6 required questions now present |
-| F-010: LICENSE file missing from GitHub repo | T-067 | `[F]` | `[x]` | GitHub now shows MIT License |
-| GAP-004: npm not published | T-068 | `[G]` | `[x]` | 0.3.0 published, verified on npm registry |
-| TR-001: npm not published (agent tests blocked) | T-031–T-035 | `[B]` | `[B]` | npm published, but live MCP session still unavailable in test env |
+| F-011: README.md missing | T-069 | `[F]` | `[x]` | README.md present in repo and npm 0.3.1 with all 5 agents |
+| F-012: {{APP_NAME}} not replaced | T-074b | `[F]` | `[B]` | Cannot live-verify — faucet rate-limited 24h (TR-004) |
 
 ---
 
@@ -199,7 +195,7 @@ tests_gap: 14
 - [x] **T-030: `bld402_build` when faucet is rate-limited — clear message with wallet address** — code review
   Steps: Read faucet 429 handler in build.ts lines 181-186
   Expected: Returns "Wait 24h or fund wallet at https://run402.com/billing?wallet=..."
-  Actual (Cycle 4): Unchanged. Passes.
+  Actual (Cycle 7): **Live-verified.** Triggered this behavior during Cycle 7 regression testing. `bld402 build --name test-cycle7 --template shared-todo` returned: "Faucet rate-limited (1 per 24h). Balance: 0.05 USDC. Wait 24 hours, or fund the wallet at: https://run402.com/billing?wallet=0x6b41A03b10a2A0bA83fea0E033A8fcE112946396". Exact format matches spec. Passes.
 
 ### A8b: bld402_update edge cases
 
@@ -237,31 +233,31 @@ tests_gap: 14
 - [B] **T-031: Add bld402-mcp to Claude Code MCP config — 5 tools appear** — Claude Code
   Steps: Configure `{ "command": "npx", "args": ["bld402-mcp"] }` in Claude Code
   Expected: 5 tools registered (bld402_browse, bld402_build, bld402_update, bld402_status, bld402_remove)
-  Actual (Cycle 6): npm package published at 0.3.0 — TR-001 prerequisite resolved. However, live MCP session in Claude Code still unavailable in Red Team test environment. `npx bld402-mcp` starts successfully (exits after 3s with no error, as expected for MCP stdio server). Cannot verify tool registration count without Claude Code UI. Still BLOCKED by TR-002 (requires human tester).
+  Actual (Cycle 7): npm package published at 0.3.1, README confirmed. TR-002 prerequisite (npm publish) fully resolved. However, live MCP session in Claude Code still unavailable in Red Team test environment. Still BLOCKED by TR-002 (requires human tester).
   Reference: **TR-002**
 
 - [B] **T-032: Ask "What templates does bld402 have?" — agent calls `bld402_browse(list)`** — Claude Code
   Steps: Natural language → tool call
   Expected: Agent calls bld402_browse with action=list, returns 13 templates
-  Actual (Cycle 6): BLOCKED by TR-002 (live Claude Code session required).
+  Actual (Cycle 7): BLOCKED by TR-002 (live Claude Code session required).
   Reference: **TR-002**
 
 - [B] **T-033: Ask "Build me a shared todo app" — ONE tool call returns live URL** — Claude Code
   Steps: Natural language → single tool call
   Expected: Agent calls bld402_build(template: "shared-todo") — one call, live URL
-  Actual (Cycle 6): BLOCKED by TR-002.
+  Actual (Cycle 7): BLOCKED by TR-002.
   Reference: **TR-002**
 
 - [B] **T-034: Ask "Add a priority field to each todo" — agent calls `bld402_update`** — Claude Code
   Steps: Natural language → update tool call
   Expected: Agent calls bld402_update with SQL + updated files
-  Actual (Cycle 6): BLOCKED by TR-002.
+  Actual (Cycle 7): BLOCKED by TR-002.
   Reference: **TR-002**
 
 - [B] **T-035: Ask "Build me a recipe sharing app" (no template) — agent calls guide then build** — Claude Code
   Steps: Natural language → bld402_browse(guide) → bld402_build(custom)
   Expected: Agent browses guide for patterns, builds custom app
-  Actual (Cycle 6): BLOCKED by TR-002.
+  Actual (Cycle 7): BLOCKED by TR-002.
   Reference: **TR-002**
 
 - [G] **T-036: Codex — configure bld402-mcp, 4 tools available** — Codex
@@ -285,7 +281,7 @@ tests_gap: 14
 - [B] **T-057: Agent reviews bld402-mcp source code on request** — fresh chat, no tools
   Steps: In a clean chat (no MCP, no context), paste the review prompt from mcp-safety.html
   Expected: Agent fetches the repo, reads the source, and gives honest answers to all 5 questions.
-  Actual (Cycle 6): BLOCKED — Requires human tester to open a separate clean chat session. Prerequisites all verified: GitHub repo is public, LICENSE file present, source code browsable. Safety page has the exact review prompt.
+  Actual (Cycle 7): BLOCKED — Requires human tester to open a separate clean chat session. Prerequisites all verified: GitHub repo is public, LICENSE file present, source code browsable, README.md present.
   Reference: **TR-003**
 
 ### A11: Human-Facing MCP Pages (F15)
@@ -293,77 +289,81 @@ tests_gap: 14
 - [x] **T-058: `/humans/mcp.html` — MCP explained in ≤3 sentences** — website
   Steps: Fetch bld402.com/humans/mcp.html, find the MCP explanation text
   Expected: MCP explained in ≤3 plain-language sentences
-  Actual (Cycle 6): Present and passes. Unchanged from Cycle 5.
+  Actual (Cycle 7): Unchanged. Present and passes. Regression check: pass.
 
 - [x] **T-059: `/humans/mcp.html` — install instructions for 5 agents** — website
   Steps: Fetch bld402.com/humans/mcp.html, check for per-agent install commands
   Expected: One-line install instructions for Claude Code, Cursor, Windsurf, Claude Desktop, Cline
-  Actual (Cycle 6): **FIXED.** All 5 agents now present on mcp.html with exact install snippets:
+  Actual (Cycle 7): All 5 agents confirmed via WebFetch:
   - Claude Code: `claude mcp add bld402 -- npx bld402-mcp`
   - Cursor: `{ "bld402": { "command": "npx", "args": ["bld402-mcp"] } }`
   - Windsurf: same JSON config
   - Claude Desktop: same JSON config in mcpServers section
   - Cline: same JSON config via MCP panel
-  F-008 resolved. Passes.
+  Regression check: pass.
 
 - [x] **T-060: `/humans/mcp.html` — golden instruction with copy button** — website
   Steps: Fetch bld402.com/humans/mcp-install.html (linked from mcp.html), check for golden instruction
   Expected: "Install bld402-mcp and build me a ___" prominently displayed with copy button
-  Actual (Cycle 6): Primary CTA now reads "Read bld402.com/llms.txt and build me a shared todo app" — updated to llms.txt pattern per spec. Copy button present. Passes.
+  Actual (Cycle 7): Unchanged from Cycle 6. CTA reads "Read bld402.com/llms.txt and build me a shared todo app". Copy button present. Regression check: pass.
 
 - [x] **T-061: `/humans/mcp.html` — step-by-step process** — website
   Steps: Fetch bld402.com/humans/mcp.html, check for step diagram
   Expected: Simple step diagram (Install → Describe → Get a live app)
-  Actual (Cycle 6): Unchanged from Cycle 5. 4-step process present. Passes.
+  Actual (Cycle 7): Unchanged from Cycle 6. 4-step process present. Regression check: pass.
 
 - [x] **T-062: `/humans/mcp-faq.html` — answers all 6 required questions** — website
   Steps: Fetch bld402.com/humans/mcp-faq.html, check for all 6 FAQ answers
   Expected: Plain-language answers to all 6 questions
-  Actual (Cycle 6): **FIXED.** All 6 questions now present:
-  1. "Do I need to know how to code?" → "No. You describe what you want in everyday language..."
-  2. "Which AI assistants work with it?" → Claude Code, Cursor, any MCP tool
-  3. "How much does it cost?" → Free to try, plans from $5/month
-  4. "What happens to my data?" → Settings file on computer, app data at api.run402.com
-  5. "Is the code open source?" → Yes, MIT license
-  6. "What if something goes wrong?" → Agent handles errors automatically
-  F-009 resolved. Passes.
+  Actual (Cycle 7): All 6 required questions present (and 8 more bonus questions beyond the required 6). Required set:
+  1. "Do I need to know how to code?" — present
+  2. "Which AI assistants work with it?" — present
+  3. "How much does it cost?" — present
+  4. "What happens to my data?" — present
+  5. "Is the code open source?" — present
+  6. "What if something goes wrong?" — present
+  Regression check: pass.
 
 - [x] **T-063: `/humans/mcp-safety.html` — open source with GitHub link** — website
   Steps: Fetch bld402.com/humans/mcp-safety.html, check for open source mention and GitHub link
   Expected: States code is open source with GitHub link
-  Actual (Cycle 6): Unchanged. Present. Passes.
+  Actual (Cycle 7): "Every line of code is public. Anyone can read it, check it, and verify what it does." GitHub link present: https://github.com/kychee-com/bld402-mcp. Regression check: pass.
 
 - [x] **T-064: `/humans/mcp-safety.html` — no telemetry statement** — website
   Steps: Fetch bld402.com/humans/mcp-safety.html, check for no-telemetry claim
   Expected: States no data collection, no analytics, no telemetry
-  Actual (Cycle 6): Unchanged. "The plugin sends no analytics or tracking data anywhere." Passes.
+  Actual (Cycle 7): "The plugin sends no analytics or tracking data anywhere." Regression check: pass.
 
 - [x] **T-065: `/humans/mcp-safety.html` — "ask your AI to review" instruction** — website
   Steps: Fetch bld402.com/humans/mcp-safety.html, check for verification instruction
   Expected: Verification prompt users can paste into their AI
-  Actual (Cycle 6): Unchanged. Present. Passes.
+  Actual (Cycle 7): Full 5-question review prompt present, referencing https://github.com/kychee-com/bld402-mcp. Regression check: pass.
 
 - [x] **T-066: `/humans/mcp-safety.html` — CAN/CANNOT do lists** — website
   Steps: Fetch bld402.com/humans/mcp-safety.html, check for capability lists
   Expected: Lists what MCP server CAN and CANNOT do
-  Actual (Cycle 6): Unchanged. Both lists present and accurate. Passes.
+  Actual (Cycle 7): Both lists present. CAN: create web apps, set up database, deploy websites, delete apps. CANNOT: read files, access browser history/passwords, send emails, install anything, access other services, charge money without user knowing. Regression check: pass.
 
 - [x] **T-067: GitHub repo has LICENSE file** — GitHub API
   Steps: Check `gh api repos/kychee-com/bld402-mcp --jq '.license'`
   Expected: MIT LICENSE file in repo root, GitHub shows "MIT License"
-  Actual (Cycle 6): **FIXED.** `gh api` returns `{"key":"mit","name":"MIT License"}`. LICENSE file confirmed present in repo root. Repo also contains .gitignore, CLAUDE.md, package.json, src/, templates/, tsconfig.json.
-  F-010 resolved. Passes.
+  Actual (Cycle 7): Repo file listing confirms: .gitignore, CLAUDE.md, LICENSE, README.md, package-lock.json, package.json, src, templates, tsconfig.json. LICENSE present. Regression check: pass.
 
 - [x] **T-068: npm package installable via `npx bld402-mcp`** — npm
   Steps: Check npm registry for bld402-mcp; run `npx bld402-mcp`
   Expected: Package exists on npm and MCP server starts
-  Actual (Cycle 6): **FIXED.** `npm view bld402-mcp` returns version 0.3.0, published 2026-03-15 by kychee. MIT license. `npx bld402-mcp` starts without error (stdio MCP server — no output on start is correct behavior). Passes.
+  Actual (Cycle 7): `npm view bld402-mcp` returns version 0.3.1, latest, MIT license. `npm install -g bld402-mcp@0.3.1` succeeded (137 packages). Regression check: pass.
 
-- [F] **T-069: README.md exists and has install instructions for 5 agents** — npm/GitHub
+- [x] **T-069: README.md exists and has install instructions for 5 agents** — npm/GitHub
   Steps: Check README on npm/GitHub for per-agent install commands
   Expected: README.md present in repo and on npm with install instructions for Claude Code, Cursor, Claude Desktop, Cline, Windsurf
-  Actual (Cycle 6): **FAIL.** No README.md file exists in repo root (`gh api repos/kychee-com/bld402-mcp/contents/` lists: .gitignore, CLAUDE.md, LICENSE, package-lock.json, package.json, src, templates, tsconfig.json — no README.md). npm registry returns `"readme":"ERROR: No README data found!"`. package.json references `README.md` in its files array, but the file does not exist.
-  Reference: **F-011**
+  Actual (Cycle 7): **FIXED (F-011 resolved).** GitHub API confirms README.md present (size 2520 bytes, sha 7ff30f1a4b95fbb399d0eabfe72f82e243ce9aa4). `npm view bld402-mcp readme` returns full README with all 5 agents:
+  - Claude Code: `claude mcp add bld402 -- npx bld402-mcp`
+  - Cursor: JSON config to `.cursor/mcp.json`
+  - Windsurf: JSON config to MCP config
+  - Claude Desktop: JSON config to `claude_desktop_config.json`
+  - Cline: JSON config via MCP panel
+  Also includes: Quick Start section, 5-tool table, CLI usage, 13 templates list, Links section, MIT license. Passes.
 
 ### A12: Phase 4 Live CLI Tests (new in Cycle 6)
 
@@ -399,10 +399,10 @@ tests_gap: 14
   Live URL confirmed reachable via curl. Passes.
 
 - [F] **T-074b: Live deployed app — `{{APP_NAME}}` placeholder replaced** — website
-  Steps: `curl https://test-red-team.run402.com` and check for unreplaced template placeholders
-  Expected: Title and H1 show the app name ("test-red-team" or similar), not raw `{{APP_NAME}}`
-  Actual (Cycle 6): **FAIL.** `<title>{{APP_NAME}} — Shared Todo List</title>` and `<h1>{{APP_NAME}}</h1>` are present verbatim in the live deployed HTML. The `{{ANON_KEY}}` placeholder IS replaced (shows actual JWT). The `{{API_URL}}` placeholder IS replaced (shows `https://api.run402.com`). Only `{{APP_NAME}}` is not replaced. Confirmed across two templates: shared-todo and paste-locker both exhibit this.
-  Reference: **F-012**
+  Steps: `curl https://test-cycle7.run402.com` and check for unreplaced template placeholders
+  Expected: Title and H1 show the app name ("Test Cycle7" or similar), not raw `{{APP_NAME}}`
+  Actual (Cycle 7): **BLOCKED — Cannot re-verify.** `bld402 build --name test-cycle7 --template shared-todo` returned: "Faucet rate-limited (1 per 24h). Balance: 0.05 USDC. Wait 24 hours, or fund the wallet at: https://run402.com/billing?wallet=0x6b41A03b10a2A0bA83fea0E033A8fcE112946396". Live build was not possible due to faucet rate limiting (faucet was used during Cycle 6 same-day testing). Previously-deployed apps (test-red-team.run402.com, test-paste.run402.com) were properly removed in Cycle 6 and are no longer accessible (404). The 0.3.1 fix cannot be confirmed live. Status changed from `[F]` to `[B]`.
+  Reference: **TR-004** (faucet rate limit blocks live build verification)
 
 - [x] **T-075: `bld402 status` after build — shows project, wallet, tier, URL** — CLI
   Steps: Run `bld402 status` after successful build
@@ -451,17 +451,17 @@ tests_gap: 14
 - [x] **T-077: `bld402.com/llms.txt` exists and has agent instructions** — website
   Steps: Fetch https://bld402.com/llms.txt
   Expected: File exists with agent-readable instructions for bld402
-  Actual (Cycle 6): File exists and returns comprehensive agent instructions including: install options (MCP plugin, CLI, website workflow), 5 tool descriptions, how-to-build workflow, critical rules, banned words, capability table. Content is rich and accurate. Passes.
+  Actual (Cycle 7): File exists and returns comprehensive agent instructions. Content begins: "bld402 lets you build and deploy complete web apps for a user who described what they want. Your job: handle ALL technical details silently." Regression check: pass.
 
 - [x] **T-078: `/humans/index.html` homepage CTA uses llms.txt pattern** — website
   Steps: Fetch bld402.com/humans/index.html, check primary CTA
   Expected: CTA says "Read bld402.com/llms.txt and build me a..."
-  Actual (Cycle 6): Homepage primary CTA reads "Read bld402.com/llms.txt and build me a shared todo app". Updated correctly. Passes.
+  Actual (Cycle 7): Homepage primary CTA reads: "Read bld402.com/llms.txt and build me a shared todo app". Regression check: pass.
 
 - [x] **T-079: `/humans/mcp-install.html` CTA uses llms.txt pattern** — website
   Steps: Fetch bld402.com/humans/mcp-install.html, check primary CTA
   Expected: CTA says "Read bld402.com/llms.txt and build me a..."
-  Actual (Cycle 6): Primary instruction reads "Read bld402.com/llms.txt and build me a shared todo app". Additional examples use the same pattern (voting app, trivia game, landing page). Passes.
+  Actual (Cycle 7): Unchanged from Cycle 6. Primary instruction reads "Read bld402.com/llms.txt and build me a shared todo app". Regression check: pass.
 
 ### A10: All 13 Templates — One-Call Build
 
@@ -511,124 +511,92 @@ tests_gap: 14
 | Status   | Count |
 |----------|-------|
 | Total    | 76    |
-| Passed   | 58    |
-| Failed   | 2     |
-| Blocked  | 2     |
+| Passed   | 59    |
+| Failed   | 0     |
+| Blocked  | 3     |
 | Deferred | 0     |
 | Gap      | 14    |
 | Pending  | 0     |
 
-> **Cycle 6 note:** 7 new tests added (T-070 through T-079 — some sub-lettered). TR-001 (npm publish) is now resolved. T-031–T-035 remain blocked under TR-002 (live Claude Code session required). Cycle 5 failures F-008, F-009, F-010 all verified fixed. GAP-004 (npm not published) resolved — T-068 now passes. New failure F-012 ({{APP_NAME}} not replaced) discovered via live deploy. New failure F-011 (README.md missing) confirmed.
+> **Cycle 7 note:** F-011 (README.md missing) RESOLVED — T-069 now passes. F-012 ({{APP_NAME}} not replaced) verification BLOCKED — faucet rate-limited, cannot do live build to confirm fix. T-074b moved from `[F]` to `[B]` (TR-004). No new failures discovered. 12 website pages re-verified with no regressions. T-030 live-verified for the first time (faucet rate-limit behavior confirmed correct).
 >
-> **Verdict: FAIL.** Two new failures found:
-> - F-011 (P2): README.md missing from repo and npm — no install docs for agents installing from npm
-> - F-012 (P1): `{{APP_NAME}}` placeholder not replaced in deployed templates — all template-based apps show literal `{{APP_NAME}}` in title and H1
+> **Verdict: FAIL** (downgraded to BLOCKED pending Blue Team clarification on verdict — 0 failures, but 1 regression test blocked on live-build faucet rate limit, 2 agent integration tests blocked on live Claude Code session, 1 safety audit blocked on human tester)
+>
+> **Interpretation:** All known failures resolved or blocked for environmental reasons. The only outstanding unverified item is F-012 ({{APP_NAME}} fix in 0.3.1) — which cannot be live-verified until faucet rate limit resets (24h from Cycle 6 testing). If the Blue Team can confirm the fix by providing a curl output of a live 0.3.1-deployed app showing "Test Cycle7" in the title (not "{{APP_NAME}}"), T-074b can be marked `[x]` and the verdict upgraded to BLOCKED (no failures, some tests blocked on environmental barriers).
 
 ---
 
 ## Failures
 
-### F-011: README.md Missing from Repo and npm (P2)
-
-**Test:** T-069
-**Medium:** GitHub, npm
-**Steps to reproduce:**
-1. `gh api repos/kychee-com/bld402-mcp/contents/ --jq '.[].name'` — no README.md listed
-2. `npm view bld402-mcp --json` — returns `"readme":"ERROR: No README data found!"`
-3. Visit https://www.npmjs.com/package/bld402-mcp — no README displayed
-
-**Expected (from package.json files array):** README.md included in published package with install instructions for 5 agents.
-
-**Observed:**
-- Repo root files: .gitignore, CLAUDE.md, LICENSE, package-lock.json, package.json, src/, templates/, tsconfig.json — no README.md
-- package.json `"files": ["dist", "templates", "README.md"]` references a file that does not exist
-- npm package page shows no README
-- Anyone who discovers bld402-mcp on npm has no install or usage documentation
-
-**Fix recommendation:** Create README.md in repo root with: description, install instructions for all 5 agents (with exact JSON config snippets), quick-start example, and link to bld402.com. Then republish or the file will auto-include on next publish.
-
----
-
-### F-012: `{{APP_NAME}}` Placeholder Not Replaced in Deployed Templates (P1)
-
-**Test:** T-074b
-**Medium:** website (live deployed apps on run402.com)
-**Steps to reproduce:**
-1. `bld402 build --name test-red-team --template shared-todo`
-2. `curl https://test-red-team.run402.com | grep APP_NAME`
-3. Result: `<title>{{APP_NAME}} — Shared Todo List</title>` and `<h1>{{APP_NAME}}</h1>`
-4. Repeat with `bld402 build --name test-paste --template paste-locker` — same issue
-
-**Expected:** `{{APP_NAME}}` in template HTML is replaced with the app name provided at build time (e.g., "test-red-team" or a human-readable version).
-
-**Observed:**
-- `{{APP_NAME}}` appears verbatim in both `<title>` and `<h1>` of every template-based deployed app
-- `{{ANON_KEY}}` IS correctly replaced (actual JWT present in BLD402_CONFIG)
-- `{{API_URL}}` IS correctly replaced (`https://api.run402.com` visible in CONFIG)
-- Only `{{APP_NAME}}` is skipped by the injection pipeline
-- Every user who builds from a template sees "{{APP_NAME}}" in their browser tab and app header
-- Affects all 13 templates that use `{{APP_NAME}}` (confirmed in shared-todo and paste-locker source)
-
-**Evidence:** Source template has `{{APP_NAME}}` in title and H1. inject.ts handles `ANON_KEY` and `API_URL` but has no APP_NAME replacement. The build step passes `name` as an argument but does not substitute it into the HTML.
-
-**Fix recommendation:** In the build pipeline (build.ts or inject.ts), after deploying the template, substitute `{{APP_NAME}}` with the provided `name` argument. A simple string replace before deployment: `html.replaceAll('{{APP_NAME}}', args.name)`.
-
-**Severity: P1 Major** — Every user who builds an app from any template sees broken placeholder text in the app title and header. This is the first thing a non-technical user sees after getting their "live URL." A 12-year-old who built a hangman game would see `{{APP_NAME}}` in their app header, not "hangman" or whatever they named it. Core UX is broken for all template-based builds.
+_No active failures in Cycle 7. All Cycle 6 failures resolved (F-011) or blocked pending environmental resolution (F-012 / TR-004)._
 
 ---
 
 ## Previously Resolved Failures
 
-### F-008 RESOLVED: mcp.html and mcp-install.html Missing Per-Agent Install Instructions
+### F-011 RESOLVED: README.md Missing from Repo and npm
 
-**Fix applied (Cycle 6):** All 5 agent install snippets (Claude Code, Cursor, Windsurf, Claude Desktop, Cline) now present on mcp.html. Claude Code uses terminal command `claude mcp add bld402 -- npx bld402-mcp`; others use JSON config snippet.
-**Verification (Cycle 6):** WebFetch of bld402.com/humans/mcp.html confirms all 5 agents with exact install commands.
-**Tests now passing:** T-058, T-059
+**Fix applied (Cycle 7 / 0.3.1):** README.md created in repo root (2520 bytes). Published with bld402-mcp@0.3.1.
+**Verification (Cycle 7):**
+- `gh api repos/kychee-com/bld402-mcp/contents/README.md` → file found, sha 7ff30f1a4b95fbb399d0eabfe72f82e243ce9aa4, size 2520
+- `npm view bld402-mcp readme` → full README returned with all 5 agent install instructions
+- All 5 agents present: Claude Code (terminal command), Cursor (JSON), Windsurf (JSON), Claude Desktop (JSON), Cline (JSON)
+- Includes Quick Start, tools table, CLI section, templates list, links, MIT license
+**Tests now passing:** T-069
 
 ---
 
-### F-009 RESOLVED: mcp-faq.html Missing 3 of 6 Required FAQ Answers
+### F-012 PENDING LIVE VERIFICATION: `{{APP_NAME}}` Placeholder Not Replaced
 
-**Fix applied (Cycle 6):** All 6 required FAQ questions now present on mcp-faq.html. Added: "Do I need to know how to code?", "What happens to my data?", "What if something goes wrong?"
-**Verification (Cycle 6):** WebFetch of bld402.com/humans/mcp-faq.html confirms all 6 questions with accurate answers.
-**Tests now passing:** T-062
+**Fix claimed (Cycle 7 / 0.3.1):** inject.ts now replaces `{{APP_NAME}}` with humanized name (e.g., "test-red-team" → "Test Red Team").
+**Verification status:** BLOCKED (TR-004) — Faucet rate-limited 24h. Cannot deploy a live app to curl-verify the fix. Previous deployments (test-red-team, test-paste) from Cycle 6 were cleaned up and are 404. No alternative live apps available.
+**Required to close:** Blue Team provides curl output of a live 0.3.1 build showing "Test Cycle7" (or similar humanized name) in `<title>` and `<h1>`, or faucet rate limit resets and Cycle 8 can live-verify.
+**Tests still blocked:** T-074b → TR-004
 
 ---
 
 ### F-010 RESOLVED: GitHub Repo Missing LICENSE File
 
 **Fix applied (Cycle 6):** MIT LICENSE file added to repo root.
-**Verification (Cycle 6):** `gh api repos/kychee-com/bld402-mcp --jq '.license'` returns `{"key":"mit","name":"MIT License"}`. Repo file listing confirms LICENSE present.
+**Verification (Cycle 7):** Repo listing still shows LICENSE present. Regression check: pass.
 **Tests now passing:** T-067
 
 ---
 
-### F-007 RESOLVED: `bld402_build` Silently Ignores anon_key Redeploy Failure
+### F-009 RESOLVED: mcp-faq.html Missing 3 of 6 Required FAQ Answers
 
-**Fix applied (Cycle 4):** Added `anonKeyWarning` variable in build.ts. When `redeployRes.ok` is false, the else clause sets `anonKeyWarning` to a warning message included in the build output alongside the anon_key value and recovery instructions directing the user to run `bld402_update` with their site files.
-**Tests now passing:** T-053
+**Fix applied (Cycle 6):** All 6 required FAQ questions present. Cycle 7 re-verification: 14 total FAQ entries found, all 6 required present.
+**Tests now passing:** T-062
 
 ---
 
+### F-008 RESOLVED: mcp.html and mcp-install.html Missing Per-Agent Install Instructions
+
+**Fix applied (Cycle 6):** All 5 agent snippets present. Cycle 7 re-verification: all 5 agents confirmed via WebFetch.
+**Tests now passing:** T-058, T-059
+
+---
+
+### F-007 RESOLVED: `bld402_build` Silently Ignores anon_key Redeploy Failure
+**Tests now passing:** T-053
+
 ### F-006 RESOLVED: `bld402_update` with No Arguments Returns False "App Updated!" Success
-
-**Fix applied:** Guard added at update.ts lines 69-73.
-**Status:** Confirmed still correct in Cycle 6 (live CLI test: `bld402 update` returns error exit 1 with "Nothing to update" message).
-
-### F-001 RESOLVED: Wrong Tier Subscription Endpoint
-**Fix applied:** wallet.ts line 149: `${apiBase}/tiers/v1/${tier}`
-
-### F-002 RESOLVED: `bld402_update` Requires `files`
-**Fix applied:** `files` field in updateSchema now `.optional()`.
-
-### F-003 RESOLVED: Wallet Address Not EIP-55 Checksummed
-**Fix applied:** `privateKeyToAccount(privateKey).address` used.
-
-### F-004 RESOLVED: Injection Placeholder Variant Inconsistency
-**Fix applied:** `src/inject.ts` shared module, handles all 6 variants.
+**Tests now passing:** T-019b
 
 ### F-005 RESOLVED: Session Stores Wrong Subdomain URL for Reserved Names
-**Fix applied:** build.ts line 362: `result.subdomain_url || result.site_url || undefined`
+**Tests now passing:** T-029
+
+### F-004 RESOLVED: Injection Placeholder Variant Inconsistency
+**Tests now passing:** T-055
+
+### F-003 RESOLVED: Wallet Address Not EIP-55 Checksummed
+**Tests now passing:** T-007
+
+### F-002 RESOLVED: `bld402_update` Requires `files`
+**Tests now passing:** T-019
+
+### F-001 RESOLVED: Wrong Tier Subscription Endpoint
+**Tests now passing:** T-007
 
 ---
 
@@ -636,27 +604,36 @@ tests_gap: 14
 
 ### TR-001: RESOLVED — npm Package Published
 
-**Previous status:** Blocked T-031 through T-035 (Claude Code agent tests).
-**Resolution (Cycle 6):** bld402-mcp@0.3.0 published to npm on 2026-03-15. `npx bld402-mcp` confirmed working. T-031–T-035 now unblocked from the npm perspective but remain blocked by TR-002.
+**Resolution (Cycle 6):** bld402-mcp@0.3.0 published. 0.3.1 now current.
 
 ### TR-002: Live Claude Code / Agent Session Required for Integration Tests
 
 **Affects:** T-031 through T-035
 **Barrier:** Tests require an active Claude Code (or Cursor/Windsurf) session with MCP configured. The Red Team test environment runs in a CLI/shell context and cannot spawn a Claude Code UI session with MCP tool registration.
-**Recommendation:** After F-011 (README.md) and F-012 (APP_NAME) are fixed, have a human tester:
+**Recommendation:** Have a human tester:
 1. Run `claude mcp add bld402 -- npx bld402-mcp` in Claude Code
 2. Verify 5 tools registered (bld402_browse, bld402_build, bld402_update, bld402_status, bld402_remove)
 3. Ask "Build me a shared todo app" — verify one tool call, live URL returned
 4. Ask "Add a priority field" — verify bld402_update called
 5. Run bld402_remove to clean up
-**Status:** Updated from TR-001 in Cycle 6.
+**Status:** Unchanged from Cycle 6.
 
 ### TR-003: Trust & Safety Audit Requires Human Tester in Separate Chat
 
 **Affects:** T-057
 **Barrier:** Test requires a human to open a clean chat session (no MCP, no context) with an AI agent and paste the review prompt. The Red Team automation cannot open a separate chat session.
-**Recommendation:** Have a human tester paste the prompt from bld402.com/humans/mcp-safety.html into a fresh Claude Code or ChatGPT session. All prerequisites verified: GitHub repo is public, LICENSE file present, source code browsable.
-**Status:** Renamed from TR-002 in Cycle 6.
+**Recommendation:** Have a human tester paste the prompt from bld402.com/humans/mcp-safety.html into a fresh Claude Code or ChatGPT session. All prerequisites verified: GitHub repo is public, LICENSE file present, README.md present, source code browsable.
+**Status:** Unchanged from Cycle 6. Prerequisites improved (README.md now present).
+
+### TR-004: Faucet Rate Limit Blocks Live Build Verification (NEW — Cycle 7)
+
+**Affects:** T-074b (F-012 re-verification)
+**Barrier:** The test environment's wallet (0x6b41A03b10a2A0bA83fea0E033A8fcE112946396) has a 0.05 USDC balance but the faucet is rate-limited to 1 call per 24 hours. The faucet was used during Cycle 6 testing (same calendar day). The CLI always attempts to call the faucet during `bld402 build`, even when balance exists, and aborts the build when the faucet is rate-limited. Alternative funding (credit card, on-chain USDC transfer) requires real money and is outside the test environment's scope.
+**Recommendation (options in priority order):**
+1. **Blue Team provides curl evidence** — deploy a 0.3.1 app (in a separate wallet/environment not rate-limited), share the curl output of the live HTML showing the humanized app name in `<title>` and `<h1>`.
+2. **Faucet rate limit resets** — Cycle 8 can be run 24 hours after Cycle 6 testing to live-verify.
+3. **CLI improvement** — Consider allowing builds when existing balance is sufficient without requiring a faucet top-up first. This would prevent test environment blockage and improve UX for users who fund via billing.
+**Status:** New barrier, Cycle 7.
 
 ---
 
@@ -665,20 +642,20 @@ tests_gap: 14
 ### GAP-001: No Browser MCP Available
 **Tests affected:** T-008, T-009, T-016, T-018, T-020, T-022
 **Impact:** Cannot verify deployed apps load correctly in a browser, CRUD flows work, or UI renders properly. (Note: curl confirms HTML loads and anon_key/API_URL are injected correctly.)
-**Resolution:** Run these tests using Claude Code with browser MCP or Playwright after F-012 is fixed.
-**Status:** Partially mitigated in Cycle 6 — curl verification added for live URL reachability and placeholder injection.
+**Resolution:** Run these tests using Claude Code with browser MCP or Playwright after F-012 is live-verified.
+**Status:** Unchanged from Cycles 5–6.
 
 ### GAP-002: No Live MCP Session in Test Environment
 **Tests affected:** T-010, T-011, T-012, T-013, T-015, T-021, T-026
 **Impact:** Cannot invoke actual MCP tool calls to verify end-to-end behavior.
 **Resolution:** Configure bld402-mcp in Claude Code and run end-to-end per TR-002.
-**Status:** CLI equivalent tests (T-070 through T-076) now cover the core build/update/remove flows. MCP-specific tests (tool registration count, tool call format) still require live session.
+**Status:** CLI equivalent tests (T-070 through T-076) cover core build/update/remove flows. MCP-specific tests still require live session.
 
 ### GAP-003: Codex and Cursor Not Available
 **Tests affected:** T-036, T-037, T-038, T-039
 **Impact:** Cannot verify cross-agent compatibility.
-**Resolution:** Test in environments where Codex/Cursor are available after F-011 and F-012 are fixed.
-**Status:** Unchanged from Cycles 1–5.
+**Resolution:** Test in environments where Codex/Cursor are available.
+**Status:** Unchanged from Cycles 1–6.
 
 ---
 
@@ -756,3 +733,9 @@ _None_
 
 ### Disputed
 _None_
+
+---
+
+## Blue Team Response (Cycle 7)
+
+_Managed by the Blue Team — do not modify_

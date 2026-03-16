@@ -1,12 +1,277 @@
 {
-  "timestamp": "2026-03-07T10:31:29.229Z",
+  "timestamp": "2026-03-16T11:21:24.966Z",
   "wallet": "0xA6d234F6122621725eBC69efE2D0995A4311bf01",
   "templates": [
     {
+      "name": "shared-todo",
+      "test_id": "T-66",
+      "project_id": "prj_1773660086194_0006",
+      "deployment_id": "dpl_1773660086752_a5e293",
+      "live_url": "https://dpl-1773660086752-a5e293.sites.run402.com",
+      "subdomain": "gate2-todo",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"{{APP_NAME}}\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"Shared Todo\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"todo\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"Add\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <input>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to todos",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from todos",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660086194_0006"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "landing-waitlist",
+      "test_id": "T-67",
+      "project_id": "prj_1773660092126_0007",
+      "deployment_id": "dpl_1773660092654_c06feb",
+      "live_url": "https://gate2-waitlist.run402.com",
+      "subdomain": "gate2-waitlist",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"email\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"signup\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <input>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to signups",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from signups",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660092126_0007"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "hangman",
+      "test_id": "T-68",
+      "project_id": "prj_1773660097192_0085",
+      "deployment_id": "dpl_1773660097896_59df49",
+      "live_url": "https://gate2-hangman.run402.com",
+      "subdomain": "gate2-hangman",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"Hangman\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <svg>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from words",
+          "passed": true,
+          "detail": "54 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660097192_0085"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "trivia-night",
+      "test_id": "T-69",
+      "project_id": "prj_1773660102623_0086",
+      "deployment_id": "dpl_1773660103424_00047b",
+      "live_url": "https://gate2-trivia.run402.com",
+      "subdomain": "gate2-trivia",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"Trivia\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to rooms",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from rooms",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660102623_0086"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "voting-booth",
+      "test_id": "T-70",
+      "project_id": "prj_1773660108459_0087",
+      "deployment_id": "dpl_1773660109067_0ff67a",
+      "live_url": "https://gate2-vote.run402.com",
+      "subdomain": "gate2-vote",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"Voting\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to polls",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from polls",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660108459_0087"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
       "name": "paste-locker",
       "test_id": "T-71",
-      "project_id": "prj_1772879489567_0031",
-      "deployment_id": "dpl_1772879494110_393972",
+      "project_id": "prj_1773660113660_0088",
+      "deployment_id": "dpl_1773660115421_a478f1",
       "live_url": "https://gate2-paste.run402.com",
       "subdomain": "gate2-paste",
       "checks": [
@@ -38,7 +303,7 @@
         {
           "check": "Function: create-note",
           "passed": true,
-          "detail": "Status: 201, code: 68qkMrDy"
+          "detail": "Status: 201, code: YYC1OZFQ"
         },
         {
           "check": "Function: read-note (correct password)",
@@ -51,9 +316,308 @@
           "detail": "Status: 403"
         },
         {
-          "check": "Project archived",
+          "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "Status: 200, response: {\"status\":\"archived\",\"project_id\":\"prj_1772879489567_0031\"}"
+          "detail": "project_id: prj_1773660113660_0088"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "photo-wall",
+      "test_id": "T-72",
+      "project_id": "prj_1773660132542_0089",
+      "deployment_id": "dpl_1773660133358_716b05",
+      "live_url": "https://gate2-wall.run402.com",
+      "subdomain": "gate2-wall",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from photos",
+          "passed": true,
+          "detail": "0 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660132542_0089"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "micro-blog",
+      "test_id": "T-73",
+      "project_id": "prj_1773660138521_0090",
+      "deployment_id": "dpl_1773660139346_a4204b",
+      "live_url": "https://gate2-microblog.run402.com",
+      "subdomain": "gate2-microblog",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <textarea>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from posts",
+          "passed": true,
+          "detail": "0 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660138521_0090"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "secret-santa",
+      "test_id": "T-74",
+      "project_id": "prj_1773660143837_0091",
+      "deployment_id": "dpl_1773660145301_4d48b7",
+      "live_url": "https://gate2-santa.run402.com",
+      "subdomain": "gate2-santa",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <input>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from groups",
+          "passed": true,
+          "detail": "0 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660143837_0091"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "ai-sticker-maker",
+      "test_id": "T-75",
+      "project_id": "prj_1773660150079_0092",
+      "deployment_id": "dpl_1773660150589_185f6c",
+      "live_url": "https://gate2-stickers.run402.com",
+      "subdomain": "gate2-stickers",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <input>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to stickers",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from stickers",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660150079_0092"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "flash-cards",
+      "test_id": "T-76",
+      "project_id": "prj_1773660155556_0093",
+      "deployment_id": "dpl_1773660156449_ed4316",
+      "live_url": "https://gate2-cards.run402.com",
+      "subdomain": "gate2-cards",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from decks",
+          "passed": true,
+          "detail": "0 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660155556_0093"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "bingo-card-generator",
+      "test_id": "T-77",
+      "project_id": "prj_1773660161285_0094",
+      "deployment_id": "dpl_1773660162017_6a7a16",
+      "live_url": "https://gate2-bingo.run402.com",
+      "subdomain": "gate2-bingo",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"Bingo\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <input>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API read from games",
+          "passed": true,
+          "detail": "0 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660161285_0094"
+        }
+      ],
+      "verdict": "PASS",
+      "error": null
+    },
+    {
+      "name": "memory-match",
+      "test_id": "T-78",
+      "project_id": "prj_1773660166541_0095",
+      "deployment_id": "dpl_1773660167231_ff3392",
+      "live_url": "https://gate2-memory.run402.com",
+      "subdomain": "gate2-memory",
+      "checks": [
+        {
+          "check": "HTTP 200",
+          "passed": true,
+          "detail": "Status: 200"
+        },
+        {
+          "check": "Content: \"Memory\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "Content: \"bld402\"",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "HTML element: <button>",
+          "passed": true,
+          "detail": "Found"
+        },
+        {
+          "check": "API write to scores",
+          "passed": true,
+          "detail": "Status: 201"
+        },
+        {
+          "check": "API read from scores",
+          "passed": true,
+          "detail": "1 rows returned, check passed"
+        },
+        {
+          "check": "Project preserved (--keep)",
+          "passed": true,
+          "detail": "project_id: prj_1773660166541_0095"
         }
       ],
       "verdict": "PASS",

@@ -20,8 +20,9 @@ You are a test agent that verifies run402-mcp tools work correctly by building b
 Before calling ANY MCP tool, you MUST set up the wallet so run402-mcp reuses the existing test wallet with testnet funds.
 
 1. Read the private key from `showcase/.wallet` in the bld402 repo
-2. Write it to `~/.config/run402/wallet.json` as: `{"privateKey": "<the key from the file>"}`
-3. Create the directory first if needed: `mkdir -p ~/.config/run402`
+2. Determine the config directory: on Windows use `$USERPROFILE/.config/run402`, on Unix use `$HOME/.config/run402`
+3. Create the directory if needed (use `mkdir -p` in bash or `New-Item -ItemType Directory -Force` in PowerShell)
+4. Write the wallet file as: `{"privateKey": "<the key from the file>"}`
 
 This ensures run402-mcp uses our funded test wallet instead of generating a new empty one.
 

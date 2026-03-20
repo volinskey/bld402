@@ -35,11 +35,15 @@ npx run402 projects provision --name "cli-test-{template}"
 Record the project_id from the output.
 
 ### 2. Run schema SQL
-Read the schema from the bld402 templates directory and pipe it:
+Read the schema file, strip comment lines (lines starting with `--`), and run each statement separately:
 ```bash
-npx run402 projects sql {project_id} "$(cat templates/utility/{template}/schema.sql)"
+# Read file, strip comments, run as single-line statements
+SQL=$(grep -v '^--' templates/utility/{template}/schema.sql | tr '\n' ' ')
+npx run402 projects sql {project_id} "$SQL"
 ```
 Or for games templates: `templates/games/{template}/schema.sql`
+
+**WARNING:** Do NOT pass multiline SQL or SQL with `--` comment lines as a CLI argument — it silently fails on Windows. Always strip comments and flatten to single line.
 
 ### 3. Apply RLS
 Read rls.json and apply each policy:
@@ -55,11 +59,13 @@ npx run402 functions deploy {project_id} read-note --code templates/utility/past
 ```
 
 ### 5. Deploy site
-Create a manifest JSON file, then deploy:
+Create a manifest JSON file in the project directory, then deploy:
 ```bash
-echo '{"files": [{"file": "index.html", "path": "templates/utility/{template}/index.html"}]}' > /tmp/manifest.json
-npx run402 sites deploy {project_id} --manifest /tmp/manifest.json
+echo '{"files": [{"file": "index.html", "path": "templates/utility/{template}/index.html"}]}' > manifest-tmp.json
+npx run402 sites deploy {project_id} --manifest manifest-tmp.json
+rm manifest-tmp.json
 ```
+NOTE: Do NOT use `/tmp/` — it doesn't exist on Windows. Use a local temp file instead.
 
 ### 6. Verify
 - Use WebFetch to check the deployed URL returns HTTP 200

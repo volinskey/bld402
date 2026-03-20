@@ -55,13 +55,22 @@ npx run402 functions deploy {project_id} read-note --code templates/utility/past
 ```
 
 ### 5. Deploy site
+Create a manifest JSON file, then deploy:
 ```bash
-npx run402 sites deploy {project_id} templates/utility/{template}/index.html
+echo '{"files": [{"file": "index.html", "path": "templates/utility/{template}/index.html"}]}' > /tmp/manifest.json
+npx run402 sites deploy {project_id} --manifest /tmp/manifest.json
 ```
 
 ### 6. Verify
 - Use WebFetch to check the deployed URL returns HTTP 200
-- Use `npx run402 projects query {project_id} {table}` to verify data access
+- Use `npx run402 projects rest {project_id} {table}` to verify data access
+
+## Known Issues (workarounds)
+
+- **SQL with comments:** SQL starting with `--` comment lines silently fails on Windows. Strip all comment lines before running SQL, or pass each statement as a single line.
+- **Sites deploy:** Requires `--manifest <file>` flag, NOT positional args.
+- **Query command:** Use `projects rest` (not `projects query`).
+- **RLS:** Always use `npx run402 projects rls <id> <template> '<json>'` — never raw SQL `CREATE POLICY` (GRANT to anon role is blocked).
 
 ## Templates to Test
 

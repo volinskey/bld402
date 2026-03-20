@@ -94,18 +94,18 @@ Per user feedback: prompts should say "Install run402-mcp and build me a..." —
 
 Gate 2 tests the raw HTTP API. We also need to verify run402-mcp tools work correctly.
 
-- [ ] 1D.1: Install run402-mcp locally: `claude mcp add run402 -- npx -y run402-mcp`
+- [!] 1D.1: Install run402-mcp locally: `claude mcp add run402 -- npx -y run402-mcp` — WAITING FOR: new Claude Code session with MCP installed
 - [ ] 1D.2: Build one template (shared-todo) end-to-end using MCP tools only (provision_postgres_project, run_sql, deploy_site, claim_subdomain)
 - [ ] 1D.3: If MCP tools fail, file bugs against run402-mcp and track here
 - [ ] 1D.4: Build a second template (paste-locker, which uses functions) via MCP tools
 
 ### 1E: Deploy and verify live site
 
-- [ ] 1E.1: Commit and push all fixes
-- [ ] 1E.2: Verify Amplify deploys successfully
-- [ ] 1E.3: WebFetch `bld402.com/llms.txt` — confirm run402-mcp install instructions
-- [ ] 1E.4: WebFetch `bld402.com/humans/mcp-install.html` — confirm prompt wording
-- [ ] 1E.5: WebFetch a build step page — confirm correct endpoints
+- [x] 1E.1: Commit and push all fixes — pushed `23ba129`
+- [x] 1E.2: Verify Amplify deploys successfully — SUCCEED
+- [x] 1E.3: WebFetch `bld402.com/llms.txt` — confirmed run402-mcp install instructions (verified earlier)
+- [x] 1E.4: WebFetch `bld402.com/humans/mcp-install.html` — confirmed "Install run402-mcp and build me a..." (no llms.txt)
+- [x] 1E.5: WebFetch `bld402.com/build/step/10` — confirmed `/projects/v1` (correct format)
 
 ### 1F: Red team — build each template from scratch
 
@@ -132,13 +132,13 @@ Create a lightweight test script (`test/bld402-compat.test.mjs`) in the **run402
 
 This gives run402 devs a fast "does bld402 still work?" check before every release.
 
-- [ ] 2.1: Design the test script — pick 3 representative templates (simple DB, functions, no-DB)
-- [ ] 2.2: Write `test/bld402-compat.test.mjs` in the run402 repo
-- [ ] 2.3: Include template SQL, RLS, and HTML from bld402 repo (copy or fetch)
-- [ ] 2.4: Add wallet preservation (same pattern as gate2-test --keep)
-- [ ] 2.5: Add to run402 CI/CD pipeline (or document as manual pre-release step)
-- [ ] 2.6: Run the test against current run402 — verify it passes
-- [ ] 2.7: Document in run402 AGENTS.md or CONTRIBUTING.md
+- [x] 2.1: Design the test script — 3 templates: shared-todo (DB+REST), paste-locker (DB+functions), landing-waitlist (DB+REST+unique constraint)
+- [x] 2.2: Write `test/bld402-compat.ts` in the run402 repo (TypeScript, same pattern as e2e.ts)
+- [x] 2.3: All SQL, RLS, and function code embedded as string literals (self-contained)
+- [x] 2.4: Projects are created and deleted per test (no wallet preservation needed — this is a run402 dev test, not a bld402 showcase test)
+- [x] 2.5: Added npm script: `"test:bld402-compat": "tsx test/bld402-compat.ts"` in run402/package.json
+- [x] 2.6: Run against live API — **42/42 PASS, zero failures**
+- [x] 2.7: Documented in run402 AGENTS.md (Testing section with test matrix)
 
 ---
 
@@ -158,8 +158,15 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 
 ---
 
-## Notes
+## Implementation Notes
 
+- **SIWX auth required:** run402 wallet auth uses CAIP-122 SIGN-IN-WITH-X headers (not the old X-Run402-Wallet/Signature/Timestamp). Import `createSIWxPayload` and `encodeSIWxHeader` from `@x402/extensions/sign-in-with-x`. For paid routes, `fetchPaid` (from `@x402/fetch`) handles this automatically.
+- **deployment_id field:** run402 returns `deployment_id` (not `id`) in the deployment response.
+- **Subdomain ownership:** gate2-test subdomains (gate2-todo, gate2-trivia, etc.) are claimed by the OLD wallet from earlier test runs. New wallet can't reclaim them. Options: use admin API to release, or use different subdomain names.
 - **Wallet preservation:** Test wallet at `showcase/.wallet` must NEVER be deleted between test cycles. Admin faucet (`/faucet/v1/admin`) is used to top up without rate limits.
-- **MCP version check:** Every test run should verify run402-mcp is at the latest version before proceeding.
-- **run402 is being updated in parallel** — coordinate with run402 changes before running Step 1C/1D.
+- **MCP version check:** Every test run logs run402-mcp version in evidence.json. Currently `npm: 1.13.5, local: unknown` (not installed locally, which is expected for gate2-test which uses raw API).
+
+## Log
+
+- 2026-03-20: Completed Step 0 (version check), Step 1A (endpoints, 12 files), Step 1B (prompts), Step 1C (gate2-test — SIWX auth fix, deployment_id fix, all 13 PASS), Step 1E (Amplify deployed, WebFetch verified). Pushed `23ba129`.
+- 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs. Step 1D blocked (needs MCP session).

@@ -104,11 +104,11 @@ There are 3 layers of testing (raw API already done by Gate 2):
 
 #### 1D-CLI: Test via run402 CLI (do this FIRST)
 
-- [ ] 1D-CLI.1: Create `run402-cli-tester` agent — runs `npx run402 init`, then uses CLI commands to build templates
-- [ ] 1D-CLI.2: Test shared-todo via CLI: `run402 init` → `run402 tier set prototype` → `run402 projects provision` → `run402 projects sql <id> <schema>` → `run402 projects rls <id> public_read_write '[...]'` → `run402 sites deploy <id> index.html` → verify
-- [ ] 1D-CLI.3: Test paste-locker via CLI (includes `run402 functions deploy`)
-- [ ] 1D-CLI.4: Test landing-waitlist via CLI
-- [ ] 1D-CLI.5: Document CLI bugs/issues
+- [x] 1D-CLI.1: Created `run402-cli-tester` agent (`.claude/agents/run402-cli-tester.md`)
+- [x] 1D-CLI.2: shared-todo PASS via CLI — 5 bugs found (tier set returns HTML, init shows wrong tier, SQL em-dash silent fail, sites deploy syntax changed, projects query doesn't exist)
+- [x] 1D-CLI.3: paste-locker PASS via CLI — functions deployed + create-note/read-note roundtrip worked
+- [x] 1D-CLI.4: landing-waitlist PASS via CLI — RLS applied, REST write/read confirmed
+- [ ] 1D-CLI.5: Document CLI bugs/issues — aggregate all bugs from CLI + MCP tests
 
 #### 1D-MCP: Test via run402-mcp MCP tools (after CLI passes)
 

@@ -1,7 +1,7 @@
 # Plan: bld402 on run402-mcp
 
 **Created:** 2026-03-20
-**Status:** In Progress
+**Status:** BLOCKED — waiting for run402 bug fixes (see `run402/docs/bug_reports/bld402-compat-bugs.md`)
 **Goal:** Get bld402.com fully working on top of run402-mcp/CLI, with regression tests that protect bld402 from run402 changes.
 
 ---
@@ -202,3 +202,4 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 - 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs.
 - 2026-03-20: Discovered run402 CLI (`npx run402`) — separate npm package with full command set. Shares wallet with MCP. Rewrote Step 1D to test CLI first, then MCP. Added Step 1F for website updates.
 - 2026-03-20: ALL 6 TESTS PASS — 3 CLI (shared-todo, paste-locker, landing-waitlist) + 3 MCP (same). Bugs: em-dash SQL, sites deploy syntax, tier display, RLS needs dedicated command not raw SQL.
+- 2026-03-20: Filed 7 bugs against run402 (`run402/docs/bug_reports/bld402-compat-bugs.md`). 2 HIGH, 2 MEDIUM, 3 LOW. BLOCKED on run402 fixes before proceeding to Step 1F/1G. Resume with `/implement bld402-on-run402-mcp`.

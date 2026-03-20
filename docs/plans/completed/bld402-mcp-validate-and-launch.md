@@ -1,10 +1,12 @@
 # bld402-mcp — Validate & Launch Plan
 
+> **OBSOLETE (2026-03-16):** bld402-mcp has been consolidated into run402-mcp. The bld402-mcp npm package is unpublished, the GitHub repo archived. All MCP/CLI functionality now lives in run402-mcp. See `consolidation-methodology.md` for rationale and `run402-template-validation_system_test.md` for the replacement test plan.
+
 **Spec:** `docs/products/bld402/bld402-spec.md`
-**Repo:** https://github.com/kychee-com/bld402-mcp
+**Repo:** https://github.com/kychee-com/bld402-mcp (ARCHIVED)
 **Local:** `c:\Workspace-Kychee\bld402-mcp`
 **Website:** `c:\Workspace-Kychee\bld402\public\`
-**Status:** Complete
+**Status:** Complete → Obsolete
 **Goal:** Add remove tool, write CLI, update website, validate with REAL deploys, publish to npm
 
 ---

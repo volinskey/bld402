@@ -3,7 +3,7 @@ product: bld402-mcp
 spec: c:\Workspace-Kychee\bld402\docs\products\bld402\bld402-spec.md
 cycle: 7
 timestamp: 2026-03-15T00:00:00Z
-verdict: BLOCKED
+verdict: OBSOLETE
 tests_total: 76
 tests_run: 76
 tests_passed: 59
@@ -12,6 +12,8 @@ tests_blocked: 3
 tests_deferred: 0
 tests_gap: 14
 ---
+
+> **OBSOLETE (2026-03-16):** bld402-mcp consolidated into run402-mcp. This system test is replaced by `run402-template-validation_system_test.md`. Kept for historical reference of 7 test cycles and findings.
 
 # System Test: bld402-mcp
 

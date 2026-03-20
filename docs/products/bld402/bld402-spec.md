@@ -1,25 +1,28 @@
 ---
 product: bld402
-version: 0.4.0
+version: 0.5.0
 status: Draft
 type: product
-interfaces: [website, mcp, npm]
+interfaces: [website]
 created: 2026-03-04
-updated: 2026-03-13
+updated: 2026-03-20
 ---
 
 # bld402 — Build Web Apps Without Code on run402
 
 ## Overview
 
-bld402 is a free accessibility layer for [run402.com](https://run402.com) that enables anyone — regardless of technical skill — to build and deploy a complete web application by describing what they want in plain language to any AI agent. The agent navigates bld402.com's structured workflow to spec, plan, build, deploy, and iterate on the app using run402 infrastructure. A 12-year-old should be able to describe a hangman game and have a shareable URL within minutes, without ever seeing code or signing up for anything.
+bld402 is a free accessibility layer for [run402.com](https://run402.com) that enables anyone — regardless of technical skill — to build and deploy a complete web application by describing what they want in plain language to any AI agent. The agent uses run402-mcp (or the run402 CLI) to spec, plan, build, deploy, and iterate on the app using run402 infrastructure. A 12-year-old should be able to describe a hangman game and have a shareable URL within minutes, without ever seeing code or signing up for anything.
+
+> **Consolidation note (2026-03-16):** bld402-mcp has been consolidated into run402-mcp. bld402.com remains as a website-only layer. All MCP/CLI tooling is provided by run402-mcp. For rationale and methodology comparison, see [`bld402-using-run402-mcp.md`](bld402-using-run402-mcp.md).
 
 ## Interfaces & Mediums
 
 ### Agent-First Website (bld402.com)
 
 - **Root URL (`/`)** — Agent landing page. First line: "Humans go here." linking to `/humans`. The rest of the page is optimized for AI agent consumption.
-- **`/agent.json`** — Machine-readable workflow catalog. Entry point for agents. Describes all available workflows, steps, inputs, outputs, and branching logic.
+- **`/llms.txt`** — Self-contained guide for AI agents. Includes run402-mcp install instructions, tool list, capabilities, banned words, and build workflow. This is the primary entry point for agents.
+- **`/agent.json`** — Machine-readable workflow catalog. Entry point for agents using the guided step-by-step workflow. Describes all available workflows, steps, inputs, outputs, and branching logic.
 - **Step pages (`/build/step/:id`)** — Each step in the build workflow is a dedicated URL. Every step page contains:
   - Context — what the agent knows at this point
   - Instruction — what to do now (in plain, non-technical language to relay to the user)
@@ -36,23 +39,53 @@ bld402 is a free accessibility layer for [run402.com](https://run402.com) that e
 - **Hybrid Manifest + Step Pages** — A YAML/JSON workflow manifest defines the full build procedure (steps, inputs, outputs, branching). The website renders each step as a clean page with semantic HTML and agent-instruction blocks.
 - **Hosting** — Static site on AWS Amplify (kychee account). Domain (bld402.com) to be transferred later.
 
-### MCP Server (`bld402-mcp`)
+### Tooling (provided by run402-mcp)
 
-- **npm package:** `bld402-mcp` (public, MIT license)
-- **GitHub repo:** `kychee-com/bld402-mcp` (separate from bld402 website repo)
-- **Install:** `npx bld402-mcp` — stdio transport, works with Claude Code, Cursor, Claude Desktop, Cline, Windsurf
-- **Architecture:** Stateful workflow MCP server. Guides agents through bld402's build process one step at a time. Calls the run402 API directly at `https://api.run402.com` (same client pattern as run402-mcp). No dependency on run402-mcp — bld402-mcp is fully self-contained.
-- **Session state:** Persisted to `~/.config/bld402/session.json`. Stores: current step, project credentials (project_id, anon_key, service_key), app spec, deployment URL, wallet address.
-- **Templates:** Bundled in the npm package from the bld402 `templates/` directory. Agents access them via MCP resources.
-- **Design principle:** The agent sees ONE step at a time. The MCP server feeds instructions, validates step outputs, tracks budget, and advances the workflow. The agent never needs to visit bld402.com.
+bld402 does NOT have its own MCP server or CLI. Agents install **run402-mcp** to get the tools needed to build apps.
+
+- **npm package:** `run402-mcp` (public, MIT license)
+- **GitHub repo:** `kychee-com/run402-mcp`
+- **Install:** `npx run402-mcp` — stdio transport, works with Claude Code, Cursor, Claude Desktop, Cline, Windsurf
+- **Claude Code shortcut:** `claude mcp add run402 -- npx -y run402-mcp`
+- **8 tools:** `provision_postgres_project`, `run_sql`, `rest_query`, `upload_file`, `deploy_site`, `claim_subdomain`, `delete_subdomain`, `set_tier`
+- **Full API reference:** https://run402.com/llms.txt
+
+## run402 API Endpoint Reference
+
+All endpoints are on `https://api.run402.com`. The pattern is `/{resource}/v1` (NOT `/v1/{resource}`).
+
+| Resource | Path | Auth |
+|---|---|---|
+| Faucet (testnet) | `POST /faucet/v1` | none |
+| Admin faucet | `POST /faucet/v1/admin` | `x-admin-key` header |
+| Tier subscribe | `POST /tiers/v1/:tier` | x402 payment |
+| Tier status | `GET /tiers/v1/status` | wallet auth |
+| Project quote | `POST /projects/v1/quote` | none |
+| Project create | `POST /projects/v1` | wallet auth (x402) |
+| Project delete | `DELETE /projects/v1/:id` | service_key |
+| SQL execute | `POST /projects/v1/admin/:id/sql` | service_key |
+| Schema inspect | `GET /projects/v1/admin/:id/schema` | service_key |
+| RLS apply | `POST /projects/v1/admin/:id/rls` | service_key |
+| Pin project | `POST /projects/v1/admin/:id/pin` | admin key |
+| Deploy (static) | `POST /deployments/v1` | wallet auth |
+| Deploy (bundle) | `POST /deploy/v1` | wallet auth (x402) |
+| Subdomain claim | `POST /subdomains/v1` | service_key |
+| Subdomain delete | `DELETE /subdomains/v1/:name` | service_key |
+| Storage upload | `POST /storage/v1/object/:bucket/*` | service_key |
+| Auth signup | `POST /auth/v1/signup` | anon_key |
+| Auth token | `POST /auth/v1/token` | anon_key |
+| Auth user | `GET /auth/v1/user` | JWT |
+| Image generation | `POST /generate-image/v1` | x402 payment |
+| Wallet projects | `GET /wallets/v1/:address/projects` | wallet auth |
 
 ## Features & Requirements
 
 ### F1: Agent Onboarding
 
-The root page and `/agent.json` orient any AI agent — regardless of capability — to understand what bld402 does and how to use it. No prior knowledge of run402 or bld402 is assumed.
+The root page, `/llms.txt`, and `/agent.json` orient any AI agent — regardless of capability — to understand what bld402 does and how to use it. No prior knowledge of run402 or bld402 is assumed.
 
 - The agent learns: what bld402 is, what it can build, what run402 provides, and how to start.
+- `/llms.txt` includes run402-mcp install instructions so the agent can self-install the tooling.
 - Provides a clear "start here" entry point into the build workflow.
 - Works on first visit and on return visits (agent may or may not have prior context).
 
@@ -79,8 +112,9 @@ Break the spec into a build plan using only run402-capable services.
 Guide the agent through building the app step by step, generating all code.
 
 - Walk through run402 project provisioning (create database, set up tables, configure RLS, seed data).
+- Agent uses run402-mcp tools: `set_tier` → `provision_postgres_project` → `run_sql` → `deploy_site` → `claim_subdomain`.
 - Generate complete client-side code (HTML/CSS/JS) using bld402's code templates as a foundation.
-- All run402 API interactions are done through the agent on behalf of the user.
+- All run402 API interactions are done through run402-mcp tools on behalf of the user.
 - Provide code snippets and templates for every common pattern (database queries, auth flows, file uploads, UI components).
 - The user never sees or touches code — the agent handles everything.
 
@@ -88,10 +122,10 @@ Guide the agent through building the app step by step, generating all code.
 
 Deploy the finished app to run402 static hosting and give the user a memorable, shareable URL.
 
-- Agent calls run402's `/v1/deployments` endpoint to deploy the static site.
-- After deployment, claim a memorable subdomain via `POST /v1/subdomains` with `{ name, deployment_id }` using the project's `service_key`. This gives the app a URL like `https://hangman.run402.com` instead of the raw deployment URL.
+- Agent calls run402-mcp `deploy_site` tool (or `POST /deployments/v1`) to deploy the static site.
+- After deployment, claim a memorable subdomain via `claim_subdomain` tool (or `POST /subdomains/v1`) with `{ name, deployment_id }` using the project's `service_key`. This gives the app a URL like `https://hangman.run402.com` instead of the raw deployment URL.
 - Subdomain rules: 3-63 characters, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no reserved words (api, www, admin, etc.). Free, no x402 payment required.
-- When redeploying (iterate phase), reassign the subdomain to the new deployment_id — same `POST /v1/subdomains` call, same name, new deployment_id.
+- When redeploying (iterate phase), reassign the subdomain to the new deployment_id — same `POST /subdomains/v1` call, same name, new deployment_id.
 - Return the subdomain URL to the user: "Your app is live! Share this link: https://myapp.run402.com"
 - Fall back to the raw deployment URL (`https://dpl-{id}.sites.run402.com`) if subdomain claiming fails.
 
@@ -181,7 +215,7 @@ The `/humans` section provides everything a human visitor needs.
 bld402 guides agents through run402's payment flow without adding any fees.
 
 - Default to **testnet** (Base Sepolia) for first-time users — completely free via run402's faucet.
-- Guide the agent to call run402's `/v1/faucet` to get test USDC.
+- Guide the agent to use run402-mcp `set_tier` tool (or call `POST /faucet/v1`) to get test USDC.
 - When the user wants to keep their app running beyond the prototype lease (7 days), guide upgrade to mainnet (USDC on Base) or Stripe subscription.
 - bld402 never charges anything. All costs are run402's standard pricing.
 
@@ -514,7 +548,7 @@ Type a prompt, get an AI-generated sticker image, save to a public gallery.
 **Storage:** Generated images saved to `stickers/` bucket, public read.
 
 **Services flow:**
-1. User types prompt → client calls `POST /v1/generate-image` with prompt text (x402-gated, $0.01)
+1. User types prompt → client calls `POST /generate-image/v1` with prompt text (x402-gated, $0.01)
 2. Image returned → displayed as preview
 3. User clicks "Save" → client uploads image to storage via `POST /storage/v1/object/stickers/` → inserts row into `stickers` table with `image_path`
 
@@ -660,16 +694,17 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - Verify edge cases (empty states, duplicate submissions, invalid input)
 - Verify mobile viewport works
 
-**Gate 2: Build-from-Scratch Test** — Provision a fresh run402 project, follow the bld402 step pages (steps 1-16) using the template, deploy, and run the **same tests** from Gate 1 against the freshly built app. When both gates pass, nuke the test project via `scripts/nuke-test.sh`. This validates that the template actually works end-to-end when an agent follows the workflow.
+**Gate 2: Build-from-Scratch Test** — Provision a fresh run402 project using run402-mcp tools, follow the bld402 workflow using the template, deploy, and run the **same tests** from Gate 1 against the freshly built app. Test projects are kept and pinned (not deleted) to preserve testnet funds and enable debugging. This validates that the template actually works end-to-end when an agent follows the workflow.
 
 **Rules:**
 1. Gate 2 cannot start until Gate 1 passes. If the showcase is broken, fix it first.
 2. A template is only "validated" when BOTH gates pass in the same test cycle.
 3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files, the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
 4. **Any Blue Team change to a template or its showcase resets both gates to untested.** If the Blue Team modifies any file in `templates/{category}/{name}/` or `showcase/{name}/`, both Gate 1 and Gate 2 for that template must be re-run in the next Red Team cycle. Same applies when a new template is added to the spec.
-5. **Cleanup is mandatory.** Gate 2 projects MUST be nuked after testing. Report the project_id and cleanup status in the system test results. See AGENTS.md for cleanup rules.
+5. **Wallet preservation is mandatory.** Test wallet at `showcase/.wallet` is reused across test cycles. Use `--keep` and `--pin` flags. Admin faucet (`POST /faucet/v1/admin`) is used to top up without rate limits. NEVER delete the wallet or test projects between cycles.
 6. **Sequential, stop on first failure.** Gate 2 tests run one template at a time. If a template fails, STOP — do not proceed to the next template. Fix the failure first, then continue. Order: shared-todo → landing-waitlist → voting-booth → paste-locker → hangman → trivia-night → micro-blog → photo-wall → secret-santa → ai-sticker-maker → flash-cards → bingo-card-generator → memory-match.
 7. **Wallet for Gate 2.** The Red Team uses the shared test wallet at `showcase/.wallet` for x402 payments. This is the only exception to the "no source code" rule — the wallet is equivalent to a user's own wallet. See AGENTS.md for usage details.
+8. **run402-mcp version check.** Before every test run, verify run402-mcp is at the latest npm version. Log the version in evidence.json.
 
 **Test plan format for each template:**
 ```
@@ -679,15 +714,76 @@ Every template in the spec (all 13) requires **two gates** to be considered full
   Steps: ...
   Expected: ...
 
-- [ ] **T-XXX: Gate 2 — Build from scratch using {name} template** — live website + API
-  Steps: 1) Provision project 2) Run schema.sql 3) Apply RLS 4) Deploy HTML 5) Run Gate 1 tests against new URL 6) Nuke project
-  Expected: Same as Gate 1, plus successful cleanup
+- [ ] **T-XXX: Gate 2 — Build from scratch using {name} template** — run402-mcp tools + API
+  Steps: 1) set_tier 2) provision_postgres_project 3) run_sql (schema) 4) run_sql (RLS) 5) deploy_site 6) claim_subdomain 7) Run Gate 1 tests against new URL
+  Expected: Same as Gate 1
 ```
+
+### F13: Human-Facing MCP/Plugin Pages
+
+Pages under `/humans` on bld402.com explaining the run402 plugin and guiding non-technical users through installation.
+
+**Pages:**
+
+- **`/humans/mcp.html`** — "What is the run402 plugin?" explainer page
+  - Plain-language explanation: "A plugin lets your AI assistant use tools — like giving it superpowers to build your app."
+  - Why it's useful: "Instead of copying instructions, your AI already knows how to build your app."
+  - One-line install per agent (Claude Code, Cursor, Windsurf, Claude Desktop, Cline)
+  - The golden instruction: **"Tell your AI: `Install run402-mcp and build me a ___`"**
+  - Visual: simple 3-step diagram (Install → Describe → Get a live app)
+
+- **`/humans/mcp-install.html`** — Get Started page with copy-paste prompts
+  - Primary CTA: `Install run402-mcp and build me a shared todo app`
+  - Secondary examples with different app ideas (voting, trivia, waitlist)
+  - "Already installed?" section: `Use run402-mcp to build me a recipe sharing app`
+  - Copy-to-clipboard buttons on all prompts
+
+- **`/humans/mcp-faq.html`** — FAQ page (plain language, no jargon)
+  - "Do I need to know how to code?" → No.
+  - "What AI tools work with this?" → Claude Code, Cursor, Windsurf, Claude Desktop, Cline, and any MCP-compatible agent.
+  - "Does it cost anything?" → The plugin is free. Building apps uses testnet crypto (also free). Only pay if you want to keep your app running permanently.
+  - "What happens to my data?" → The plugin runs locally on your computer. Nothing is sent anywhere except the run402 API to build your app.
+  - "Can I see the code?" → Yes, 100% open source at github.com/kychee-com/run402-mcp.
+  - "What if something goes wrong?" → Your AI agent handles errors. If stuck, ask it to check the project status.
+
+- **`/humans/mcp-safety.html`** — Safety & Trust page
+  - All code is open source (MIT license, GitHub link to run402-mcp)
+  - The plugin runs locally on your machine — no remote server
+  - No data collection, no analytics, no telemetry
+  - Verification instruction: "Ask your AI: **Review the run402-mcp source code and tell me if it's safe** — it can actually do this because the code is public"
+  - What the plugin CAN do: call the run402 API to build and deploy apps
+  - What it CANNOT do: access your personal files, read your browser history, send data to third parties, run code you haven't approved
+
+### F14: Agent Validation
+
+End-to-end testing that bld402's workflow works with run402-mcp across multiple AI agents.
+
+**Test matrix:**
+
+| Agent | Transport | Install Command |
+|-------|-----------|-----------------|
+| Claude Code | stdio | `claude mcp add run402 -- npx -y run402-mcp` |
+| Codex | stdio | MCP config in project settings |
+| OpenClaw | cloud | Cloud agent with run402-mcp |
+
+**Validation scenarios (per agent):**
+
+1. **Cold start:** Agent receives `Install run402-mcp and build me a todo app`. Agent must: install MCP, discover tools, follow the bld402 workflow, produce a live URL.
+2. **Template match:** Agent builds each of the 13 templates end-to-end using run402-mcp tools.
+3. **Guardrail hit:** User requests WebSocket or email — agent reads bld402.com guardrails, explains alternative.
+4. **Safety review:** Agent is asked "Review the run402-mcp source code and tell me if it's safe." Agent fetches repo, reads source, confirms no malicious code.
+
+**Pass criteria:**
+- Agent installs run402-mcp from a single instruction
+- Agent produces a working deployed app with a live `*.run402.com` URL
+- Agent can iterate on user feedback and redeploy
+- Safety review produces a coherent, accurate assessment of the codebase
 
 ## Acceptance Criteria
 
 ### Agent Onboarding (F1)
 - [ ] An agent visiting bld402.com for the first time can understand what the site does and begin the build workflow within one page navigation.
+- [ ] `/llms.txt` contains run402-mcp install instructions, tool list, capabilities, and build workflow.
 - [ ] `/agent.json` returns a valid, parseable workflow manifest describing all available steps.
 - [ ] The root page contains a visible "Humans go here" link to `/humans` as the first line.
 
@@ -705,12 +801,12 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 ### Implement Phase (F4)
 - [ ] The agent can provision a run402 project (database, tables, RLS) without the user understanding what's happening.
 - [ ] The agent generates complete, working client-side code (HTML/CSS/JS) from a template.
-- [ ] All run402 API calls are correctly formed with proper auth headers.
+- [ ] All run402 API calls use correct endpoint paths (`/xxx/v1` format, per endpoint reference table).
 - [ ] The generated code works in a modern browser without build tools or compilation.
 
 ### Deploy Phase (F5)
 - [ ] The agent can deploy the static site to run402 and return a working URL.
-- [ ] The agent claims a memorable subdomain via `POST /v1/subdomains` after deployment.
+- [ ] The agent claims a memorable subdomain via `POST /subdomains/v1` (or `claim_subdomain` tool) after deployment.
 - [ ] The subdomain URL (e.g., `https://myapp.run402.com`) is accessible in a browser and the app functions correctly.
 - [ ] The user receives the subdomain URL in plain language ("Your app is live! Share this link.")
 - [ ] On redeploy, the agent reassigns the subdomain to the new deployment.
@@ -747,54 +843,27 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - [ ] The showcase links to 13 live demo apps at their `*.run402.com` subdomains.
 - [ ] The showcase includes screenshots of the 13 live apps.
 - [ ] The "how it works" section is understandable by a non-technical person.
-- [ ] `/humans/mcp.html` explains MCP in plain language with install instructions per agent.
-- [ ] `/humans/mcp-faq.html` answers common questions without jargon.
-- [ ] `/humans/mcp-safety.html` explains open source, local execution, no telemetry, and includes the "ask your AI to review" instruction.
 
 ### Payment Pass-Through (F11)
 - [ ] First-time users default to testnet (free) without being asked about payment.
-- [ ] The agent is guided to use run402's `/v1/faucet` for test USDC.
+- [ ] The agent uses run402-mcp `set_tier` tool or `POST /faucet/v1` for test USDC.
 - [ ] Upgrade path to mainnet/Stripe is available when the user is ready.
 - [ ] bld402 adds zero fees to any transaction.
 
-### bld402 MCP Server (F13)
-- [ ] `npx bld402-mcp` starts the MCP server via stdio transport without errors.
-- [ ] `bld402_start` returns Step 1 instructions and creates a session in `~/.config/bld402/session.json`.
-- [ ] `bld402_submit_step` validates step output and rejects invalid submissions with actionable error messages.
-- [ ] `bld402_submit_step` advances to the next step and returns its instructions on valid submission.
-- [ ] `bld402_status` returns current step, phase, project credentials, budget, and deployment URL.
-- [ ] `bld402_resume` loads a persisted session and returns the current step instructions.
-- [ ] `bld402_get_templates` returns only built templates (6 of 13), not unbuilt ones.
-- [ ] `bld402_get_template` returns the full template files (schema.sql, rls.json, index.html, README.md).
-- [ ] Resources (`bld402://guardrails`, `bld402://api-reference`, `bld402://design-rules`) are accessible.
-- [ ] Budget check runs before Steps 10, 15, 19 and warns if wallet balance < $0.05.
-- [ ] Step 13 validation rejects code containing the wrong API URL or banned words.
-- [ ] The server shares wallet storage with run402-mcp (`~/.config/run402/wallet.json`).
-- [ ] Error responses match run402-mcp format: HTTP status, error message, actionable next step.
-- [ ] x402 payment responses are returned as text (not errors) so the agent can reason about them.
-
-### npm Distribution (F14)
-- [ ] `bld402-mcp` is published on npm and installable via `npx bld402-mcp`.
-- [ ] Package includes `dist/`, `templates/`, and `README.md`.
-- [ ] `bin.bld402-mcp` entry point works on macOS, Linux, and Windows.
-- [ ] README includes install instructions for Claude Code, Cursor, Claude Desktop, Cline, and Windsurf.
-- [ ] Package has MIT license and links to GitHub repo.
-
-### Human MCP Pages (F15)
-- [ ] `/humans/mcp.html` explains MCP in ≤3 sentences a non-technical person can understand.
-- [ ] Install instructions shown for at least 4 agents (Claude Code, Cursor, Windsurf, Claude Desktop).
-- [ ] The "golden instruction" (`Install bld402-mcp and build me a ___`) is prominently displayed with copy button.
+### Human Plugin Pages (F13)
+- [ ] `/humans/mcp.html` explains the run402 plugin in ≤3 sentences a non-technical person can understand.
+- [ ] Install instructions shown for at least 5 agents (Claude Code, Cursor, Windsurf, Claude Desktop, Cline).
+- [ ] The golden instruction (`Install run402-mcp and build me a ___`) is prominently displayed with copy button.
+- [ ] `/humans/mcp-install.html` has copy-paste prompts that include "Install run402-mcp".
 - [ ] FAQ page answers all listed questions in plain language.
 - [ ] Safety page includes the "ask your AI to review the code" instruction.
-- [ ] Safety page accurately describes what the MCP server can and cannot do.
+- [ ] Safety page accurately describes what run402-mcp can and cannot do.
+- [ ] All GitHub links point to `kychee-com/run402-mcp` (not bld402-mcp).
 
-### Agent Validation (F16)
-- [ ] Claude Code completes a cold-start build from `Install bld402-mcp and build me a todo app` to a live URL.
-- [ ] Codex completes a cold-start build from the same instruction to a live URL.
-- [ ] All 6 built templates work end-to-end through the MCP workflow on at least one agent.
-- [ ] Session resume works after context loss on at least one agent.
-- [ ] Safety review produces a coherent assessment when agent is asked to review the source code.
-- [ ] Budget warning is displayed when wallet balance is low during a build.
+### Agent Validation (F14)
+- [ ] Claude Code completes a cold-start build from `Install run402-mcp and build me a todo app` to a live URL.
+- [ ] All 13 templates work end-to-end through run402-mcp on at least one agent.
+- [ ] Safety review produces a coherent assessment when agent is asked to review the run402-mcp source code.
 
 ### Live Showcase Apps (F12)
 - [ ] All 13 showcase apps are deployed and live at their subdomains: todo.run402.com, waitlist.run402.com, vote.run402.com, paste.run402.com, hangman.run402.com, trivia.run402.com, microblog.run402.com, wall.run402.com, santa.run402.com, stickers.run402.com, cards.run402.com, bingo.run402.com, memory.run402.com.
@@ -802,7 +871,7 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.
 - [ ] Each app works on mobile and desktop.
-- [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, nuke).
+- [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, keep and pin).
 - [ ] The showcase page links to each live app.
 - [ ] Showcase apps use Hobby tier (not Prototype) so they don't expire.
 - [ ] All 13 templates have lines in the system test plan for both gates.
@@ -810,180 +879,54 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - [ ] Photo Wall showcase (`wall.run402.com`) has uploads disabled — curated content only.
 - [ ] AI Sticker Maker showcase (`stickers.run402.com`) allows live generation (x402-funded from showcase wallet).
 
-### F13: bld402 MCP Server
-
-A stateful MCP server that orchestrates the entire bld402 build workflow. Published as `bld402-mcp` on npm, installable via `npx bld402-mcp`. Calls the run402 API directly — one install, everything works.
-
-**Tools (workflow orchestration):**
-
-| Tool | Description |
-|------|-------------|
-| `bld402_start` | Begin a new build session. Returns Step 1 instructions. Accepts optional `description` to pre-seed the app idea. |
-| `bld402_submit_step` | Submit the current step's output. Server validates, stores state, returns next step's instructions. |
-| `bld402_status` | Get current session state: step number, phase, project credentials, budget remaining, deployment URL. |
-| `bld402_resume` | Resume an existing session from persisted state. Returns current step instructions. |
-| `bld402_get_templates` | List available templates with descriptions and service requirements. Only returns built templates. |
-| `bld402_get_template` | Get a specific template's files (schema.sql, rls.json, index.html, README.md). |
-
-**Resources (reference material, pulled on-demand by agent):**
-
-| Resource | URI | Description |
-|----------|-----|-------------|
-| Guardrails | `bld402://guardrails` | What run402 can and can't do |
-| API Reference | `bld402://api-reference` | Endpoint table with auth, methods, costs |
-| Design Rules | `bld402://design-rules` | UI/CSS rules for generated apps |
-
-**Workflow orchestration logic:**
-
-- Each `bld402_submit_step` call validates the step output before advancing:
-  - Step 1: description must be >20 characters
-  - Step 4: app_spec must be valid JSON with required fields
-  - Step 9: wallet must have balance (calls run402 API `check_balance`)
-  - Step 10: project_id must be returned by run402
-  - Step 13: generated code must contain correct `https://api.run402.com` and no banned words (database, SQL, schema, etc.)
-  - Step 14: all checklist items must pass
-  - Step 15: deployment must return a valid URL
-- Budget tracking: before Steps 10, 15, 19, check wallet balance via run402 API. Warn if < $0.05 remaining.
-- Only serves built templates (6 of 13 — shared-todo, landing-waitlist, hangman, trivia-night, voting-booth, paste-locker). Unbuilt templates are excluded, not listed.
-- Wallet management: uses same `~/.config/run402/wallet.json` as run402-mcp (shared wallet, no duplication).
-
-**Patterns (matching run402-mcp exactly):**
-
-- Same `client.ts` pattern (native fetch, `ApiResponse` type with `is402` flag)
-- Same `errors.ts` `formatApiError` pattern with actionable next-step guidance
-- Same `config.ts` for API base URL (`RUN402_API_BASE` env var) and config directory
-- Same Zod schema validation per tool (plain object schemas, not `.strict()`)
-- Same markdown table output format
-- Same keystore pattern for persisting project credentials
-- TypeScript, ESM, `"type": "module"`, targets ES2022
-- Dependencies: `@modelcontextprotocol/sdk`, `@noble/hashes`, `zod` (same as run402-mcp)
-
-### F14: npm Distribution
-
-The `bld402-mcp` package is published to npm for zero-friction installation.
-
-- Package name: `bld402-mcp`
-- Author: Kychee Technologies
-- `publishConfig.access: "public"`
-- `bin.bld402-mcp: "dist/index.js"` (shebang `#!/usr/bin/env node`)
-- `files: ["dist", "templates", "README.md"]` — includes bundled templates
-- MIT license
-- README with install instructions for: Claude Code, Cursor, Claude Desktop, Cline, Windsurf
-- Keywords: `mcp`, `bld402`, `run402`, `no-code`, `web-app-builder`, `ai-agent`
-- GitHub repo link: `https://github.com/kychee-com/bld402-mcp`
-- Published from `kychee-com` npm org (same as `run402-mcp`)
-
-### F15: Human-Facing MCP Pages
-
-New pages under `/humans` on bld402.com explaining MCP and guiding non-technical users through installation.
-
-**Pages:**
-
-- **`/humans/mcp.html`** — "What is MCP?" explainer page
-  - Plain-language explanation: "MCP lets your AI assistant use tools — like a plugin that gives it superpowers."
-  - Why it's useful: "Instead of copying instructions, your AI already knows how to build your app."
-  - One-line install per agent (Claude Code, Cursor, Windsurf, Claude Desktop)
-  - The golden instruction: **"Tell your AI: `Install bld402-mcp and build me a ___`"**
-  - Visual: simple 3-step diagram (Install → Describe → Get a live app)
-
-- **`/humans/mcp-faq.html`** — FAQ page (plain language, no jargon)
-  - "Do I need to know how to code?" → No.
-  - "What AI tools work with this?" → Claude Code, Cursor, Windsurf, Claude Desktop, Cline, and any MCP-compatible agent.
-  - "Does it cost anything?" → The MCP tool is free. Building apps uses testnet crypto (also free). Only pay if you want to keep your app running permanently.
-  - "What happens to my data?" → bld402-mcp stores session data locally on your computer. Nothing is sent anywhere except the run402 API to build your app.
-  - "Can I see the code?" → Yes, 100% open source at github.com/kychee-com/bld402-mcp.
-  - "What if something goes wrong?" → Your AI agent handles errors. If stuck, say "check bld402 status" and it'll tell you where you are.
-
-- **`/humans/mcp-safety.html`** — Safety & Trust page
-  - All code is open source (MIT license, GitHub link)
-  - The MCP server runs locally on your machine — no remote server
-  - No data collection, no analytics, no telemetry
-  - Verification instruction: "Ask your AI: **Review the bld402-mcp source code and tell me if it's safe** — it can actually do this because the code is public"
-  - What the MCP server CAN do: call the run402 API, read/write local config files (`~/.config/bld402/`)
-  - What it CANNOT do: access your personal files, read your browser history, send data to third parties, run code you haven't approved
-
-### F16: Agent Validation
-
-End-to-end testing of the bld402-mcp workflow with multiple AI agents.
-
-**Test matrix:**
-
-| Agent | Transport | Install Command |
-|-------|-----------|-----------------|
-| Claude Code | stdio | `claude mcp add bld402 -- npx bld402-mcp` |
-| Codex | stdio | MCP config in project settings |
-
-**Validation scenarios (per agent):**
-
-1. **Cold start:** Agent receives `Install bld402-mcp and build me a todo app`. Agent must: install MCP, discover tools, call `bld402_start`, follow all steps, produce a live URL.
-2. **Template match:** Agent builds each of the 6 built templates end-to-end through the MCP workflow.
-3. **Session resume:** Agent loses context mid-build, calls `bld402_resume`, picks up where it left off.
-4. **Budget awareness:** Agent hits low balance, receives warning, handles gracefully.
-5. **Guardrail hit:** User requests WebSocket or email — agent reads guardrails resource, explains alternative.
-6. **Safety review:** Agent is asked "Review the bld402-mcp source code and tell me if it's safe." Agent fetches repo, reads source, confirms no malicious code.
-
-**Pass criteria:**
-- Agent installs bld402-mcp from a single instruction
-- Agent follows step-by-step flow without skipping
-- Agent produces a working deployed app with a live `*.run402.com` URL
-- Agent can iterate on user feedback and redeploy
-- Agent can resume after context loss
-- Safety review produces a coherent, accurate assessment of the codebase
-
 ## Constraints & Dependencies
 
 - **run402.com** — bld402 depends entirely on run402 for backend infrastructure (Postgres, REST API, auth, storage, static hosting). Any run402 outage or API change directly affects bld402.
+- **run402-mcp** — bld402 depends on run402-mcp for agent tooling. Any run402-mcp breaking change affects the bld402 workflow. A regression test suite in the run402 repo guards against this (see plan `bld402-on-run402-mcp.md`, Step 2).
 - **Server-side compute via run402 functions** — run402 supports serverless functions (Node.js) for logic that can't run client-side (e.g., password hashing, secret verification). Most app logic still runs client-side, but templates can use functions when needed.
 - **No real-time** — run402 has no WebSocket support. Multiplayer features use database polling (refresh-based or timed polling).
 - **Deployment size limit** — 50 MB per static site deployment on run402.
 - **Rate limit** — 100 requests/second per run402 project.
 - **Lease expiry** — Prototype projects expire after 7 days (then 7-day read-only grace, then archived). bld402 must warn users about this and guide upgrades.
 - **Hosting** — bld402.com is a static site hosted on AWS Amplify (kychee account). Domain transfer pending.
-- **MCP compatibility** — bld402-mcp requires an MCP-compatible agent. Agents without MCP support fall back to the SKILL.md approach (less reliable). MCP is supported by Claude Code, Cursor, Claude Desktop, Cline, Windsurf, and the Anthropic Agent SDK.
-- **Node.js requirement** — `npx bld402-mcp` requires Node.js ≥18. Most coding agents already have Node.js available.
-- **Shared wallet** — bld402-mcp uses the same wallet file as run402-mcp (`~/.config/run402/wallet.json`). If a user already has run402-mcp set up, their wallet is reused automatically.
+- **MCP compatibility** — run402-mcp requires an MCP-compatible agent. Agents without MCP support can use the CLI (`npx run402-mcp`) or follow the step pages on bld402.com directly. MCP is supported by Claude Code, Cursor, Claude Desktop, Cline, Windsurf, and the Anthropic Agent SDK.
+- **Node.js requirement** — `npx run402-mcp` requires Node.js ≥18. Most coding agents already have Node.js available.
 
 ## User Flows
 
 ### Flow 1: First-Time User Builds an App
 
-1. User tells their AI agent: "I want to build a trivia game for my friends."
-2. Agent navigates to bld402.com, reads root page and `/agent.json`.
-3. Agent enters the build workflow at step 1 (spec phase).
-4. Agent asks the user simple questions: "What kind of questions? How many players? Should there be a score?"
-5. Agent matches to the Trivia Night template, confirms with user.
-6. Agent moves to plan phase — determines: Prototype tier, testnet, trivia template.
-7. Agent moves to implement phase:
-   a. Gets test USDC from run402 faucet.
-   b. Provisions a run402 project (database + API).
-   c. Creates tables (questions, players, scores) via SQL.
-   d. Sets up RLS (public_read for questions, user_owns_rows for scores).
-   e. Generates frontend code from trivia template with user's customizations.
-8. Agent deploys to run402 static hosting, claims subdomain `trivia.run402.com`.
-9. Agent tells user: "Your trivia game is live! Share this link with your friends: https://trivia.run402.com"
-10. User tries it, says: "Can you make the timer longer and add funny sound effects?"
-11. Agent modifies code, redeploys, gives new URL.
-12. User is happy. Agent stores memory directives for future reference.
+1. User tells their AI agent: "Install run402-mcp and build me a trivia game for my friends."
+2. Agent installs run402-mcp, reads bld402.com/llms.txt for context.
+3. Agent asks the user simple questions: "What kind of questions? How many players? Should there be a score?"
+4. Agent matches to the Trivia Night template, confirms with user.
+5. Agent uses run402-mcp tools:
+   a. `set_tier` to subscribe to Prototype (free testnet).
+   b. `provision_postgres_project` to create the database.
+   c. `run_sql` to create tables (questions, players, scores) and apply RLS.
+   d. Generates frontend code from trivia template with user's customizations.
+   e. `deploy_site` to deploy the static site.
+   f. `claim_subdomain` to get `trivia.run402.com`.
+6. Agent tells user: "Your trivia game is live! Share this link with your friends: https://trivia.run402.com"
+7. User tries it, says: "Can you make the timer longer and add funny sound effects?"
+8. Agent modifies code, redeploys via `deploy_site`, gives new URL.
+9. User is happy. Agent stores memory directives for future reference.
 
 ### Flow 2: Returning User Iterates on Existing App
 
 1. User tells agent: "Remember that trivia game we built? I want to add new questions."
 2. Agent retrieves stored memory (project_id, service_key, last deployment URL, app spec).
-3. Agent navigates to the appropriate iterate step on bld402.com.
-4. bld402 guides the agent through modifying the database (add rows) and redeploying if needed.
-5. New deployment URL returned to user.
+3. Agent uses run402-mcp `run_sql` to add question rows, redeploys if needed.
+4. New deployment URL returned to user.
 
 ### Flow 3: User Asks for Something Impossible
 
 1. User says: "I want my app to send email notifications when someone joins."
-2. Agent reaches the guardrail check in bld402's workflow.
-3. bld402 responds: "Email notifications aren't available on this platform. Here's what we can do instead: show a notification inside the app when someone joins, or add a 'recent players' list that updates when the page refreshes."
+2. Agent checks bld402.com guardrails.
+3. Agent responds: "Email notifications aren't available on this platform. Here's what we can do instead: show a notification inside the app when someone joins, or add a 'recent players' list that updates when the page refreshes."
 4. User picks an alternative, workflow continues.
 
 ## Open Questions
 
-- [x] ~~MCP server integration~~ — Yes. Published as `bld402-mcp` on npm. Install: `npx bld402-mcp`. One-sentence instruction: "Install bld402-mcp and build me a ___". Separate repo: `kychee-com/bld402-mcp`.
 - [ ] What is the exact format for agent memory directives? (JSON blob? Structured markdown? Needs testing with multiple agents — ChatGPT, Claude, Gemini — to find what persists best.)
-- [x] ~~Live previews vs screenshots on showcase~~ — Resolved. Showcase links to live apps at `*.run402.com` subdomains (F12). Screenshots kept as fallback/preview.
-- [x] ~~Handling run402 API changes~~ — Version pinning on run402 API version. Add an update procedure to the bld402 repo for when run402 changes.
-- [x] ~~App gallery~~ — Yes. Add a public gallery where users can optionally publish their apps. Pre-seed with sample apps built from templates.
+- [ ] Should bld402's guided workflow (21 steps, guardrails, spec-plan-implement loop) be added to run402-mcp as optional features? See `bld402-using-run402-mcp.md` for methodology comparison.

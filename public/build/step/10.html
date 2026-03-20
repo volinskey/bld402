@@ -38,7 +38,7 @@
         <h2>What to do</h2>
 
         <h3>Create the project</h3>
-        <pre><code>POST https://api.run402.com/v1/projects
+        <pre><code>POST https://api.run402.com/projects/v1
 Content-Type: application/json
 
 {
@@ -76,7 +76,7 @@ Content-Type: application/json
     "scheme": "exact",
     "network": "eip155:84532",
     "maxAmountRequired": "100000",
-    "resource": "https://api.run402.com/v1/projects",
+    "resource": "https://api.run402.com/projects/v1",
     "description": "Create run402 project (prototype tier)",
     "mimeType": "application/json",
     "payTo": "0x...",
@@ -92,7 +92,7 @@ Content-Type: application/json
 
         <h3>Retry with x-402-payment header</h3>
         <p>After signing the payment, retry the exact same request with the payment header:</p>
-        <pre><code>POST https://api.run402.com/v1/projects
+        <pre><code>POST https://api.run402.com/projects/v1
 Content-Type: application/json
 x-402-payment: eyJzY2hlbWUiOiJleGFjdCIsIm5ldHdvcmsiOiJlaXAxNTU6ODQ1MzIiLC...
 
@@ -139,7 +139,7 @@ client.register('eip155:84532', new ExactEvmScheme(signer));
 const fetchPaid = wrapFetchWithPayment(fetch, client);
 
 // 5. Make API call — first attempt returns 402, library retries with payment
-const res = await fetchPaid('https://api.run402.com/v1/projects', {
+const res = await fetchPaid('https://api.run402.com/projects/v1', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
   body: JSON.stringify({ name: 'my-app', tier: 'prototype' })

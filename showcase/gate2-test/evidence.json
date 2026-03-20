@@ -1,13 +1,13 @@
 {
-  "timestamp": "2026-03-16T11:21:24.966Z",
+  "timestamp": "2026-03-20T09:54:49.548Z",
   "wallet": "0xA6d234F6122621725eBC69efE2D0995A4311bf01",
   "templates": [
     {
       "name": "shared-todo",
       "test_id": "T-66",
-      "project_id": "prj_1773660086194_0006",
-      "deployment_id": "dpl_1773660086752_a5e293",
-      "live_url": "https://dpl-1773660086752-a5e293.sites.run402.com",
+      "project_id": "prj_1774000491534_0146",
+      "deployment_id": "dpl_1774000492104_330105",
+      "live_url": "https://dpl-1774000492104-330105.sites.run402.com",
       "subdomain": "gate2-todo",
       "checks": [
         {
@@ -63,7 +63,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660086194_0006"
+          "detail": "project_id: prj_1774000491534_0146"
         }
       ],
       "verdict": "PASS",
@@ -72,9 +72,9 @@
     {
       "name": "landing-waitlist",
       "test_id": "T-67",
-      "project_id": "prj_1773660092126_0007",
-      "deployment_id": "dpl_1773660092654_c06feb",
-      "live_url": "https://gate2-waitlist.run402.com",
+      "project_id": "prj_1774000497138_0150",
+      "deployment_id": "dpl_1774000497691_a159d5",
+      "live_url": "https://dpl-1774000497691-a159d5.sites.run402.com",
       "subdomain": "gate2-waitlist",
       "checks": [
         {
@@ -120,7 +120,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660092126_0007"
+          "detail": "project_id: prj_1774000497138_0150"
         }
       ],
       "verdict": "PASS",
@@ -129,9 +129,9 @@
     {
       "name": "hangman",
       "test_id": "T-68",
-      "project_id": "prj_1773660097192_0085",
-      "deployment_id": "dpl_1773660097896_59df49",
-      "live_url": "https://gate2-hangman.run402.com",
+      "project_id": "prj_1774000502353_0151",
+      "deployment_id": "dpl_1774000503280_b62113",
+      "live_url": "https://dpl-1774000503280-b62113.sites.run402.com",
       "subdomain": "gate2-hangman",
       "checks": [
         {
@@ -167,7 +167,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660097192_0085"
+          "detail": "project_id: prj_1774000502353_0151"
         }
       ],
       "verdict": "PASS",
@@ -176,9 +176,9 @@
     {
       "name": "trivia-night",
       "test_id": "T-69",
-      "project_id": "prj_1773660102623_0086",
-      "deployment_id": "dpl_1773660103424_00047b",
-      "live_url": "https://gate2-trivia.run402.com",
+      "project_id": "prj_1774000508003_0152",
+      "deployment_id": "dpl_1774000508819_436462",
+      "live_url": "https://dpl-1774000508819-436462.sites.run402.com",
       "subdomain": "gate2-trivia",
       "checks": [
         {
@@ -214,7 +214,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660102623_0086"
+          "detail": "project_id: prj_1774000508003_0152"
         }
       ],
       "verdict": "PASS",
@@ -223,9 +223,9 @@
     {
       "name": "voting-booth",
       "test_id": "T-70",
-      "project_id": "prj_1773660108459_0087",
-      "deployment_id": "dpl_1773660109067_0ff67a",
-      "live_url": "https://gate2-vote.run402.com",
+      "project_id": "prj_1774000514388_0153",
+      "deployment_id": "dpl_1774000515157_eabf28",
+      "live_url": "https://dpl-1774000515157-eabf28.sites.run402.com",
       "subdomain": "gate2-vote",
       "checks": [
         {
@@ -261,7 +261,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660108459_0087"
+          "detail": "project_id: prj_1774000514388_0153"
         }
       ],
       "verdict": "PASS",
@@ -270,9 +270,9 @@
     {
       "name": "paste-locker",
       "test_id": "T-71",
-      "project_id": "prj_1773660113660_0088",
-      "deployment_id": "dpl_1773660115421_a478f1",
-      "live_url": "https://gate2-paste.run402.com",
+      "project_id": "prj_1774000519687_0154",
+      "deployment_id": "dpl_1774000521544_aeca0a",
+      "live_url": "https://dpl-1774000521544-aeca0a.sites.run402.com",
       "subdomain": "gate2-paste",
       "checks": [
         {
@@ -303,7 +303,7 @@
         {
           "check": "Function: create-note",
           "passed": true,
-          "detail": "Status: 201, code: YYC1OZFQ"
+          "detail": "Status: 201, code: PLr8uB07"
         },
         {
           "check": "Function: read-note (correct password)",
@@ -318,7 +318,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660113660_0088"
+          "detail": "project_id: prj_1774000519687_0154"
         }
       ],
       "verdict": "PASS",
@@ -327,9 +327,9 @@
     {
       "name": "photo-wall",
       "test_id": "T-72",
-      "project_id": "prj_1773660132542_0089",
-      "deployment_id": "dpl_1773660133358_716b05",
-      "live_url": "https://gate2-wall.run402.com",
+      "project_id": "prj_1774000538205_0155",
+      "deployment_id": "dpl_1774000539070_8c8595",
+      "live_url": "https://dpl-1774000539070-8c8595.sites.run402.com",
       "subdomain": "gate2-wall",
       "checks": [
         {
@@ -355,7 +355,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660132542_0089"
+          "detail": "project_id: prj_1774000538205_0155"
         }
       ],
       "verdict": "PASS",
@@ -364,9 +364,9 @@
     {
       "name": "micro-blog",
       "test_id": "T-73",
-      "project_id": "prj_1773660138521_0090",
-      "deployment_id": "dpl_1773660139346_a4204b",
-      "live_url": "https://gate2-microblog.run402.com",
+      "project_id": "prj_1774000543388_0156",
+      "deployment_id": "dpl_1774000544074_81cdce",
+      "live_url": "https://dpl-1774000544074-81cdce.sites.run402.com",
       "subdomain": "gate2-microblog",
       "checks": [
         {
@@ -397,7 +397,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660138521_0090"
+          "detail": "project_id: prj_1774000543388_0156"
         }
       ],
       "verdict": "PASS",
@@ -406,9 +406,9 @@
     {
       "name": "secret-santa",
       "test_id": "T-74",
-      "project_id": "prj_1773660143837_0091",
-      "deployment_id": "dpl_1773660145301_4d48b7",
-      "live_url": "https://gate2-santa.run402.com",
+      "project_id": "prj_1774000548413_0157",
+      "deployment_id": "dpl_1774000550023_21f6e3",
+      "live_url": "https://dpl-1774000550023-21f6e3.sites.run402.com",
       "subdomain": "gate2-santa",
       "checks": [
         {
@@ -439,7 +439,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660143837_0091"
+          "detail": "project_id: prj_1774000548413_0157"
         }
       ],
       "verdict": "PASS",
@@ -448,9 +448,9 @@
     {
       "name": "ai-sticker-maker",
       "test_id": "T-75",
-      "project_id": "prj_1773660150079_0092",
-      "deployment_id": "dpl_1773660150589_185f6c",
-      "live_url": "https://gate2-stickers.run402.com",
+      "project_id": "prj_1774000554425_0158",
+      "deployment_id": "dpl_1774000555056_b60e1b",
+      "live_url": "https://dpl-1774000555056-b60e1b.sites.run402.com",
       "subdomain": "gate2-stickers",
       "checks": [
         {
@@ -486,7 +486,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660150079_0092"
+          "detail": "project_id: prj_1774000554425_0158"
         }
       ],
       "verdict": "PASS",
@@ -495,9 +495,9 @@
     {
       "name": "flash-cards",
       "test_id": "T-76",
-      "project_id": "prj_1773660155556_0093",
-      "deployment_id": "dpl_1773660156449_ed4316",
-      "live_url": "https://gate2-cards.run402.com",
+      "project_id": "prj_1774000559505_0159",
+      "deployment_id": "dpl_1774000560304_ddacc2",
+      "live_url": "https://dpl-1774000560304-ddacc2.sites.run402.com",
       "subdomain": "gate2-cards",
       "checks": [
         {
@@ -523,7 +523,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660155556_0093"
+          "detail": "project_id: prj_1774000559505_0159"
         }
       ],
       "verdict": "PASS",
@@ -532,9 +532,9 @@
     {
       "name": "bingo-card-generator",
       "test_id": "T-77",
-      "project_id": "prj_1773660161285_0094",
-      "deployment_id": "dpl_1773660162017_6a7a16",
-      "live_url": "https://gate2-bingo.run402.com",
+      "project_id": "prj_1774000564662_0160",
+      "deployment_id": "dpl_1774000565502_73f5e7",
+      "live_url": "https://dpl-1774000565502-73f5e7.sites.run402.com",
       "subdomain": "gate2-bingo",
       "checks": [
         {
@@ -570,7 +570,7 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660161285_0094"
+          "detail": "project_id: prj_1774000564662_0160"
         }
       ],
       "verdict": "PASS",
@@ -579,9 +579,9 @@
     {
       "name": "memory-match",
       "test_id": "T-78",
-      "project_id": "prj_1773660166541_0095",
-      "deployment_id": "dpl_1773660167231_ff3392",
-      "live_url": "https://gate2-memory.run402.com",
+      "project_id": "prj_1774000569819_0161",
+      "deployment_id": "dpl_1774000570658_9ae4cc",
+      "live_url": "https://dpl-1774000570658-9ae4cc.sites.run402.com",
       "subdomain": "gate2-memory",
       "checks": [
         {
@@ -617,11 +617,15 @@
         {
           "check": "Project preserved (--keep)",
           "passed": true,
-          "detail": "project_id: prj_1773660166541_0095"
+          "detail": "project_id: prj_1774000569819_0161"
         }
       ],
       "verdict": "PASS",
       "error": null
     }
-  ]
+  ],
+  "run402_mcp_version": {
+    "npm": "1.13.5",
+    "local": "unknown"
+  }
 }

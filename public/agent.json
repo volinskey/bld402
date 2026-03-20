@@ -96,7 +96,7 @@
       "phase": "implement",
       "title": "Get testnet funds",
       "url": "/build/step/9",
-      "instruction": "If using testnet, call run402's /v1/faucet to get free test USDC. Guide the user through wallet setup if needed.",
+      "instruction": "If using testnet, call run402's /faucet/v1 to get free test USDC. Guide the user through wallet setup if needed.",
       "inputs": ["selected_tier", "payment_network"],
       "outputs": ["wallet_address", "faucet_tx"],
       "next": 10,
@@ -107,7 +107,7 @@
       "phase": "implement",
       "title": "Provision project",
       "url": "/build/step/10",
-      "instruction": "Create a run402 project by calling POST /v1/projects. Store the project_id, anon_key, and service_key in memory.",
+      "instruction": "Create a run402 project by calling POST /projects/v1. Store the project_id, anon_key, and service_key in memory.",
       "inputs": ["wallet_address", "selected_tier"],
       "outputs": ["project_id", "anon_key", "service_key", "api_url", "lease_expires_at"],
       "next": 11
@@ -117,7 +117,7 @@
       "phase": "implement",
       "title": "Create database tables",
       "url": "/build/step/11",
-      "instruction": "Execute SQL to create the app's database tables using POST /admin/v1/projects/:id/sql with the service_key.",
+      "instruction": "Execute SQL to create the app's database tables using POST /projects/v1/admin/:id/sql with the service_key.",
       "inputs": ["project_id", "service_key", "build_plan", "selected_templates"],
       "outputs": ["tables_created"],
       "next": 12
@@ -127,7 +127,7 @@
       "phase": "implement",
       "title": "Configure row-level security",
       "url": "/build/step/12",
-      "instruction": "Apply RLS policies using POST /admin/v1/projects/:id/rls. Choose from: user_owns_rows, public_read, public_read_write.",
+      "instruction": "Apply RLS policies using POST /projects/v1/admin/:id/rls. Choose from: user_owns_rows, public_read, public_read_write.",
       "inputs": ["project_id", "service_key", "tables_created"],
       "outputs": ["rls_configured"],
       "next": 13
@@ -157,7 +157,7 @@
       "phase": "deploy",
       "title": "Deploy to run402",
       "url": "/build/step/15",
-      "instruction": "Deploy the static site by calling POST /v1/deployments with all app files. Optionally claim a subdomain via POST /v1/subdomains for a memorable URL like myapp.run402.com.",
+      "instruction": "Deploy the static site by calling POST /deployments/v1 with all app files. Optionally claim a subdomain via POST /subdomains/v1 for a memorable URL like myapp.run402.com.",
       "inputs": ["app_files", "project_id"],
       "outputs": ["deployment_id", "deployment_url", "subdomain", "subdomain_url"],
       "next": 16

@@ -40,7 +40,7 @@
         <li><strong>Multiple tiers</strong> — Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
         <li><strong>Testnet (free)</strong> — Base Sepolia with faucet for test USDC</li>
         <li><strong><span class="brand-run">run</span>402 serverless functions (Node.js)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing)</li>
-        <li><strong>AI image generation</strong> — generate images from text prompts via <code>POST /v1/generate-image</code> (e.g., sticker makers, art generators)</li>
+        <li><strong>AI image generation</strong> — generate images from text prompts via <code>POST /generate-image/v1</code> (e.g., sticker makers, art generators)</li>
       </ul>
 
       <h2>What <span class="brand-run">run</span>402 CANNOT do</h2>
@@ -58,12 +58,12 @@
           <tr>
             <td>Fully custom domain names (myapp.com)</td>
             <td>"You can't use your own domain name (like myapp.com) right now, but you can get a memorable subdomain like myapp.run402.com."</td>
-            <td>Claim a subdomain via <code>POST /v1/subdomains</code> in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
+            <td>Claim a subdomain via <code>POST /subdomains/v1</code> in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
           </tr>
           <tr>
             <td>Server-side compute beyond <span class="brand-run">run</span>402 functions</td>
             <td>"Most of your app runs in the browser, but for things that need to happen on a server — like password hashing — we can use <span class="brand-run">run</span>402's built-in serverless functions. You can't run your own custom server, though."</td>
-            <td>Use <code>run402 functions</code> (Node.js) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>POST /admin/v1/projects/:id/functions</code>. All other logic runs client-side in JavaScript.</td>
+            <td>Use <code>run402 functions</code> (Node.js) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>POST /projects/v1/admin/:id/functions</code>. All other logic runs client-side in JavaScript.</td>
           </tr>
           <tr>
             <td>Real-time WebSocket connections</td>

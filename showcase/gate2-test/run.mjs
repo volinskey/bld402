@@ -23,6 +23,7 @@
 import { readFileSync, writeFileSync, existsSync, mkdirSync } from "fs";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { execSync } from "child_process";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { createPublicClient, http } from "viem";
 import { baseSepolia } from "viem/chains";
@@ -216,16 +217,25 @@ const client = new x402Client();
 client.register("eip155:84532", new ExactEvmScheme(signer));
 const fetchPaid = wrapFetchWithPayment(fetch, client);
 
-// ── Wallet auth headers (EIP-4361) ───────────────────────────────
-async function walletAuthHeaders() {
-  const timestamp = Math.floor(Date.now() / 1000).toString();
-  const message = `run402:${timestamp}`;
-  const signature = await account.signMessage({ message });
-  return {
-    "X-Run402-Wallet": account.address,
-    "X-Run402-Signature": signature,
-    "X-Run402-Timestamp": timestamp,
+// ── Wallet auth headers (SIWX / CAIP-122) ───────────────────────
+async function walletAuthHeaders(path = "/") {
+  const { createSIWxPayload, encodeSIWxHeader } = await import("@x402/extensions/sign-in-with-x");
+  const domain = "api.run402.com";
+  const uri = `https://${domain}${path}`;
+  const now = new Date();
+  const info = {
+    domain,
+    uri,
+    statement: "Sign in to Run402",
+    version: "1",
+    nonce: Math.random().toString(36).slice(2),
+    issuedAt: now.toISOString(),
+    expirationTime: new Date(now.getTime() + 5 * 60 * 1000).toISOString(),
+    chainId: "eip155:84532",
+    type: "eip191",
   };
+  const payload = await createSIWxPayload(info, account);
+  return { "SIGN-IN-WITH-X": encodeSIWxHeader(payload) };
 }
 
 // ── Faucet ──────────────────────────────────────────────────────
@@ -286,7 +296,7 @@ async function pinProject(projectId, serviceKey) {
 // ── Ensure active tier ───────────────────────────────────────────
 async function ensureTier() {
   console.log("\nChecking tier status...");
-  const walletHeaders = await walletAuthHeaders();
+  const walletHeaders = await walletAuthHeaders("/tiers/v1/status");
   const statusRes = await fetch(`${API_URL}/tiers/v1/status`, {
     headers: { ...walletHeaders },
   });
@@ -314,7 +324,7 @@ async function ensureTier() {
 // ── Provision project ───────────────────────────────────────────
 async function provisionProject(name) {
   console.log(`\nProvisioning project: bld402-gate2-${name}...`);
-  const walletHeaders = await walletAuthHeaders();
+  const walletHeaders = await walletAuthHeaders("/projects/v1");
   const res = await fetch(`${API_URL}/projects/v1`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...walletHeaders },
@@ -422,7 +432,7 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
   html = html.replace(/\{\{APP_NAME\}\}/g, "Gate 2 Test");
 
   console.log(`Deploying HTML from ${templateDir}/index.html...`);
-  const walletHeaders = await walletAuthHeaders();
+  const walletHeaders = await walletAuthHeaders("/deployments/v1");
   const deployRes = await fetch(`${API_URL}/deployments/v1`, {
     method: "POST",
     headers: { "Content-Type": "application/json", ...walletHeaders },
@@ -437,7 +447,8 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
     throw new Error(`Deploy failed (${deployRes.status}): ${text}`);
   }
   const deployment = await deployRes.json();
-  console.log("  deployment_id:", deployment.id);
+  const deploymentId = deployment.deployment_id || deployment.id;
+  console.log("  deployment_id:", deploymentId);
   console.log("  url:", deployment.url);
 
   // Claim subdomain
@@ -449,7 +460,7 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
       "Content-Type": "application/json",
       Authorization: `Bearer ${serviceKey}`,
     },
-    body: JSON.stringify({ name: subdomain, deployment_id: deployment.id }),
+    body: JSON.stringify({ name: subdomain, deployment_id: deploymentId }),
   });
   if (subRes.ok) {
     const sub = await subRes.json();
@@ -462,7 +473,7 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
   }
 
   return {
-    deployment_id: deployment.id,
+    deployment_id: deploymentId,
     deployment_url: deployment.url,
     subdomain_url: subdomainUrl,
     live_url: subdomainUrl || deployment.url,
@@ -787,7 +798,7 @@ async function runGate2(templateFilter) {
         template.dir,
         template.testSubdomain
       );
-      entry.deployment_id = deploy.deployment_id;
+      entry.deployment_id = deploy.deployment_id || deploy.deploymentId;
       entry.live_url = deploy.live_url;
 
       // Wait for deployment to propagate
@@ -885,9 +896,31 @@ async function runGate2(templateFilter) {
   return evidence;
 }
 
+// ── run402-mcp version check ─────────────────────────────────────
+function checkRun402McpVersion() {
+  let npmVersion = "unknown";
+  let localVersion = "unknown";
+  try {
+    npmVersion = execSync("npm view run402-mcp version", { encoding: "utf-8" }).trim();
+  } catch { /* npm not reachable */ }
+  try {
+    localVersion = execSync("npx --yes run402-mcp --version 2>/dev/null || echo unknown", { encoding: "utf-8" }).trim();
+  } catch { /* not installed */ }
+
+  console.log(`\nrun402-mcp versions — npm: ${npmVersion}, local: ${localVersion}`);
+  if (npmVersion !== "unknown" && localVersion !== "unknown" && npmVersion !== localVersion) {
+    console.log(`  WARNING: local run402-mcp (${localVersion}) != npm latest (${npmVersion})`);
+    console.log("  Run: npx run402-mcp@latest to update");
+  }
+  return { npm: npmVersion, local: localVersion };
+}
+
 // ── Run ─────────────────────────────────────────────────────────
 if (KEEP_PROJECTS) console.log("Mode: --keep (projects will NOT be deleted)");
 if (PIN_PROJECTS) console.log("Mode: --pin (projects will be pinned)");
+const mcpVersions = checkRun402McpVersion();
 const filter = process.argv.slice(2).find(a => !a.startsWith("--")) || null;
 const evidence = await runGate2(filter);
+evidence.run402_mcp_version = mcpVersions;
+writeFileSync(EVIDENCE_FILE, JSON.stringify(evidence, null, 2), "utf-8");
 process.exit(evidence.templates.every(t => t.verdict === "PASS") ? 0 : 1);

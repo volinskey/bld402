@@ -38,7 +38,7 @@
         <h2>What to do</h2>
 
         <h3>Deploy the static site</h3>
-        <pre><code>POST https://api.run402.com/v1/deployments
+        <pre><code>POST https://api.run402.com/deployments/v1
 Content-Type: application/json
 
 {
@@ -80,14 +80,14 @@ Content-Type: application/json
         <table>
           <thead><tr><th>Endpoint</th><th>Auth Method</th></tr></thead>
           <tbody>
-            <tr><td><code>POST /v1/projects</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
-            <tr><td><code>POST /v1/deployments</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
-            <tr><td><code>POST /admin/v1/projects/{id}/sql</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
-            <tr><td><code>POST /v1/subdomains</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
+            <tr><td><code>POST /projects/v1</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
+            <tr><td><code>POST /deployments/v1</code></td><td><code>x-402-payment</code> header (x402 signed payment)</td></tr>
+            <tr><td><code>POST /projects/v1/admin/{id}/sql</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
+            <tr><td><code>POST /subdomains/v1</code></td><td><code>Authorization: Bearer {service_key}</code></td></tr>
             <tr><td><code>GET /rest/v1/...</code></td><td><code>apikey</code> header (<code>anon_key</code>)</td></tr>
           </tbody>
         </table>
-        <p><strong>Note:</strong> <code>POST /v1/subdomains</code> is idempotent — it upserts. If the subdomain already belongs to your project, it updates the <code>deployment_id</code> instead of returning a 409. This means you can safely call it on every deploy without checking whether the subdomain already exists.</p>
+        <p><strong>Note:</strong> <code>POST /subdomains/v1</code> is idempotent — it upserts. If the subdomain already belongs to your project, it updates the <code>deployment_id</code> instead of returning a 409. This means you can safely call it on every deploy without checking whether the subdomain already exists.</p>
 
         <h3>Important notes</h3>
         <ul>
@@ -99,14 +99,14 @@ Content-Type: application/json
 
         <h3>Verify deployment</h3>
         <p>Check deployment status (free, no auth):</p>
-        <pre><code>GET https://api.run402.com/v1/deployments/{deployment_id}</code></pre>
+        <pre><code>GET https://api.run402.com/deployments/v1/{deployment_id}</code></pre>
         <p>Wait for <code>"status": "READY"</code> before sharing the URL.</p>
 
         <h3>Claim a subdomain</h3>
         <p>By default, claim a subdomain so the app has a memorable URL like <code>https://myapp.run402.com</code> instead of the raw deployment URL.</p>
         <p><strong>Derive the subdomain automatically:</strong> take the app name, lowercase it, replace spaces and underscores with hyphens, strip non-alphanumeric characters (except hyphens), collapse consecutive hyphens, and truncate to 63 characters. Only skip the subdomain if the user explicitly declines.</p>
 
-        <pre><code>POST https://api.run402.com/v1/subdomains
+        <pre><code>POST https://api.run402.com/subdomains/v1
 Content-Type: application/json
 Authorization: Bearer {service_key}
 

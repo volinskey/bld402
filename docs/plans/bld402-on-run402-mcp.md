@@ -90,14 +90,33 @@ Per user feedback: prompts should say "Install run402-mcp and build me a..." —
 - [x] 1C.2: Fix SIWX auth (replaced old X-Run402-* headers with CAIP-122 SIGN-IN-WITH-X), fix deployment_id field name
 - [x] 1C.3: Run Gate 2 with `--keep --pin` — ALL 13 PASS (93/93 checks). Subdomain claims fail (owned by old wallet) but apps deploy and verify correctly via raw URLs.
 
-### 1D: Test via run402-mcp (not just raw API)
+### 1D: Test via run402 CLI and MCP
 
-Gate 2 tests the raw HTTP API. We also need to verify run402-mcp tools work correctly.
+There are 3 layers of testing (raw API already done by Gate 2):
 
-- [!] 1D.1: Install run402-mcp locally: `claude mcp add run402 -- npx -y run402-mcp` — WAITING FOR: new Claude Code session with MCP installed
-- [ ] 1D.2: Build one template (shared-todo) end-to-end using MCP tools only (provision_postgres_project, run_sql, deploy_site, claim_subdomain)
-- [ ] 1D.3: If MCP tools fail, file bugs against run402-mcp and track here
-- [ ] 1D.4: Build a second template (paste-locker, which uses functions) via MCP tools
+| Layer | Tool | Package | Interface | Status |
+|---|---|---|---|---|
+| Raw API | `fetch` calls | N/A | HTTP endpoints | DONE (Gate 2: 13/13 PASS) |
+| CLI | `npx run402` | `run402` (npm) | Shell commands (`run402 init`, `run402 projects sql`, etc.) | TODO |
+| MCP | `npx run402-mcp` | `run402-mcp` (npm) | MCP tools (`provision_postgres_project`, `run_sql`, etc.) | shared-todo PASS |
+
+**Key discovery:** Both CLI (`run402`) and MCP (`run402-mcp`) share the same `core/` module and wallet at `~/.config/run402/allowance.json`. Running `run402 init` creates/reuses the wallet automatically. The CLI works with ANY agent that can run shell commands.
+
+#### 1D-CLI: Test via run402 CLI (do this FIRST)
+
+- [ ] 1D-CLI.1: Create `run402-cli-tester` agent — runs `npx run402 init`, then uses CLI commands to build templates
+- [ ] 1D-CLI.2: Test shared-todo via CLI: `run402 init` → `run402 tier set prototype` → `run402 projects provision` → `run402 projects sql <id> <schema>` → `run402 projects rls <id> public_read_write '[...]'` → `run402 sites deploy <id> index.html` → verify
+- [ ] 1D-CLI.3: Test paste-locker via CLI (includes `run402 functions deploy`)
+- [ ] 1D-CLI.4: Test landing-waitlist via CLI
+- [ ] 1D-CLI.5: Document CLI bugs/issues
+
+#### 1D-MCP: Test via run402-mcp MCP tools (after CLI passes)
+
+- [x] 1D-MCP.1: Created `run402-mcp-tester` agent (`.claude/agents/run402-mcp-tester.md`)
+- [x] 1D-MCP.2: shared-todo PASS via MCP tools — all 7 steps
+- [x] 1D-MCP.3: 3 bugs found: BUG-1 (HIGH: tier set fails x402), BUG-2 (MEDIUM: SQL comments silently no-op), BUG-3 (LOW: RLS needs projects rls, not raw SQL)
+- [ ] 1D-MCP.4: Test paste-locker via MCP tools
+- [ ] 1D-MCP.5: Test landing-waitlist via MCP tools
 
 ### 1E: Deploy and verify live site
 
@@ -107,12 +126,20 @@ Gate 2 tests the raw HTTP API. We also need to verify run402-mcp tools work corr
 - [x] 1E.4: WebFetch `bld402.com/humans/mcp-install.html` — confirmed "Install run402-mcp and build me a..." (no llms.txt)
 - [x] 1E.5: WebFetch `bld402.com/build/step/10` — confirmed `/projects/v1` (correct format)
 
-### 1F: Red team — build each template from scratch
+### 1F: Update bld402.com to offer CLI + MCP paths
 
-- [ ] 1F.1: Red team agent reads bld402.com/llms.txt and attempts to build shared-todo
-- [ ] 1F.2: Red team agent attempts each of the 13 templates using only bld402.com instructions
-- [ ] 1F.3: Document any failures, wrong paths, confusing instructions
-- [ ] 1F.4: Blue team fixes all issues found
+bld402.com should tell agents/users: use CLI if you can run shell commands, use MCP if your agent supports it.
+
+- [ ] 1F.1: Update `llms.txt` — add CLI install section (`npx run402 init`) alongside MCP install
+- [ ] 1F.2: Update `mcp-install.html` — add CLI option for agents without MCP support
+- [ ] 1F.3: Update `agent.json` step 9 (wallet/faucet) — reference `run402 init` as primary method
+
+### 1G: Red team — build each template from scratch
+
+- [ ] 1G.1: Red team agent reads bld402.com/llms.txt and attempts to build shared-todo via CLI
+- [ ] 1G.2: Red team agent attempts each of the 13 templates using only bld402.com instructions
+- [ ] 1G.3: Document any failures, wrong paths, confusing instructions
+- [ ] 1G.4: Blue team fixes all issues found
 
 ---
 
@@ -160,13 +187,17 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 
 ## Implementation Notes
 
-- **SIWX auth required:** run402 wallet auth uses CAIP-122 SIGN-IN-WITH-X headers (not the old X-Run402-Wallet/Signature/Timestamp). Import `createSIWxPayload` and `encodeSIWxHeader` from `@x402/extensions/sign-in-with-x`. For paid routes, `fetchPaid` (from `@x402/fetch`) handles this automatically.
+- **CLI vs MCP vs raw API:** Three ways to use run402. CLI (`npx run402`) = shell commands, works with any agent. MCP (`npx run402-mcp`) = MCP tools, works with Claude Code/Cursor/etc. Raw API = HTTP fetch calls. Both CLI and MCP share the same wallet/config at `~/.config/run402/`.
+- **`run402 init`:** Idempotent wallet setup. Creates/reuses `allowance.json`, checks USDC balance, faucets if zero, shows tier status. Always run this first.
+- **CLI commands:** `run402 init` → `run402 tier set prototype` → `run402 projects provision` → `run402 projects sql <id> "<SQL>"` → `run402 projects rls <id> <template> '<json>'` → `run402 sites deploy <id> <file>` → `run402 subdomains claim <id> <name>`
+- **SIWX auth required:** run402 wallet auth uses CAIP-122 SIGN-IN-WITH-X headers. Both CLI and MCP handle this internally.
 - **deployment_id field:** run402 returns `deployment_id` (not `id`) in the deployment response.
-- **Subdomain ownership:** gate2-test subdomains (gate2-todo, gate2-trivia, etc.) are claimed by the OLD wallet from earlier test runs. New wallet can't reclaim them. Options: use admin API to release, or use different subdomain names.
-- **Wallet preservation:** Test wallet at `showcase/.wallet` must NEVER be deleted between test cycles. Admin faucet (`/faucet/v1/admin`) is used to top up without rate limits.
-- **MCP version check:** Every test run logs run402-mcp version in evidence.json. Currently `npm: 1.13.5, local: unknown` (not installed locally, which is expected for gate2-test which uses raw API).
+- **Subdomain ownership:** gate2-test subdomains (gate2-todo, gate2-trivia, etc.) are claimed by the OLD wallet from earlier test runs. New wallet can't reclaim them.
+- **Wallet preservation:** Test wallet at `showcase/.wallet` (raw API tests) and `~/.config/run402/allowance.json` (CLI/MCP tests) must NEVER be deleted between test cycles.
+- **MCP version check:** Every test run logs run402-mcp version in evidence.json.
 
 ## Log
 
 - 2026-03-20: Completed Step 0 (version check), Step 1A (endpoints, 12 files), Step 1B (prompts), Step 1C (gate2-test — SIWX auth fix, deployment_id fix, all 13 PASS), Step 1E (Amplify deployed, WebFetch verified). Pushed `23ba129`.
-- 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs. Step 1D blocked (needs MCP session).
+- 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs.
+- 2026-03-20: Discovered run402 CLI (`npx run402`) — separate npm package with full command set. Shares wallet with MCP. Rewrote Step 1D to test CLI first, then MCP. Added Step 1F for website updates.

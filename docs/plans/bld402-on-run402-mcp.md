@@ -115,8 +115,8 @@ There are 3 layers of testing (raw API already done by Gate 2):
 - [x] 1D-MCP.1: Created `run402-mcp-tester` agent (`.claude/agents/run402-mcp-tester.md`)
 - [x] 1D-MCP.2: shared-todo PASS via MCP tools — all 7 steps
 - [x] 1D-MCP.3: 3 bugs found: BUG-1 (HIGH: tier set fails x402), BUG-2 (MEDIUM: SQL comments silently no-op), BUG-3 (LOW: RLS needs projects rls, not raw SQL)
-- [ ] 1D-MCP.4: Test paste-locker via MCP tools
-- [ ] 1D-MCP.5: Test landing-waitlist via MCP tools
+- [x] 1D-MCP.4: paste-locker PASS via MCP — schema, deploy, insert+read verified
+- [x] 1D-MCP.5: landing-waitlist PASS via MCP — RLS via setup_rls tool, REST write/read confirmed
 
 ### 1E: Deploy and verify live site
 
@@ -201,3 +201,4 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 - 2026-03-20: Completed Step 0 (version check), Step 1A (endpoints, 12 files), Step 1B (prompts), Step 1C (gate2-test — SIWX auth fix, deployment_id fix, all 13 PASS), Step 1E (Amplify deployed, WebFetch verified). Pushed `23ba129`.
 - 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs.
 - 2026-03-20: Discovered run402 CLI (`npx run402`) — separate npm package with full command set. Shares wallet with MCP. Rewrote Step 1D to test CLI first, then MCP. Added Step 1F for website updates.
+- 2026-03-20: ALL 6 TESTS PASS — 3 CLI (shared-todo, paste-locker, landing-waitlist) + 3 MCP (same). Bugs: em-dash SQL, sites deploy syntax, tier display, RLS needs dedicated command not raw SQL.

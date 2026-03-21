@@ -55,7 +55,7 @@ Examples: todo lists, recipe books, expense splitters, landing pages, trivia gam
 5. Use `run_sql` to create tables and seed data.
 6. **Apply RLS (required for public apps).** Use `setup_rls` with template=public_read_write and the table names. Without this, the anon key cannot read or write data and your app's API calls will return 401.
 7. **Deploy functions (if needed).** For server-side logic (password hashing, secret matching, etc.), use `deploy_function` with the function code. Use `set_secret` for environment variables (requires redeploy to take effect). Test with `invoke_function` before building the frontend.
-8. Build the HTML/CSS/JS frontend. Use the anon_key and project_id from step 4. REST API calls from the frontend need these headers: `apikey: <anon_key>`, `Authorization: Bearer <anon_key>`, `X-Project-ID: <project_id>`. Call functions via `https://api.run402.com/functions/v1/<function_name>` with the same headers.
+8. Build the HTML/CSS/JS frontend. Use the anon_key from step 4. REST API calls from the frontend need this header: `apikey: <anon_key>`. The gateway auto-forwards it as `Authorization: Bearer` to PostgREST. Call functions via `https://api.run402.com/functions/v1/<function_name>` with the same `apikey` header.
 9. Use `deploy_site` to deploy the frontend. This returns a `deployment_id` and a CDN URL.
 10. Use `claim_subdomain` with the `deployment_id` from step 9 (not project_id) to get a clean URL like myapp.run402.com.
 11. Show the user their live URL — done!
@@ -85,7 +85,7 @@ Rewrite: "Querying the database..." → "Loading your data..."
 |---------|---------|
 | Database | Postgres (tables, columns, indexes, SQL) |
 | REST API | Full CRUD with filtering, pagination (PostgREST) |
-| Auth | Email/password signup, login, JWT tokens |
+| Auth | Email/password + Google OAuth, JWT tokens |
 | Row-level security | user_owns_rows, public_read, public_read_write |
 | File storage | Upload, download, signed URLs (S3-backed) |
 | Static hosting | Deploy HTML/CSS/JS, get shareable URL |
@@ -101,7 +101,7 @@ Rewrite: "Querying the database..." → "Loading your data..."
 | Custom domains (myapp.com) | Use myapp.run402.com subdomain |
 | WebSocket / real-time | Polling (fetch every 3-10s) |
 | Email / SMS / push notifications | In-app notifications |
-| OAuth / social login | Email/password auth (built in) |
+| OAuth providers other than Google | Google OAuth + email/password auth (built in) |
 | Payment processing | Track balances in the database |
 | Files over 50 MB per deploy | Optimize images, split deploys |
 | More than 100 req/sec sustained | Client-side caching |

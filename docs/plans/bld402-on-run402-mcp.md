@@ -137,10 +137,10 @@ Decision: MCP is the only user-facing path. CLI is internal testing only. All co
 
 ### 1G: Red team — build each template from scratch
 
-- [ ] 1G.1: Red team agent reads bld402.com/llms.txt and attempts to build shared-todo using MCP
-- [ ] 1G.2: Red team agent attempts all 13 templates using only bld402.com instructions
-- [ ] 1G.3: Document any failures, wrong paths, confusing instructions
-- [ ] 1G.4: Blue team fixes all issues found
+- [x] 1G.1: Red team round 1 — shared-todo PASS, 3 critical gaps found (RLS, project_info, set_tier). Fixed in llms.txt.
+- [x] 1G.2: Red team round 2 — shared-todo PASS, 3 previous gaps confirmed fixed. 1 new critical (claim_subdomain needs deployment_id). Fixed in llms.txt.
+- [x] 1G.3: Red team round 3 — shared-todo CLEAN PASS (all llms.txt gaps fixed). paste-locker FAIL (platform bug: functions return 500, zero logs — GAP-001).
+- [!] 1G.4: Red team remaining templates — WAITING FOR: run402 to fix serverless function invocation (GAP-001). Templates requiring functions: paste-locker, secret-santa.
 
 ---
 
@@ -205,4 +205,5 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 - 2026-03-20: ALL 6 TESTS PASS — 3 CLI (shared-todo, paste-locker, landing-waitlist) + 3 MCP (same). Bugs: em-dash SQL, sites deploy syntax, tier display, RLS needs dedicated command not raw SQL.
 - 2026-03-20: Filed 7 bugs against run402 (`run402/docs/bug_reports/bld402-compat-bugs.md`). 2 HIGH, 2 MEDIUM, 3 LOW. BUG-002/003 fixed by run402. BUG-004/005/007 not bugs (fixed in bld402 instructions). BUG-001 reproduced on Windows (SQL with comment lines, not em-dash). BUG-006 awaiting MCP parity release.
 - 2026-03-20: BLOCKED — waiting for run402 bug fixes.
-- 2026-03-21: UNBLOCKED — run402 v1.18.0 released. Re-tested ALL 6 (3 CLI + 3 MCP): ALL PASS. --file flag works, MCP parity confirmed. BUG-001/002/003 fixed. Ready for Step 1F/1G.
+- 2026-03-21: UNBLOCKED — run402 v1.18.0 released. Re-tested ALL 6 (3 CLI + 3 MCP): ALL PASS. --file flag works, MCP parity confirmed. BUG-001/002/003 fixed.
+- 2026-03-21: Red team round 1: shared-todo PASS, 3 critical llms.txt gaps found and fixed. Round 2: gaps confirmed fixed, 1 new finding (claim_subdomain) fixed. Round 3: shared-todo CLEAN PASS, paste-locker FAIL (platform bug — functions return 500). Filed GAP-001-004 against run402.

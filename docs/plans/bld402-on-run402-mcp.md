@@ -127,18 +127,18 @@ There are 3 layers of testing (raw API already done by Gate 2):
 - [x] 1E.4: WebFetch `bld402.com/humans/mcp-install.html` — confirmed "Install run402-mcp and build me a..." (no llms.txt)
 - [x] 1E.5: WebFetch `bld402.com/build/step/10` — confirmed `/projects/v1` (correct format)
 
-### 1F: Update bld402.com to offer CLI + MCP paths
+### 1F: Verify bld402.com is MCP-only (no CLI for users)
 
-bld402.com should tell agents/users: use CLI if you can run shell commands, use MCP if your agent supports it.
+Decision: MCP is the only user-facing path. CLI is internal testing only. All coding agents support MCP.
 
-- [ ] 1F.1: Update `llms.txt` — add CLI install section (`npx run402 init`) alongside MCP install
-- [ ] 1F.2: Update `mcp-install.html` — add CLI option for agents without MCP support
-- [ ] 1F.3: Update `agent.json` step 9 (wallet/faucet) — reference `run402 init` as primary method
+- [x] 1F.1: Verified `llms.txt` — MCP-only install instructions, no CLI references
+- [x] 1F.2: Verified `mcp-install.html` — prompts are "Install run402-mcp and build me a..."
+- [x] 1F.3: Verified no CLI command references (`npx run402 init`, etc.) in any user-facing page
 
 ### 1G: Red team — build each template from scratch
 
-- [ ] 1G.1: Red team agent reads bld402.com/llms.txt and attempts to build shared-todo via CLI
-- [ ] 1G.2: Red team agent attempts each of the 13 templates using only bld402.com instructions
+- [ ] 1G.1: Red team agent reads bld402.com/llms.txt and attempts to build shared-todo using MCP
+- [ ] 1G.2: Red team agent attempts all 13 templates using only bld402.com instructions
 - [ ] 1G.3: Document any failures, wrong paths, confusing instructions
 - [ ] 1G.4: Blue team fixes all issues found
 

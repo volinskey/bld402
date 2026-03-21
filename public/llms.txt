@@ -16,7 +16,7 @@ For Claude Code, run:
 claude mcp add run402 -- npx -y run402-mcp
 ```
 
-This gives you 8 tools: provision_postgres_project, run_sql, rest_query, upload_file, deploy_site, claim_subdomain, delete_subdomain, set_tier.
+Key tools: set_tier, tier_status, provision_postgres_project, project_info, run_sql, setup_rls, rest_query, upload_file, deploy_site, claim_subdomain, delete_subdomain.
 
 ### Option B: CLI
 ```
@@ -38,13 +38,15 @@ Examples: todo lists, recipe books, expense splitters, landing pages, trivia gam
 
 1. Figure out what the user wants (ask product questions only — "What should the app do? Who will use it?")
 2. Install run402-mcp if not already installed (Option A or B above)
-3. Use `set_tier` to subscribe to the prototype tier (free testnet money)
-4. Use `provision_postgres_project` to create a database
-5. Use `run_sql` to create tables and seed data
-6. Use `deploy_site` to deploy the HTML/CSS/JS frontend
-7. Use `claim_subdomain` to get a clean URL like myapp.run402.com
-8. Show the user their live URL — done!
-9. If they want changes: update SQL/files and redeploy
+3. Use `set_tier` with tier=prototype and network=base-sepolia. If it says "already subscribed" or returns a payment error, that's OK — check with `tier_status` to confirm your tier is active.
+4. Use `provision_postgres_project` with a name for your app. This saves credentials to the local key store. Then call `project_info` to get the project_id, anon_key, service_key, and REST API URL — you need these for the frontend.
+5. Use `run_sql` to create tables and seed data.
+6. **Apply RLS (required for public apps).** Use `setup_rls` with template=public_read_write and the table names. Without this, the anon key cannot read or write data and your app's API calls will return 401.
+7. Build the HTML/CSS/JS frontend. Use the anon_key and project_id from step 4. REST API calls from the frontend need these headers: `apikey: <anon_key>`, `Authorization: Bearer <anon_key>`, `X-Project-ID: <project_id>`.
+8. Use `deploy_site` to deploy the frontend.
+9. Use `claim_subdomain` to get a clean URL like myapp.run402.com.
+10. Show the user their live URL — done!
+11. If they want changes: update SQL/files and redeploy.
 
 For the full API reference, see: https://run402.com/llms.txt
 

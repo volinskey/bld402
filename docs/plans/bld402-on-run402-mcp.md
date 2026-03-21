@@ -1,7 +1,7 @@
 # Plan: bld402 on run402-mcp
 
 **Created:** 2026-03-20
-**Status:** BLOCKED — waiting for run402 bug fixes (see `run402/docs/bug_reports/bld402-compat-bugs.md`)
+**Status:** In Progress — run402 v1.18.0 bug fixes verified, CLI+MCP all pass
 **Goal:** Get bld402.com fully working on top of run402-mcp/CLI, with regression tests that protect bld402 from run402 changes.
 
 ---
@@ -117,7 +117,7 @@ There are 3 layers of testing (raw API already done by Gate 2):
 - [x] 1D-MCP.3: 3 bugs found: BUG-1 (HIGH: tier set fails x402), BUG-2 (MEDIUM: SQL comments silently no-op), BUG-3 (LOW: RLS needs projects rls, not raw SQL)
 - [x] 1D-MCP.4: paste-locker PASS via MCP — schema, deploy, insert+read verified
 - [x] 1D-MCP.5: landing-waitlist PASS via MCP — RLS via setup_rls tool, REST write/read confirmed
-- [!] 1D-MCP.6: Re-test MCP after run402 completes CLI/MCP parity — WAITING FOR: run402 MCP parity release (BUG-006 fix)
+- [x] 1D-MCP.6: Re-tested CLI+MCP on v1.18.0 — ALL 6 PASS. --file flag works (BUG-001 fixed). MCP parity confirmed.
 
 ### 1E: Deploy and verify live site
 
@@ -204,4 +204,5 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 - 2026-03-20: Discovered run402 CLI (`npx run402`) — separate npm package with full command set. Shares wallet with MCP. Rewrote Step 1D to test CLI first, then MCP. Added Step 1F for website updates.
 - 2026-03-20: ALL 6 TESTS PASS — 3 CLI (shared-todo, paste-locker, landing-waitlist) + 3 MCP (same). Bugs: em-dash SQL, sites deploy syntax, tier display, RLS needs dedicated command not raw SQL.
 - 2026-03-20: Filed 7 bugs against run402 (`run402/docs/bug_reports/bld402-compat-bugs.md`). 2 HIGH, 2 MEDIUM, 3 LOW. BUG-002/003 fixed by run402. BUG-004/005/007 not bugs (fixed in bld402 instructions). BUG-001 reproduced on Windows (SQL with comment lines, not em-dash). BUG-006 awaiting MCP parity release.
-- 2026-03-20: BLOCKED — waiting for: (1) BUG-001 fix (CLI SQL comment handling on Windows), (2) run402 MCP parity with CLI (BUG-006). Resume with `/implement bld402-on-run402-mcp`.
+- 2026-03-20: BLOCKED — waiting for run402 bug fixes.
+- 2026-03-21: UNBLOCKED — run402 v1.18.0 released. Re-tested ALL 6 (3 CLI + 3 MCP): ALL PASS. --file flag works, MCP parity confirmed. BUG-001/002/003 fixed. Ready for Step 1F/1G.

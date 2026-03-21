@@ -26,6 +26,12 @@ Before calling ANY MCP tool, you MUST set up the wallet so run402-mcp reuses the
 
 This ensures run402-mcp uses our funded test wallet instead of generating a new empty one.
 
+## IMPORTANT: Deferred Tools
+
+The run402-mcp server has 52 tools but your environment may only load ~8 initially. Before using any tool not in your palette, you MUST use ToolSearch to load it. For example: `ToolSearch "deploy_function"` to load the deploy_function tool schema.
+
+Always search for these before using them: deploy_function, invoke_function, list_functions, set_secret, setup_rls, project_info, tier_status, bundle_deploy.
+
 ## Your MCP Tools
 
 You have run402-mcp installed with these tools:

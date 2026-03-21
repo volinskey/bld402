@@ -16,7 +16,19 @@ For Claude Code, run:
 claude mcp add run402 -- npx -y run402-mcp
 ```
 
-Key tools: set_tier, tier_status, provision_postgres_project, project_info, run_sql, setup_rls, rest_query, upload_file, deploy_site, claim_subdomain, delete_subdomain.
+IMPORTANT: The MCP server provides 52 tools. Your environment may only load a subset initially. If a tool listed below is not in your palette, search for it (e.g. ToolSearch "deploy_function") to load its schema before calling it.
+
+Available tools by category:
+
+**Setup & billing:** init, set_tier, tier_status, status, check_balance, allowance_create, allowance_status, allowance_export, request_faucet, create_checkout, billing_history
+**Projects:** provision_postgres_project, project_info, project_keys, project_use, list_projects, get_schema, get_usage, archive_project, pin_project
+**Database:** run_sql, setup_rls, rest_query
+**Deployment:** deploy_site, get_deployment, bundle_deploy
+**Subdomains:** claim_subdomain, delete_subdomain, list_subdomains
+**Functions:** deploy_function, invoke_function, list_functions, delete_function, get_function_logs, set_secret, list_secrets, delete_secret
+**Storage:** upload_file, download_file, list_files, delete_file
+**Apps:** publish_app, get_app, browse_apps, fork_app, list_versions, update_version, delete_version
+**Other:** generate_image, send_message, set_agent_contact, get_quote
 
 ### Option B: CLI
 ```
@@ -42,11 +54,12 @@ Examples: todo lists, recipe books, expense splitters, landing pages, trivia gam
 4. Use `provision_postgres_project` with a name for your app. This returns a project_id and saves credentials to the local key store. Then call `project_info` with the project_id to get the anon_key, service_key, and REST API URL — you need these for the frontend.
 5. Use `run_sql` to create tables and seed data.
 6. **Apply RLS (required for public apps).** Use `setup_rls` with template=public_read_write and the table names. Without this, the anon key cannot read or write data and your app's API calls will return 401.
-7. Build the HTML/CSS/JS frontend. Use the anon_key and project_id from step 4. REST API calls from the frontend need these headers: `apikey: <anon_key>`, `Authorization: Bearer <anon_key>`, `X-Project-ID: <project_id>`.
-8. Use `deploy_site` to deploy the frontend. This returns a `deployment_id` and a CDN URL.
-9. Use `claim_subdomain` with the `deployment_id` from step 8 (not project_id) to get a clean URL like myapp.run402.com.
-10. Show the user their live URL — done!
-11. If they want changes: update SQL/files and redeploy.
+7. **Deploy functions (if needed).** For server-side logic (password hashing, secret matching, etc.), use `deploy_function` with the function code. Use `set_secret` for environment variables (requires redeploy to take effect). Test with `invoke_function` before building the frontend.
+8. Build the HTML/CSS/JS frontend. Use the anon_key and project_id from step 4. REST API calls from the frontend need these headers: `apikey: <anon_key>`, `Authorization: Bearer <anon_key>`, `X-Project-ID: <project_id>`. Call functions via `https://api.run402.com/functions/v1/<function_name>` with the same headers.
+9. Use `deploy_site` to deploy the frontend. This returns a `deployment_id` and a CDN URL.
+10. Use `claim_subdomain` with the `deployment_id` from step 9 (not project_id) to get a clean URL like myapp.run402.com.
+11. Show the user their live URL — done!
+12. If they want changes: update SQL/files and redeploy.
 
 For the full API reference, see: https://run402.com/llms.txt
 

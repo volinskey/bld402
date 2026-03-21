@@ -1,7 +1,7 @@
 # Plan: bld402 on run402-mcp
 
 **Created:** 2026-03-20
-**Status:** In Progress — run402 v1.18.0 bug fixes verified, CLI+MCP all pass
+**Status:** Step 1 COMPLETE — all 13 templates PASS via MCP red team. Steps 3-4 (Codex/OpenClaw) TBD.
 **Goal:** Get bld402.com fully working on top of run402-mcp/CLI, with regression tests that protect bld402 from run402 changes.
 
 ---
@@ -141,7 +141,7 @@ Decision: MCP is the only user-facing path. CLI is internal testing only. All co
 - [x] 1G.2: Red team round 2 — shared-todo PASS, 3 previous gaps confirmed fixed. 1 new critical (claim_subdomain needs deployment_id). Fixed in llms.txt.
 - [x] 1G.3: Red team round 3 — shared-todo CLEAN PASS. paste-locker failed (MCP tools not loading — missing .mcp.json).
 - [x] 1G.4: Red team round 4 — paste-locker FULL PASS via MCP (14/14 steps). Functions, RLS, deploy all work. GAP-001 RESOLVED (was .mcp.json, not platform bug). App live at secure-paste.run402.com.
-- [ ] 1G.5: Red team remaining 11 templates using only bld402.com instructions
+- [x] 1G.5: Red team ALL 13 templates via MCP — ALL PASS. ai-sticker-maker skipped generate_image (faucet rate-limited). Minor: setup_rls 500 on second template per table (agent uses raw SQL workaround).
 
 ---
 
@@ -207,4 +207,4 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 - 2026-03-20: Filed 7 bugs against run402 (`run402/docs/bug_reports/bld402-compat-bugs.md`). 2 HIGH, 2 MEDIUM, 3 LOW. BUG-002/003 fixed by run402. BUG-004/005/007 not bugs (fixed in bld402 instructions). BUG-001 reproduced on Windows (SQL with comment lines, not em-dash). BUG-006 awaiting MCP parity release.
 - 2026-03-20: BLOCKED — waiting for run402 bug fixes.
 - 2026-03-21: UNBLOCKED — run402 v1.18.0 released. Re-tested ALL 6 (3 CLI + 3 MCP): ALL PASS. --file flag works, MCP parity confirmed. BUG-001/002/003 fixed.
-- 2026-03-21: Red team round 1: shared-todo PASS, 3 critical llms.txt gaps found and fixed. Round 2: gaps confirmed fixed, 1 new finding (claim_subdomain) fixed. Round 3: shared-todo CLEAN PASS, paste-locker FAIL (platform bug — functions return 500). Filed GAP-001-004 against run402.
+- 2026-03-21: Red team round 1: shared-todo PASS, 3 critical llms.txt gaps found and fixed. Round 2: gaps confirmed fixed, 1 new finding (claim_subdomain) fixed. Round 3: shared-todo CLEAN PASS, paste-locker failed (missing .mcp.json). Round 4: paste-locker FULL PASS after .mcp.json fix. Round 5: ALL 13 TEMPLATES PASS via MCP (3 parallel batches). ai-sticker-maker skipped generate_image (faucet rate-limited). Step 1 COMPLETE.

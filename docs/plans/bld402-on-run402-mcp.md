@@ -139,8 +139,9 @@ Decision: MCP is the only user-facing path. CLI is internal testing only. All co
 
 - [x] 1G.1: Red team round 1 — shared-todo PASS, 3 critical gaps found (RLS, project_info, set_tier). Fixed in llms.txt.
 - [x] 1G.2: Red team round 2 — shared-todo PASS, 3 previous gaps confirmed fixed. 1 new critical (claim_subdomain needs deployment_id). Fixed in llms.txt.
-- [x] 1G.3: Red team round 3 — shared-todo CLEAN PASS (all llms.txt gaps fixed). paste-locker FAIL (platform bug: functions return 500, zero logs — GAP-001).
-- [!] 1G.4: Red team remaining templates — WAITING FOR: run402 to fix serverless function invocation (GAP-001). Templates requiring functions: paste-locker, secret-santa.
+- [x] 1G.3: Red team round 3 — shared-todo CLEAN PASS. paste-locker failed (MCP tools not loading — missing .mcp.json).
+- [x] 1G.4: Red team round 4 — paste-locker FULL PASS via MCP (14/14 steps). Functions, RLS, deploy all work. GAP-001 RESOLVED (was .mcp.json, not platform bug). App live at secure-paste.run402.com.
+- [ ] 1G.5: Red team remaining 11 templates using only bld402.com instructions
 
 ---
 

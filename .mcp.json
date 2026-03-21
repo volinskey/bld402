@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "run402": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "run402-mcp"]
+    }
+  }
+}

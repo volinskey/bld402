@@ -1,63 +1,80 @@
+#!/usr/bin/env node
 /**
- * Redeploy all showcase apps via x402-paid deployment API.
- * Usage: node showcase/redeploy.mjs
+ * Redeploy a fixed list of showcase apps via @run402/sdk's unified deploy.
+ *
+ * Usage:
+ *   node showcase/redeploy.mjs
+ *
+ * Walks each app's directory, substitutes placeholders, and calls
+ * `r.deploy.apply` with site + subdomain in one shot. Subdomain reassignment
+ * is part of the deploy state machine — no separate /subdomains call.
  */
-import { readFileSync } from 'fs';
-import { fileURLToPath } from 'url';
-import { dirname, join } from 'path';
-import { privateKeyToAccount } from 'viem/accounts';
-import { createPublicClient, http } from 'viem';
-import { baseSepolia } from 'viem/chains';
-import { x402Client, wrapFetchWithPayment } from '@x402/fetch';
-import { ExactEvmScheme } from '@x402/evm/exact/client';
-import { toClientEvmSigner } from '@x402/evm';
-
-const __scriptDir = dirname(fileURLToPath(import.meta.url));
-const privateKey = readFileSync(join(__scriptDir, '.wallet'), 'utf-8').trim();
-const account = privateKeyToAccount(privateKey);
-const publicClient = createPublicClient({ chain: baseSepolia, transport: http() });
-const signer = toClientEvmSigner(account, publicClient);
-const client = new x402Client();
-client.register('eip155:84532', new ExactEvmScheme(signer));
-const fetchPaid = wrapFetchWithPayment(fetch, client);
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
+import { Run402DeployError } from "@run402/sdk";
+import { API_URL, getClient, loadEnv } from "./_sdk.mjs";
 
 const apps = [
-  { name: 'photo-wall', dir: 'showcase/photo-wall' },
-  { name: 'ai-sticker-maker', dir: 'showcase/ai-sticker-maker' },
-  { name: 'micro-blog', dir: 'showcase/micro-blog' },
-  { name: 'memory-match', dir: 'showcase/memory-match' },
+  { name: "photo-wall", dir: "showcase/photo-wall" },
+  { name: "ai-sticker-maker", dir: "showcase/ai-sticker-maker" },
+  { name: "micro-blog", dir: "showcase/micro-blog" },
+  { name: "memory-match", dir: "showcase/memory-match" },
 ];
 
-function loadEnv(dir) {
-  const text = readFileSync(dir + '/.env', 'utf8');
-  return Object.fromEntries(
-    text.split('\n')
-      .filter(l => l && !l.startsWith('#'))
-      .map(l => { const i = l.indexOf('='); return [l.slice(0, i), l.slice(i + 1)]; })
-  );
+const TEXT_EXT = new Set([".html", ".css", ".js", ".svg", ".json", ".txt"]);
+const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"]);
+
+function buildFileSet(dir, env) {
+  const fileSet = {};
+  for (const entry of readdirSync(dir)) {
+    const ext = entry.slice(entry.lastIndexOf(".")).toLowerCase();
+    const path = join(dir, entry);
+    if (TEXT_EXT.has(ext)) {
+      let content = readFileSync(path, "utf-8");
+      content = content
+        .replace(/\{\{API_URL\}\}/g, API_URL)
+        .replace(/\{\{ANON_KEY\}\}/g, env.ANON_KEY ?? "")
+        .replace(/\{\{PROJECT_ID\}\}/g, env.PROJECT_ID ?? "");
+      fileSet[entry] = content;
+    } else if (BINARY_EXT.has(ext)) {
+      fileSet[entry] = new Uint8Array(readFileSync(path));
+    }
+  }
+  return fileSet;
 }
 
+const r = getClient();
+
 for (const app of apps) {
-  const env = loadEnv(app.dir);
-  let html = readFileSync(app.dir + '/index.html', 'utf8');
-  html = html.replace(/\{\{API_URL\}\}/g, env.API_URL || '');
-  html = html.replace(/\{\{ANON_KEY\}\}/g, env.ANON_KEY || '');
+  let env;
+  try {
+    env = loadEnv(app.name);
+  } catch (err) {
+    console.log(`${app.name}: SKIP (${err.message})`);
+    continue;
+  }
 
-  const res = await fetchPaid(env.API_URL + '/v1/deployments', {
-    method: 'POST',
-    headers: { apikey: env.SERVICE_KEY, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: app.name, project: env.PROJECT_ID, files: [{ file: 'index.html', data: html }] }),
-  });
-  const data = await res.json();
-  if (!res.ok) { console.log(app.name + ': FAILED ' + res.status, data); continue; }
-  console.log(app.name + ': deployed ' + data.id);
+  const fileSet = buildFileSet(app.dir, env);
+  if (Object.keys(fileSet).length === 0) {
+    console.log(`${app.name}: SKIP (no deployable files)`);
+    continue;
+  }
 
-  if (env.SUBDOMAIN) {
-    const subRes = await fetch(env.API_URL + '/v1/subdomains', {
-      method: 'POST',
-      headers: { apikey: env.SERVICE_KEY, Authorization: 'Bearer ' + env.SERVICE_KEY, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: env.SUBDOMAIN, deployment_id: data.id, project_id: env.PROJECT_ID }),
+  try {
+    const result = await r.deploy.apply({
+      project: env.PROJECT_ID,
+      site: { replace: fileSet },
+      ...(env.SUBDOMAIN ? { subdomains: { set: [env.SUBDOMAIN] } } : {}),
     });
-    console.log('  subdomain: ' + (subRes.ok ? env.SUBDOMAIN + '.run402.com' : 'FAILED'));
+    const url = env.SUBDOMAIN
+      ? `${env.SUBDOMAIN}.run402.com`
+      : (result.urls?.site ?? result.urls?.deployment ?? "(no url)");
+    console.log(`${app.name}: deployed release ${result.release_id} → ${url}`);
+  } catch (err) {
+    if (err instanceof Run402DeployError) {
+      console.log(`${app.name}: FAILED [${err.code}] ${err.message}`);
+    } else {
+      console.log(`${app.name}: FAILED ${err.message}`);
+    }
   }
 }

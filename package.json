@@ -7,6 +7,7 @@
     "start": "npx serve public -l 3000"
   },
   "dependencies": {
+    "@run402/sdk": "^1.50.1",
     "@x402/core": "^2.5.0",
     "@x402/evm": "^2.5.0",
     "@x402/fetch": "^2.5.0",

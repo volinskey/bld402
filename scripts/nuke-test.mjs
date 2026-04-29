@@ -1,0 +1,100 @@
+#!/usr/bin/env node
+/**
+ * nuke-test.mjs — fully clean up a run402 test project.
+ *
+ * Usage:
+ *   node scripts/nuke-test.mjs <project_id> <service_key>
+ *
+ * Refuses to touch the showcase project blocklist. Uses `@run402/sdk` with
+ * a service-key-only credentials provider — no wallet needed:
+ *   - `r.subdomains.list/delete` to release any custom subdomains.
+ *   - `r.projects.delete` for the full destructive cascade (drops the
+ *     tenant schema, releases subdomains, deletes functions, tombstones
+ *     mailbox, wipes secrets).
+ *
+ * Idempotent — safe to run multiple times.
+ */
+import { Run402, ProjectNotFound } from "@run402/sdk";
+
+const SHOWCASE_PROJECTS = new Set([
+  "prj_1772702667600_0011", // shared-todo
+  "prj_1772707206984_0012", // landing-waitlist
+  "prj_1772707239699_0013", // hangman
+  "prj_1772707271798_0014", // trivia-night
+  "prj_1772707305070_0015", // voting-booth
+  "prj_1772728652516_0019", // paste-locker
+]);
+
+const projectId = process.argv[2];
+const serviceKey = process.argv[3];
+
+if (!projectId || !serviceKey) {
+  console.error("Usage: node scripts/nuke-test.mjs <project_id> <service_key>");
+  console.error("\nFully cleans up a run402 test project. Refuses to touch showcase projects.");
+  process.exit(1);
+}
+
+if (SHOWCASE_PROJECTS.has(projectId)) {
+  console.error(`BLOCKED: ${projectId} is a showcase project. Cannot delete.`);
+  console.error("Showcase projects are live on the site and must never be cleaned up.");
+  process.exit(2);
+}
+
+console.log(`Nuking test project: ${projectId}`);
+
+// Service-key-only credentials. The SDK's project-scoped admin endpoints
+// (subdomains, project delete) only need the project's service_key as a
+// Bearer header — no SIWX wallet signing required.
+const r = new Run402({
+  apiBase: "https://api.run402.com",
+  fetch: globalThis.fetch,
+  credentials: {
+    async getAuth() {
+      return null;
+    },
+    async getProject(id) {
+      if (id === projectId) {
+        return { anon_key: serviceKey, service_key: serviceKey };
+      }
+      return null;
+    },
+  },
+});
+
+console.log("\n1. Releasing subdomains...");
+try {
+  // The SDK's r.subdomains.list returns the raw gateway envelope as of
+  // 1.50.x — sometimes the bare array, sometimes `{ subdomains: [...] }`.
+  // Tolerate both shapes.
+  const raw = await r.subdomains.list(projectId);
+  const subs = Array.isArray(raw) ? raw : Array.isArray(raw?.subdomains) ? raw.subdomains : [];
+  if (subs.length === 0) {
+    console.log("   None.");
+  } else {
+    for (const sub of subs) {
+      console.log(`   Releasing: ${sub.name}.run402.com`);
+      try {
+        await r.subdomains.delete(sub.name, { projectId });
+      } catch (err) {
+        console.log(`     (delete failed: ${err.message})`);
+      }
+    }
+  }
+} catch (err) {
+  console.log(`   (list failed: ${err.message})`);
+}
+
+console.log("\n2. Deleting project (drops schema + storage + functions + secrets + mailbox)...");
+try {
+  await r.projects.delete(projectId);
+  console.log("   Deleted.");
+} catch (err) {
+  if (err instanceof ProjectNotFound) {
+    console.log("   Already gone.");
+  } else {
+    console.error(`   FAILED: ${err.message}`);
+    process.exit(1);
+  }
+}
+
+console.log(`\nDone. ${projectId} fully cleaned.`);

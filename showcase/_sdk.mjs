@@ -9,7 +9,7 @@
  * tooling (deploy-time placeholder substitution, redeploy script). The SDK
  * keystore is kept in sync as a side effect of provision.
  */
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { run402 } from "@run402/sdk/node";
@@ -86,15 +86,17 @@ export function loadEnv(appName) {
 
 /**
  * Write a `KEY=value` `.env` file for the named app, preserving a header
- * comment with the app name and write timestamp.
+ * comment with the app name and write timestamp. Creates the showcase
+ * subdirectory if it doesn't exist yet.
  */
 export function saveEnv(appName, data) {
-  const path = join("showcase", appName, ".env");
+  const dir = join("showcase", appName);
+  mkdirSync(dir, { recursive: true });
   const lines = [
     `# bld402 showcase: ${appName}`,
     `# Updated: ${new Date().toISOString()}`,
     ...Object.entries(data).map(([k, v]) => `${k}=${v}`),
     "",
   ];
-  writeFileSync(path, lines.join("\n"), "utf-8");
+  writeFileSync(join(dir, ".env"), lines.join("\n"), "utf-8");
 }

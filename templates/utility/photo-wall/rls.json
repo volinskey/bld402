@@ -1,17 +1,13 @@
 {
-  "policies": [
+  "$schema": "https://run402.com/schemas/manifest.v1.json",
+  "version": "1",
+  "tables": [
     {
-      "template": "public_read",
-      "tables": [
-        { "table": "photos" }
-      ]
-    },
-    {
-      "template": "user_owns_rows",
-      "tables": [
-        { "table": "photos", "owner_column": "user_id" }
-      ]
+      "name": "photos",
+      "expose": true,
+      "policy": "custom",
+      "custom_sql": "CREATE POLICY anon_select ON photos FOR SELECT TO anon, authenticated USING (true); CREATE POLICY owner_insert ON photos FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid()); CREATE POLICY owner_update ON photos FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid()); CREATE POLICY owner_delete ON photos FOR DELETE TO authenticated USING (user_id = auth.uid());"
     }
   ],
-  "notes": "public_read: anyone can view the gallery. user_owns_rows: authenticated users can upload and delete their own photos. For private walls, replace public_read with user_owns_rows for read access too."
+  "notes": "Anyone (anon + authenticated) can view the gallery. Authenticated users can upload/edit/delete only their own photos (user_id must match auth.uid()). Built-in templates can't express this combination, so it's a single 'custom' policy."
 }

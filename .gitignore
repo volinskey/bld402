@@ -5,6 +5,8 @@ Thumbs.db
 .env
 .env.local
 showcase/.wallet
+showcase/.allowance.json
+showcase/.keystore.json
 .claude/settings.local.json
 .claude/agent-memory/
 .claude/skills/

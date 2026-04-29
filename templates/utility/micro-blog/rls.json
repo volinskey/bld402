@@ -1,17 +1,13 @@
 {
-  "policies": [
+  "$schema": "https://run402.com/schemas/manifest.v1.json",
+  "version": "1",
+  "tables": [
     {
-      "template": "public_read",
-      "tables": [
-        { "table": "posts" }
-      ]
-    },
-    {
-      "template": "user_owns_rows",
-      "tables": [
-        { "table": "posts", "owner_column": "user_id" }
-      ]
+      "name": "posts",
+      "expose": true,
+      "policy": "custom",
+      "custom_sql": "CREATE POLICY anon_select ON posts FOR SELECT TO anon, authenticated USING (true); CREATE POLICY owner_insert ON posts FOR INSERT TO authenticated WITH CHECK (user_id = auth.uid()); CREATE POLICY owner_update ON posts FOR UPDATE TO authenticated USING (user_id = auth.uid()) WITH CHECK (user_id = auth.uid()); CREATE POLICY owner_delete ON posts FOR DELETE TO authenticated USING (user_id = auth.uid());"
     }
   ],
-  "notes": "public_read: anyone can read all posts. user_owns_rows: authenticated users can insert and delete their own posts (user_id must match auth.uid())."
+  "notes": "Anyone (anon + authenticated) can read all posts. Authenticated users can insert/update/delete only their own posts (user_id must match auth.uid()). Built-in templates can't express this combination, so it's a single 'custom' policy."
 }

@@ -1,26 +1,24 @@
 #!/usr/bin/env node
 /**
- * Deploy a showcase app to run402 and claim its subdomain.
+ * Deploy a showcase app to run402, via @run402/sdk's unified deploy.
  *
  * Usage:
  *   node showcase/deploy.mjs <app-name> [subdomain]
  *
- * Example:
- *   node showcase/deploy.mjs shared-todo todo
+ * Reads showcase/<app-name>/.env for credentials and showcase/<app-name>/*
+ * for files. Substitutes `{{API_URL}}`, `{{ANON_KEY}}`, `{{PROJECT_ID}}`
+ * placeholders in text files, then calls `r.deploy.apply` with the site +
+ * subdomain in one shot. The state machine claims/reassigns the subdomain
+ * atomically with the site activation.
  *
- * Reads credentials from showcase/<app-name>/.env
- * Reads HTML from showcase/<app-name>/index.html
- * Substitutes {{API_URL}} and {{ANON_KEY}} placeholders
+ * Pin uses a direct admin call (the SDK's `projects.pin` returns 403 for
+ * non-platform-admin callers; the showcase needs the platform admin key
+ * out-of-band via AWS Secrets Manager).
  */
-
-import { readFileSync, writeFileSync, readdirSync, existsSync } from "fs";
-import { join } from "path";
-import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { createPublicClient, http } from "viem";
-import { baseSepolia } from "viem/chains";
-import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { toClientEvmSigner } from "@x402/evm";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { Run402DeployError } from "@run402/sdk";
+import { API_URL, getClient, loadEnv, saveEnv } from "./_sdk.mjs";
 
 const appName = process.argv[2];
 const subdomain = process.argv[3];
@@ -30,161 +28,118 @@ if (!appName) {
   process.exit(1);
 }
 
-// Load credentials
-const envContent = readFileSync(`showcase/${appName}/.env`, "utf-8");
-const env = Object.fromEntries(
-  envContent.split("\n")
-    .filter(l => l && !l.startsWith("#"))
-    .map(l => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; })
-    .filter(([k, v]) => k && v)
-);
+const env = loadEnv(appName);
+const r = getClient();
 
-// Load wallet for x402 payment (deployments are also x402-gated)
-import { fileURLToPath } from "url";
-import { dirname as _dirname } from "path";
-const __scriptDir = _dirname(fileURLToPath(import.meta.url));
-const WALLET_FILE = join(__scriptDir, ".wallet");
-const privateKey = readFileSync(WALLET_FILE, "utf-8").trim();
-const account = privateKeyToAccount(privateKey);
-
-const publicClient = createPublicClient({
-  chain: baseSepolia,
-  transport: http(),
-});
-const signer = toClientEvmSigner(account, publicClient);
-const client = new x402Client();
-client.register("eip155:84532", new ExactEvmScheme(signer));
-const fetchPaid = wrapFetchWithPayment(fetch, client);
-
-// Build file list — substitute placeholders
+// --- Build the FileSet with placeholder substitution ---
 const appDir = `showcase/${appName}`;
-const files = [];
+const TEXT_EXT = new Set([".html", ".css", ".js", ".svg", ".json", ".txt"]);
+const BINARY_EXT = new Set([".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico"]);
 
-// PostgREST URL for this project's schema
-const restUrl = `${env.API_URL}`;
-
-function addFile(filePath, relativePath) {
-  let content = readFileSync(filePath, "utf-8");
-  content = content.replace(/\{\{API_URL\}\}/g, restUrl);
-  content = content.replace(/\{\{ANON_KEY\}\}/g, env.ANON_KEY);
-  content = content.replace(/\{\{PROJECT_ID\}\}/g, env.PROJECT_ID);
-  files.push({
-    file: relativePath,
-    data: content,
-    encoding: "utf-8",
-  });
+function substitute(content) {
+  return content
+    .replace(/\{\{API_URL\}\}/g, API_URL)
+    .replace(/\{\{ANON_KEY\}\}/g, env.ANON_KEY)
+    .replace(/\{\{PROJECT_ID\}\}/g, env.PROJECT_ID);
 }
 
-// Add index.html
-addFile(join(appDir, "index.html"), "index.html");
-
-// Add any other HTML/CSS/JS files in the directory (not .sql, .env, etc.)
-const webExtensions = [".html", ".css", ".js", ".svg", ".png", ".jpg", ".ico"];
+const fileSet = {};
 for (const entry of readdirSync(appDir)) {
-  if (entry === "index.html") continue; // already added
-  const ext = entry.substring(entry.lastIndexOf("."));
-  if (webExtensions.includes(ext)) {
-    addFile(join(appDir, entry), entry);
+  const ext = entry.slice(entry.lastIndexOf(".")).toLowerCase();
+  const path = join(appDir, entry);
+  if (TEXT_EXT.has(ext)) {
+    fileSet[entry] = substitute(readFileSync(path, "utf-8"));
+  } else if (BINARY_EXT.has(ext)) {
+    fileSet[entry] = new Uint8Array(readFileSync(path));
   }
+  // .sql, .env, etc. are skipped.
 }
 
-console.log(`Deploying ${appName} (${files.length} file(s))...`);
+const fileCount = Object.keys(fileSet).length;
+if (fileCount === 0) {
+  console.error(`No deployable files found in ${appDir}`);
+  process.exit(1);
+}
+console.log(`Deploying ${appName} (${fileCount} file${fileCount === 1 ? "" : "s"})...`);
+if (subdomain) console.log(`  with subdomain: ${subdomain}`);
 
-// Deploy via x402
-const deployRes = await fetchPaid(`${env.API_URL}/v1/deployments`, {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({
-    name: `bld402-${appName}`,
-    project: env.PROJECT_ID,
-    files,
-  }),
-});
-
-if (!deployRes.ok) {
-  console.error(`Deploy failed (${deployRes.status}):`, await deployRes.text());
+// --- Deploy via SDK (unified state machine) ---
+let result;
+try {
+  result = await r.deploy.apply(
+    {
+      project: env.PROJECT_ID,
+      site: { replace: fileSet },
+      ...(subdomain ? { subdomains: { set: [subdomain] } } : {}),
+    },
+    {
+      onEvent: (event) => {
+        if (event.type === "commit.phase" && event.status !== "started") {
+          console.log(`  ${event.phase}: ${event.status}`);
+        }
+        if (event.type === "content.upload.progress" && event.done === event.total) {
+          console.log(`  uploaded: ${event.label}`);
+        }
+        if (event.type === "ready") {
+          for (const [k, v] of Object.entries(event.urls)) {
+            console.log(`  ${k}: ${v}`);
+          }
+        }
+      },
+    },
+  );
+} catch (err) {
+  if (err instanceof Run402DeployError) {
+    console.error(`\nDeploy failed [${err.code}]: ${err.message}`);
+    if (err.fix) console.error("Fix:", JSON.stringify(err.fix, null, 2));
+  } else {
+    console.error(`\nDeploy failed: ${err.message}`);
+  }
   process.exit(1);
 }
 
-const deployment = await deployRes.json();
-console.log("\nDeployed!");
-console.log("  deployment_id:", deployment.id);
-console.log("  url:", deployment.url);
+console.log(`\nDeployed! release_id=${result.release_id}`);
+const deploymentUrl = result.urls?.site ?? result.urls?.deployment ?? "";
+const subdomainUrl = subdomain ? `https://${subdomain}.run402.com` : "";
 
-// Update .env with deployment info
-const envUpdate = envContent + [
-  `DEPLOYMENT_ID=${deployment.id}`,
-  `DEPLOYMENT_URL=${deployment.url}`,
-  "",
-].join("\n");
-writeFileSync(`showcase/${appName}/.env`, envUpdate, "utf-8");
+// --- Save .env ---
+const updated = {
+  ...env,
+  RELEASE_ID: result.release_id,
+  ...(deploymentUrl ? { DEPLOYMENT_URL: deploymentUrl } : {}),
+  ...(subdomain ? { SUBDOMAIN: subdomain, SUBDOMAIN_URL: subdomainUrl } : {}),
+};
+saveEnv(appName, updated);
 
-// Claim subdomain (if specified)
-if (subdomain) {
-  console.log(`\nClaiming subdomain '${subdomain}'...`);
-  const subRes = await fetch(`${env.API_URL}/v1/subdomains`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${env.SERVICE_KEY}`,
-    },
-    body: JSON.stringify({
-      name: subdomain,
-      deployment_id: deployment.id,
-    }),
-  });
-
-  if (!subRes.ok) {
-    console.error(`Subdomain claim failed (${subRes.status}):`, await subRes.text());
-  } else {
-    const sub = await subRes.json();
-    console.log("  subdomain_url:", sub.url);
-
-    // Append to .env
-    const finalEnv = envUpdate + [
-      `SUBDOMAIN=${subdomain}`,
-      `SUBDOMAIN_URL=${sub.url}`,
-      "",
-    ].join("\n");
-    writeFileSync(`showcase/${appName}/.env`, finalEnv, "utf-8");
-  }
-}
-
-// Pin the project (requires platform admin key from AWS Secrets Manager)
+// --- Pin (platform admin only) ---
 console.log("\nPinning project (lease never expires)...");
 let adminKey = "";
 try {
-  const { execSync } = await import("child_process");
+  const { execSync } = await import("node:child_process");
   adminKey = execSync(
     'aws secretsmanager get-secret-value --secret-id "agentdb/admin-key" --query SecretString --output text --region us-east-1 --profile kychee',
-    { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] }
+    { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
   ).trim();
-} catch (err) {
-  console.log("  Could not fetch admin key from AWS Secrets Manager (agentdb/admin-key)");
-  console.log("  Ensure 'aws sso login --profile kychee' has been run");
-  console.log("  Skipping pin.");
+} catch {
+  console.log("  Could not fetch admin key (run 'aws sso login --profile kychee' first). Skipping pin.");
 }
 
 if (adminKey) {
-  const pinRes = await fetch(`${env.API_URL}/admin/v1/projects/${env.PROJECT_ID}/pin`, {
+  const pinRes = await fetch(`${API_URL}/projects/v1/admin/${env.PROJECT_ID}/pin`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${env.SERVICE_KEY}`,
+      Authorization: `Bearer ${env.SERVICE_KEY}`,
       "X-Admin-Key": adminKey,
     },
   });
-
   if (!pinRes.ok) {
-    console.error(`Pin failed (${pinRes.status}):`, await pinRes.text());
+    console.log(`  Pin failed (${pinRes.status}): ${await pinRes.text()}`);
   } else {
-    const pin = await pinRes.json();
-    console.log("  pinned:", pin.pinned);
+    console.log("  Pinned");
   }
 }
 
 console.log("\nDone! App should be live at:");
-if (subdomain) {
-  console.log(`  https://${subdomain}.run402.com`);
-}
-console.log(`  ${deployment.url}`);
+if (subdomainUrl) console.log(`  ${subdomainUrl}`);
+if (deploymentUrl) console.log(`  ${deploymentUrl}`);

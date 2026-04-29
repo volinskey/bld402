@@ -29,11 +29,19 @@ const r = getClient();
 // --- Step 1: Allowance ---
 let address = ensureAllowance();
 if (!address) {
-  console.log("No allowance found — creating one...");
-  const created = await r.allowance.create();
-  address = created.address;
-  console.log(`Created wallet ${address}`);
-  console.log(`(saved to ${ALLOWANCE_PATH})`);
+  // No showcase-local wallet — check whether the SDK has one at its default
+  // path (e.g., set up via `npx run402 init`). Only create a fresh wallet
+  // when the SDK reports nothing configured anywhere.
+  const status = await r.allowance.status();
+  if (status.configured && status.address) {
+    address = status.address;
+    console.log(`Using SDK-configured wallet at ${status.path ?? "default path"}`);
+  } else {
+    console.log("No allowance found anywhere — creating one...");
+    const created = await r.allowance.create();
+    address = created.address;
+    console.log(`Created wallet ${address} at ${created.path ?? ALLOWANCE_PATH}`);
+  }
 }
 console.log("Wallet address:", address);
 

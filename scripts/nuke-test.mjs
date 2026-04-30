@@ -63,11 +63,7 @@ const r = new Run402({
 
 console.log("\n1. Releasing subdomains...");
 try {
-  // The SDK's r.subdomains.list returns the raw gateway envelope as of
-  // 1.50.x — sometimes the bare array, sometimes `{ subdomains: [...] }`.
-  // Tolerate both shapes.
-  const raw = await r.subdomains.list(projectId);
-  const subs = Array.isArray(raw) ? raw : Array.isArray(raw?.subdomains) ? raw.subdomains : [];
+  const subs = await r.subdomains.list(projectId);
   if (subs.length === 0) {
     console.log("   None.");
   } else {

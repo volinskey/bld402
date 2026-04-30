@@ -49,8 +49,19 @@ console.log("Wallet address:", address);
 console.log("\nRequesting testnet USDC from faucet...");
 try {
   const result = await r.allowance.faucet();
-  console.log(`Faucet: ${result.amount} ${result.token} on ${result.network}`);
-  console.log(`Tx: ${result.transactionHash}`);
+  // The runtime gateway response sometimes uses `amount_usd_micros` rather
+  // than the `amount`/`token` fields the SDK type promises — log whichever
+  // are present so we don't print "undefined USDC".
+  const amount =
+    result.amount ??
+    (typeof result.amount_usd_micros === "number"
+      ? `$${(result.amount_usd_micros / 1_000_000).toFixed(2)}`
+      : null);
+  const token = result.token ?? "USDC";
+  const network = result.network ?? "base-sepolia";
+  if (amount) console.log(`Faucet: ${amount} ${token} on ${network}`);
+  else console.log(`Faucet: requested on ${network}`);
+  if (result.transactionHash) console.log(`Tx: ${result.transactionHash}`);
   console.log("Waiting 5s for faucet tx to settle...");
   await new Promise((r) => setTimeout(r, 5000));
 } catch (err) {
@@ -78,33 +89,43 @@ console.log("\nProject created!");
 console.log("  project_id:  ", project.project_id);
 console.log("  schema_slot: ", project.schema_slot);
 
-// Tier metadata for the .env (the SDK persisted keys to keystore;
-// the .env mirror is for the deploy/redeploy/run-sql/apply-rls scripts).
-// `getUsage` is project-scoped and reliably returns tier + lease, unlike
-// `tier.status` which requires the same wallet that paid the subscription.
+// Tier metadata for the .env (the SDK persisted keys to keystore; the
+// .env mirror is for the deploy/redeploy/run-sql/apply-rls scripts).
+// `getUsage` returns tier reliably; `lease_expires_at` is documented on
+// UsageReport but the runtime body sometimes omits it — try `tier.status`
+// as a fallback when getUsage doesn't include it.
 let tierName = "prototype";
 let leaseExpiresAt = "";
 try {
   const usage = await r.projects.getUsage(project.project_id);
   tierName = usage.tier ?? tierName;
-  leaseExpiresAt = usage.lease_expires_at ?? "";
-  console.log("  tier:        ", tierName);
-  if (leaseExpiresAt) console.log("  lease_expires_at:", leaseExpiresAt);
+  if (usage.lease_expires_at) leaseExpiresAt = usage.lease_expires_at;
 } catch (err) {
   console.log(`  (couldn't read project usage: ${err.message})`);
 }
+if (!leaseExpiresAt) {
+  try {
+    const status = await r.tier.status();
+    if (status.lease_expires_at) leaseExpiresAt = status.lease_expires_at;
+  } catch {
+    // Both sources unavailable — leave empty in .env.
+  }
+}
+console.log("  tier:        ", tierName);
+if (leaseExpiresAt) console.log("  lease_expires_at:", leaseExpiresAt);
 
 // --- Step 4: Save .env ---
-saveEnv(appName, {
+const envData = {
   PROJECT_ID: project.project_id,
   ANON_KEY: project.anon_key,
   SERVICE_KEY: project.service_key,
   SCHEMA_SLOT: project.schema_slot,
   API_URL,
   TIER: tierName,
-  LEASE_EXPIRES_AT: leaseExpiresAt,
   WALLET_ADDRESS: address,
-});
+};
+if (leaseExpiresAt) envData.LEASE_EXPIRES_AT = leaseExpiresAt;
+saveEnv(appName, envData);
 
 console.log(`\nCredentials saved to showcase/${appName}/.env`);
 console.log("\nNext steps:");

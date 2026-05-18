@@ -65,15 +65,19 @@ Check the user's requests against these lists at EVERY step. If a feature is imp
 
 - Postgres database (tables, columns, constraints, indexes, SQL)
 - REST API (full CRUD with filtering, pagination, ordering via PostgREST)
-- Row-level security (user_owns_rows, public_read, public_read_write templates)
-- User authentication (email/password signup, login, token refresh, logout)
-- File storage (upload, download, signed URLs, S3-backed)
-- Static site hosting (deploy HTML/CSS/JS, get a shareable URL, SPA support)
-- Serverless functions (Node.js — for server-side logic like password hashing)
-- AI image generation (via generate-image service, $0.03/image)
-- Subdomains (myapp.run402.com — free)
-- Bundle deploy (one API call deploys everything: DB + migrations + RLS + functions + site + subdomain)
-- Multiple tiers: Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)
+- Row-level security via expose manifest (policies: `user_owns_rows`, `public_read_authenticated_write`, `public_read_write_UNRESTRICTED`, `custom`). Tables are dark by default.
+- User authentication (email/password signup, login, token refresh, logout; Google OAuth zero-config; passkeys)
+- File storage — content-addressed CDN with SRI integrity. `(await r.project(id)).assets.put()` (SDK 2.0+ — renamed from `r.blobs`) returns paste-and-go URLs. Reads via `/storage/v1/blob/:key`.
+- Static site hosting (deploy HTML/CSS/JS, get a shareable URL, SPA support, clean URLs via `site.public_paths`)
+- Same-origin web routes (`/admin`, `/admin/*`, `/api/*` mapped to functions on the static-site domain)
+- Serverless functions (Node 22 Fetch handlers — `export default async (req) => Response` — with cron scheduling; in-handler `db(req)` / `adminDb()` / `getUser(req)` / `ai` / `email` helpers via `@run402/functions`)
+- AI image generation (via generate-image service, $0.03/image), text translation, content moderation
+- Email — transactional send (SES), inbound parsing, custom sender domains
+- KMS contract wallets (Ethereum signing where private keys never leave AWS KMS)
+- Subdomains (myapp.run402.com — free, inline in deploy spec)
+- Unified deploy (`(await r.project(id)).apply(ReleaseSpec)` — SDK 2.0+): one declarative call deploys DB migrations + expose manifest + secret declarations + functions + site + public paths + subdomain + routes — atomic activation
+- GitHub Actions OIDC keyless deploy (`run402 ci link github`)
+- Multiple tiers: Prototype (FREE on testnet, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)
 - Testnet (Base Sepolia) — completely free via faucet
 - Publish & fork (make apps forkable by other agents)
 
@@ -481,38 +485,56 @@ Tell the user: "I've set up the storage for your app."
 
 **Output:** `tables_created` — List of tables with column names.
 
-### Step 12: Configure Row-Level Security
+### Step 12: Configure Row-Level Security (Expose Manifest)
 
-Apply RLS policies to control data access:
+**Tables are dark by default.** A new table is unreachable from `/rest/v1/*` until you list it in the expose manifest with `expose: true`. Apply the manifest via unified deploy (preferred) or the imperative `/expose` endpoint.
+
+**Preferred: include in unified deploy** (atomic with the rest of the release — Step 15 covers this). SDK 2.0+ uses the project-scoped hero:
+
+```javascript
+const p = await r.project(project_id);
+await p.apply({
+  database: {
+    expose: {
+      version: "1",
+      tables: [
+        { name: "todos",      expose: true, policy: "user_owns_rows", owner_column: "user_id", force_owner_on_insert: true },
+        { name: "categories", expose: true, policy: "public_read_authenticated_write" }
+      ]
+    }
+  }
+});
+```
+
+**Imperative escape hatch** (ad-hoc apply outside a deploy):
 
 ```
-POST https://api.run402.com/projects/v1/admin/{project_id}/rls
+POST https://api.run402.com/projects/v1/admin/{project_id}/expose
 Content-Type: application/json
 Authorization: Bearer {service_key}
 
 {
-  "template": "public_read_write",
-  "tables": [{"table": "todos"}]
+  "version": "1",
+  "tables": [{ "name": "todos", "expose": true, "policy": "user_owns_rows", "owner_column": "user_id" }]
 }
 ```
 
-**Available templates:**
+**Available policies (one per table):**
 
-| Template | Read | Write | Use when |
+| Policy | Read | Write | Use when |
 |----------|------|-------|----------|
-| `public_read` | Everyone | Authenticated users only | Public content that signed-in users can create/edit (blogs, forums, leaderboards, shared reference data) |
-| `public_read_write` | Everyone | Everyone | Open collaboration (voting, shared lists without auth) |
-| `user_owns_rows` | Row owner only | Row owner only | Personal data. Requires `owner_column` parameter. |
+| `user_owns_rows` | Row owner only (`auth.uid() = owner_column`) | Row owner only | Personal data. Requires `owner_column`. Add `force_owner_on_insert: true` to auto-fill on omitted owner. |
+| `public_read_authenticated_write` | Everyone | Any authenticated user | Shared content with sign-in. Note: any auth user can write any row — not row-scoped writes. |
+| `public_read_write_UNRESTRICTED` | Everyone (anon) | Everyone (anon) | Open collaboration. Requires `i_understand_this_is_unrestricted: true`. |
+| `custom` | — | — | Provide `custom_sql` with `CREATE POLICY` statements. Use for "anon read + owner-only writes" and anything else the built-ins can't express. |
 
-**Decision guide:**
-- App has auth + public content → `public_read` for shared posts/scores, `user_owns_rows` for private data
-- App has auth + private data only → `user_owns_rows` for personal data, `public_read` for reference data
-- App has no auth → `public_read_write` for everything
-- Mixed → Different templates per table (separate API calls)
+**Manifest is convergent:** Applying the same manifest twice is a no-op. Items removed between applies have their policies, grants, triggers, and views dropped. Always include everything you want exposed.
+
+**Removed:** The legacy `POST /projects/v1/admin/{id}/rls` single-template endpoint returns 404.
 
 Tell the user: "I've set up the access rules for your app."
 
-**Output:** `rls_configured` — Map of table to RLS template.
+**Output:** `rls_configured` — Map of table to manifest policy.
 
 ### Step 13: Generate Frontend Code
 
@@ -622,9 +644,10 @@ Review against this checklist. Fix issues before deploying.
 - [ ] `access_token` stored and used in `Authorization` header?
 - [ ] Logout clears the token?
 
-**RLS compatibility:**
-- [ ] `user_owns_rows`: every INSERT includes the owner column?
-- [ ] `public_read`: writes require authenticated user (access_token in header)?
+**RLS / expose manifest compatibility:**
+- [ ] Every table the frontend reads or writes is listed with `expose: true` in the manifest?
+- [ ] `user_owns_rows`: every INSERT includes the owner column (or the table has `force_owner_on_insert: true`)?
+- [ ] `public_read_authenticated_write`: writes go through after login (access_token in `Authorization: Bearer`)?
 
 **UI/UX:**
 - [ ] Loading states while fetching?
@@ -647,47 +670,45 @@ Tell the user: "Everything looks good! Deploying your app now..."
 
 ### Step 15: Deploy to run402
 
-Deploy the static site (wallet auth, free with active tier):
+Deploy the site + subdomain in a single unified call. SIWX auth, free with active tier.
+
+**Preferred: `@run402/sdk@^2.0.0`**:
 
 ```javascript
-// Sign wallet auth headers
-const timestamp = Math.floor(Date.now() / 1000).toString();
-const signature = await account.signMessage({ message: `run402:${timestamp}` });
+import { run402, Run402DeployError } from "@run402/sdk/node";
+const r = run402();
+const p = await r.project(project_id);  // async — scopes the client
 
-const res = await fetch('https://api.run402.com/deployments/v1', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'X-Run402-Wallet': account.address,
-    'X-Run402-Signature': signature,
-    'X-Run402-Timestamp': timestamp,
-  },
-  body: JSON.stringify({
-    name: 'app-name',
-    project: project_id,
-    files: app_files  // [{file, data, encoding}, ...]
-  })
-});
-const deployment = await res.json();
+try {
+  const result = await p.apply({
+    site: { replace: fileSet },           // { "index.html": "...", ... }
+    subdomains: { set: [subdomain] },     // inline claim/reassign — no separate call
+  });
+  // result.release_id, result.urls.site, result.urls.subdomain
+} catch (err) {
+  if (err instanceof Run402DeployError) {
+    // err.code: INVALID_SPEC | MIGRATION_FAILED | BASE_RELEASE_CONFLICT | ...
+  }
+  throw err;
+}
 ```
 
-**Response:** `{ "id": "dpl_...", "url": "https://dpl-....sites.run402.com", "status": "READY" }`
+`fileSet` is `{ "filename": "utf-8 string" | Uint8Array | { data, encoding, contentType? } | { path, contentType? } }`. The Node entry has `fileSetFromDir(dir)` to walk a directory.
 
-**Claim a subdomain (default yes):**
+**SDK 2.0 breaking note:** The old `r.deploy.apply(spec)` was removed in v1.48 — `Deploy` is now `@internal`. The sole public hero is `(await r.project(id)).apply(spec)`. Note that `project` drops out of the spec (the scoped client binds it). `r.blobs` is renamed to `r.assets`. For live progress events use `await p.apply.start(spec)`; to resume, `p.apply.resume(operationId)`. Release observability lives on `p.deploy.{getRelease, getActiveRelease, diff, resolve, list, events, status}`.
 
-Derive subdomain from app name: lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric (except hyphens), truncate to 63 chars.
+**Alternative — CLI:** `run402 deploy apply --manifest app.json`.
+**Alternative — MCP tool:** `deploy` (or older `bundle_deploy` / `deploy_site`).
 
-```
-POST https://api.run402.com/subdomains/v1
-Content-Type: application/json
-Authorization: Bearer {service_key}
+**HTTP wire (raw):** Two-step CAS — `POST /apply/v1/plans` (gateway returns presigned PUT URLs for missing bytes) → client PUTs bytes → `POST /apply/v1/plans/:plan_id/commit`. **Do not hand-roll.** Auth is SIGN-IN-WITH-X (CAIP-122 / EIP-4361); the SDK signs it for you.
 
-{ "name": "myapp", "deployment_id": "{deployment_id}" }
-```
+**Removed (return 404):** `POST /deployments/v1`, `POST /deploy/v1`, `POST /deploy/v2/plans` (renamed to `/apply/v1/plans` in 2.0), the separate `POST /subdomains/v1` claim-on-deploy call.
 
-Subdomain rules: 3-63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no consecutive hyphens, no reserved words (api, www, admin, sites, mail, ftp, cdn, static). Free, idempotent (upserts — safe to call on every deploy).
+**Subdomain rules:** 3-63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no consecutive hyphens, no reserved words (api, www, admin, dashboard, docs, support, cdn, static, dev, staging, test, demo, run402). Free with active tier. Each project carries one subdomain via `subdomains.set` today.
 
-If claiming fails: fall back to the raw deployment URL. Don't retry in a loop.
+**Derive subdomain from app name:** lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric (except hyphens), truncate to 63 chars.
+
+If claiming fails (409 conflict, etc.): retry the deploy without `subdomains` — site still deploys, user gets the raw `result.urls.site`. Don't retry in a loop.
 
 **Smoke-test gate (mandatory):**
 1. Fetch the live URL
@@ -906,16 +927,20 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 | Check tier status | GET | `/tiers/v1/status` | Wallet auth |
 | Generate image | POST | `/generate-image/v1` | x402 ($0.03) |
 
-### Project & Deploy (wallet auth — free with tier)
+### Project & Deploy (SIWX — free with active tier)
 
 | Action | Method | Endpoint | Auth |
 |--------|--------|----------|------|
-| Get test funds | POST | `/faucet/v1` | None |
-| Create project | POST | `/projects/v1` | Wallet auth |
-| Deploy site | POST | `/deployments/v1` | Wallet auth |
-| Bundle deploy | POST | `/deploy/v1` | Wallet auth |
-| Check deploy | GET | `/deployments/v1/:id` | None |
-| Send message | POST | `/message/v1` | Wallet auth |
+| Get test funds | POST | `/faucet/v1` | None (rate-limited) |
+| Create project | POST | `/projects/v1` | x402 payment (prototype FREE on testnet) |
+| Unified deploy — plan | POST | `/apply/v1/plans` | SIWX |
+| Unified deploy — commit | POST | `/apply/v1/plans/:plan_id/commit` | SIWX |
+| Deploy operation status | GET | `/apply/v1/operations/:id` | SIWX |
+| Resume deploy | POST | `/apply/v1/operations/:id/resume` | SIWX |
+| URL diagnostic | POST | `/apply/v1/resolve` | SIWX |
+| Send message | POST | `/message/v1` | SIWX |
+
+**Do not hand-roll the plan + upload + commit dance.** Use `(await r.project(id)).apply(spec)` (SDK 2.0+), `run402 deploy apply --manifest` (CLI), or the `deploy` MCP tool. **Removed (return 404):** `POST /deployments/v1`, `POST /deploy/v1`, `/deploy/v1/plan`, `/deploy/v1/commit`, `POST /deploy/v2/plans` (renamed to `/apply/v1/plans` in 2.0).
 
 ### Admin (service_key)
 
@@ -923,11 +948,16 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 |--------|--------|----------|------|
 | Run SQL | POST | `/projects/v1/admin/:id/sql` | service_key |
 | Check schema | GET | `/projects/v1/admin/:id/schema` | service_key |
-| Apply RLS | POST | `/projects/v1/admin/:id/rls` | service_key |
-| Check usage | GET | `/projects/v1/admin/:id/usage` | service_key |
-| Deploy function | POST | `/projects/v1/admin/:id/functions` | service_key |
+| Apply expose manifest | POST | `/projects/v1/admin/:id/expose` | service_key |
+| Read expose manifest | GET | `/projects/v1/admin/:id/expose` | service_key |
+| Check usage | GET | `/projects/v1/:id/usage` | service_key or SIWX |
+| Deploy function (imperative) | POST | `/projects/v1/admin/:id/functions` | service_key |
 | Set secret | POST | `/projects/v1/admin/:id/secrets` | service_key |
-| Claim subdomain | POST | `/subdomains/v1` | service_key |
+| Pin / unpin | POST | `/projects/v1/admin/:id/{pin,unpin}` | service_key + admin |
+| Claim subdomain (imperative) | POST | `/subdomains/v1` | service_key |
+| Delete subdomain | DELETE | `/subdomains/v1/:name` | service_key |
+
+**Removed:** `POST /projects/v1/admin/:id/rls` (single-template format) returns 404. Use `/expose` with a manifest.
 
 ### Client API (anon_key / access_token)
 
@@ -939,18 +969,21 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 | Refresh token | POST | `/auth/v1/token?grant_type=refresh_token` | apikey |
 | Get current user | GET | `/auth/v1/user` | Bearer token |
 | Logout | POST | `/auth/v1/logout` | Bearer token |
-| Upload file | POST | `/storage/v1/object/:bucket/*` | apikey |
-| Download file | GET | `/storage/v1/object/:bucket/*` | apikey |
+| Start upload | POST | `/storage/v1/uploads` (returns presigned PUT URL) | apikey (service_key for write) |
+| Finalize upload | POST | `/storage/v1/uploads/:id/complete` | apikey |
+| Read blob | GET | `/storage/v1/blob/:key` | none (public) / apikey (private) |
 | Invoke function | POST | `/functions/v1/:name` | apikey |
+
+**Removed (return 404):** `POST/GET/DELETE /storage/v1/object/:bucket/*` — replaced by the presigned-PUT flow above. Use `(await r.project(id)).assets.put(...)` (SDK 2.0+; was `r.blobs.put` in 1.x) for the simple path.
 
 ### Auth Model
 
 | Auth Method | Headers | Used for |
 |-------------|---------|----------|
-| **x402 payment** | `x-402-payment: <signed-payment>` | Tier subscribe/renew/upgrade, image generation |
-| **Wallet auth** | `X-Run402-Wallet`, `X-Run402-Signature`, `X-Run402-Timestamp` | Project creation, deploy, bundle deploy, message, ping |
-| **service_key** | `Authorization: Bearer {service_key}` | Admin SQL, RLS, schema, usage, functions, secrets, subdomains |
-| **apikey** | `apikey: {anon_key}` | REST data, auth, storage, function invocation |
+| **x402 payment** | `x-402-payment: <signed-payment>` | `POST /projects/v1`, `POST /tiers/v1/:tier`, `POST /generate-image/v1` |
+| **SIGN-IN-WITH-X (SIWX)** | `Authorization: SIWX <encoded>` (CAIP-122 / EIP-4361) | Deploy, project list/get, fork, message, agent contact, ping, tier status |
+| **service_key** | `Authorization: Bearer {service_key}` | Admin SQL, expose, schema, usage, functions, secrets, subdomains, blob write |
+| **apikey** | `apikey: {anon_key}` | REST data, auth, storage reads, function invocation |
 | **Bearer token** | `Authorization: Bearer {access_token}` | User-scoped operations (from login) |
 
 **Base URL for all endpoints:** `https://api.run402.com`

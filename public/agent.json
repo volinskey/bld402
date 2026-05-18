@@ -117,7 +117,7 @@
       "phase": "implement",
       "title": "Create database tables",
       "url": "/build/step/11",
-      "instruction": "Execute SQL to create the app's database tables using POST /projects/v1/admin/:id/sql with the service_key.",
+      "instruction": "Create the app's tables. Preferred: registered migration via (await r.project(id)).apply({ database: { migrations: [{ id, sql }] } }) — SDK 2.0+. Imperative fallback: POST /projects/v1/admin/:id/sql with service_key for one-shot DDL.",
       "inputs": ["project_id", "service_key", "build_plan", "selected_templates"],
       "outputs": ["tables_created"],
       "next": 12
@@ -127,7 +127,7 @@
       "phase": "implement",
       "title": "Configure row-level security",
       "url": "/build/step/12",
-      "instruction": "Apply RLS policies using POST /projects/v1/admin/:id/rls. Choose from: user_owns_rows, public_read, public_read_write.",
+      "instruction": "Declare which tables are reachable via REST. Tables are dark by default. Apply an expose manifest under database.expose in (await r.project(id)).apply (or POST /projects/v1/admin/:id/expose directly). Policies: user_owns_rows, public_read_authenticated_write, public_read_write_UNRESTRICTED, custom. One policy per table.",
       "inputs": ["project_id", "service_key", "tables_created"],
       "outputs": ["rls_configured"],
       "next": 13
@@ -157,9 +157,9 @@
       "phase": "deploy",
       "title": "Deploy to run402",
       "url": "/build/step/15",
-      "instruction": "Deploy the static site by calling POST /deployments/v1 with all app files. Optionally claim a subdomain via POST /subdomains/v1 for a memorable URL like myapp.run402.com.",
+      "instruction": "Deploy via the unified primitive: (await r.project(id)).apply({ site: { replace: files }, subdomains: { set: [name] } }) for SDK 2.0+; run402 deploy apply --manifest for CLI; deploy / deploy_site_dir MCP tool. HTTP wire is POST /apply/v1/plans + /commit (CAS-based); the legacy POST /deployments/v1 and POST /deploy/v2/plans are removed. Subdomain claim/reassign is inline — no separate API call.",
       "inputs": ["app_files", "project_id"],
-      "outputs": ["deployment_id", "deployment_url", "subdomain", "subdomain_url"],
+      "outputs": ["release_id", "deployment_url", "subdomain", "subdomain_url"],
       "next": 16
     },
     {
@@ -202,9 +202,9 @@
       "phase": "iterate",
       "title": "Redeploy",
       "url": "/build/step/19",
-      "instruction": "Deploy the updated app. Each deployment creates a new immutable URL. If subdomain exists, reassign it to the new deployment. Share the subdomain URL (or new deployment URL) with the user.",
+      "instruction": "Redeploy via the same (await r.project(id)).apply primitive as Step 15. Each deploy produces a new release_id; the subdomain is reassigned atomically when you include subdomains.set with the same name. For small edits, use site.patch.put/delete with base: { release: 'current' } instead of full replace.",
       "inputs": ["updated_app_files", "project_id", "subdomain"],
-      "outputs": ["new_deployment_url", "subdomain_url"],
+      "outputs": ["release_id", "deployment_url", "subdomain_url"],
       "next": 17
     },
     {

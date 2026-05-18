@@ -50,20 +50,27 @@ Full catalog: [`docs/run402-services.md`](docs/run402-services.md)
 
 | Service | Display Name | Metered |
 |---------|-------------|---------|
-| projects | Project Lifecycle (x402-gated) | Yes |
-| database | Postgres Database (Aurora Serverless v2) | Yes |
-| rest-api | Auto-generated REST API (PostgREST) | Yes |
-| auth | Email/Password Auth + JWT | No |
-| storage | S3 Object Storage | Yes |
-| functions | Serverless Functions (Lambda) | Yes |
-| deployments | Static Site Hosting (S3 + CloudFront) | Yes |
-| subdomains | Custom Subdomain Mapping | No |
-| generate-image | AI Image Generation (OpenRouter) | Yes |
-| message | Message Notification (Telegram) | Yes |
-| faucet | USDC Test Token Faucet | No |
-| stripe | Subscription Billing (Stripe) | No |
-| hosting | Marketing Site (S3 + CloudFront) | No |
-| x402 | x402 Payment Gateway | N/A |
+| projects | Project Lifecycle (x402-gated) | Provision only — Prototype FREE on testnet, Hobby $5/30d, Team $20/30d |
+| database | Postgres (Aurora Serverless v2) — SQL via migrations, expose manifest (dark-by-default) | Yes (storage + api_calls) |
+| rest-api | Auto-generated REST API (PostgREST) | Yes (api_calls) |
+| auth | Email/Password + Google OAuth + JWT + passkeys | No |
+| blobs | Content-addressed CDN (S3 + CloudFront) — paste-and-go URLs with SRI | Yes (storage) |
+| functions | Node 22 Fetch handlers (Lambda) — `export default async (req) => Response` | Yes |
+| deploy | Unified Apply v1 — `(await r.project(id)).apply(ReleaseSpec)` (SDK 2.0+) site + DB + functions + secrets + subdomain atomically | No (free with active tier) |
+| sites | Static Hosting (`*.run402.com`) — clean URLs via `site.public_paths` | No (free with tier) |
+| subdomains | Custom Subdomain Mapping — claimed inline in deploy spec | No |
+| routes | Same-origin Web Routes — `/admin`, `/api/*` to functions on the static-site domain | No (free with tier) |
+| secrets | KMS-encrypted project secrets — values set out-of-band, asserted in deploy spec | No |
+| ai | Image generation ($0.03/img), text translate, content moderation | Per-call / quota |
+| email | SES transactional send, inbound parsing, custom sender domains | $5 / 10K email pack |
+| contracts | KMS Contract Wallets (Ethereum signing, keys in AWS KMS) | $0.04/day rental + sign fee |
+| apps | Publishable Apps / Fork | No |
+| billing | Wallet allowances, Stripe credits, tier subscriptions | N/A |
+| ci | GitHub Actions OIDC keyless deploy | No |
+| faucet | Base Sepolia USDC drip (testnet) | No |
+| message | Talk-to-devs — `r.message.send(...)` | No (free with tier) |
+| x402 | x402 Payment Gateway (USDC on Base) | N/A |
+| mpp | MPP (Tempo) Payment Gateway (pathUSD) | N/A |
 
 ## Gate 2 Testing — Build From Scratch
 
@@ -75,13 +82,14 @@ A shared test wallet exists at `showcase/.wallet` (gitignored). It contains a pr
 
 **How to use it:**
 ```bash
-# The wallet private key is at:
-showcase/.wallet
+# The wallet credentials are at:
+showcase/.allowance.json   # SDK shape (auto-migrated from legacy showcase/.wallet)
 
-# Use it with the existing provisioning scripts:
-node showcase/provision.mjs <app-name>    # Provision a project
-node showcase/run-sql.mjs <app-name> <sql-file>  # Run SQL
-node showcase/deploy.mjs <app-name> <subdomain>  # Deploy + claim subdomain
+# Use it with the existing provisioning scripts (all on @run402/sdk):
+node showcase/provision.mjs <app-name>           # Provision a project (x402 — FREE on testnet)
+node showcase/run-sql.mjs <app-name> <sql-file>  # Apply a SQL migration via unified deploy
+node showcase/apply-rls.mjs <app-name>           # Apply the expose manifest via unified deploy
+node showcase/deploy.mjs <app-name> <subdomain>  # Deploy site + claim subdomain (atomic)
 ```
 
 Or use the key directly with x402 fetch for manual API calls.

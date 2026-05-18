@@ -5,12 +5,13 @@
  * Usage:
  *   node showcase/run-sql.mjs <app-name> <sql-file> [migration-id]
  *
- * The SDK has no raw-SQL endpoint — SQL flows through the unified deploy
- * primitive as a registered migration. The migration `id` defaults to the
- * file's basename (e.g. `schema.sql` → `schema`) but can be overridden via
- * the third argument. Migration ids are stable: same id + same SQL is a
- * no-op, same id + different SQL is a hard error (the gateway protects
- * against accidental drift). To apply edited SQL, pass a fresh id:
+ * SQL flows through the unified deploy primitive as a registered migration
+ * (`p.apply({ database: { migrations: [{ id, sql }] } })`). The migration
+ * `id` defaults to the file's basename (e.g. `schema.sql` → `schema`) but
+ * can be overridden via the third argument. Migration ids are stable: same
+ * id + same SQL is a no-op, same id + different SQL is a hard error (the
+ * gateway protects against accidental drift). To apply edited SQL, pass a
+ * fresh id:
  *
  *   node showcase/run-sql.mjs todo schema.sql               # id="schema"
  *   node showcase/run-sql.mjs todo schema.sql 002_add_col   # id="002_add_col"
@@ -37,9 +38,10 @@ const r = getClient();
 console.log(`Applying migration '${migrationId}' (${sqlFile}) to project ${env.PROJECT_ID}...`);
 
 try {
-  const result = await r.deploy.apply(
+  // SDK 2.0.0: public hero is `(await r.project(id)).apply(spec)`.
+  const p = await r.project(env.PROJECT_ID);
+  const result = await p.apply(
     {
-      project: env.PROJECT_ID,
       database: { migrations: [{ id: migrationId, sql }] },
     },
     {

@@ -36,32 +36,56 @@
 
       <div id="instruction">
         <h2>What to do</h2>
-        <p>Deploy the updated app using the same process as <a href="/build/step/15">Step 15</a>.</p>
+        <p>Redeploy via the same unified primitive as <a href="/build/step/15">Step 15</a> — <code>(await r.project(id)).apply(spec)</code> (SDK 2.0+), <code>run402 deploy apply</code> (CLI), or the <code>deploy</code> MCP tool. Two redeploy modes:</p>
 
-        <pre><code>POST https://api.run402.com/deployments/v1
-Content-Type: application/json
+        <h3>Mode 1: full replace (most common)</h3>
+        <p>Send the complete site again. Any files <em>absent</em> from <code>site.replace</code> are removed from the release. Subdomain reassign is automatic — keep the same <code>subdomains.set</code> name and the URL stays the same.</p>
 
-{
-  "name": "app-name-v{iteration_count}",
-  "project": "{project_id}",
-  "files": [...]
+        <pre><code>{
+  "site":       { "replace": { /* ALL current files */ } },
+  "subdomains": { "set": ["{subdomain}"] }
 }</code></pre>
 
-        <p>This creates a <strong>new URL</strong>. The old deployment stays live too.</p>
+        <h3>Mode 2: surgical patch (for small edits)</h3>
+        <p>Patch only the files that changed. Set <code>base: { release: "current" }</code> to derive from the live release. Unchanged files carry forward; deleted files go in <code>patch.delete</code>.</p>
 
-        <h3>Reassign subdomain (if claimed)</h3>
-        <p>If the user claimed a subdomain in Step 15, reassign it to the new deployment so the same memorable URL points to the updated version:</p>
-
-        <pre><code>POST https://api.run402.com/subdomains/v1
-Content-Type: application/json
-Authorization: Bearer {service_key}
-
-{
-  "name": "{subdomain}",
-  "deployment_id": "{new_deployment_id}"
+        <pre><code>{
+  "base":  { "release": "current" },
+  "site":  {
+    "patch": {
+      "put":    { "index.html": "&lt;!doctype html&gt;..." },
+      "delete": ["old-page.html"]
+    }
+  }
 }</code></pre>
 
-        <p>This is an upsert — it updates the existing subdomain to point to the new deployment. The <code>subdomain_url</code> stays the same.</p>
+        <p>Bytes already in CAS are not re-uploaded. Functions whose source / config didn't change are kept as-is — no Lambda churn.</p>
+
+        <h3>SDK example (Node, @run402/sdk ^2.0.0)</h3>
+        <pre><code>const p = await r.project(env.PROJECT_ID);
+const result = await p.apply({
+  site: { replace: fileSet },
+  ...(env.SUBDOMAIN ? { subdomains: { set: [env.SUBDOMAIN] } } : {}),
+});
+const url = env.SUBDOMAIN
+  ? `https://${env.SUBDOMAIN}.run402.com`
+  : result.urls.site;</code></pre>
+
+        <p>The SDK auto-retries safe <code>BASE_RELEASE_CONFLICT</code> races when another deploy commits between your plan and commit. Don't hand-roll the retry loop.</p>
+
+        <h3>Subdomain reassignment is automatic</h3>
+        <p>Including <code>subdomains.set: ["{subdomain}"]</code> with the same name reassigns the subdomain to the new release atomically as part of activation. No separate API call. The <code>subdomain_url</code> stays the same — only the underlying release changes.</p>
+
+        <p>If you omit <code>subdomains</code>, the existing subdomain assignment carries forward unchanged.</p>
+
+        <h3>If the deploy fails</h3>
+        <p>The <code>apply</code> call throws <code>Run402DeployError</code> with a structured <code>code</code> and <code>nextActions</code>. Common cases:</p>
+        <ul>
+          <li><code>INVALID_SPEC</code> — typo in spec (e.g. <code>site.replcae</code>). Fix locally; nothing was uploaded.</li>
+          <li><code>MIGRATION_CHECKSUM_MISMATCH</code> — you edited an already-applied migration's SQL. Use a fresh migration id.</li>
+          <li><code>MISSING_REQUIRED_SECRET</code> warning — declared a secret in <code>secrets.require[]</code> that doesn't exist. Set it first via <code>p.secrets.set(key, value)</code> or <code>POST /projects/v1/admin/{id}/secrets</code>.</li>
+          <li><code>BASE_RELEASE_CONFLICT</code> with <code>safe_to_retry: true</code> — the SDK already retried; if you see this, your deploy budget was exhausted. Reapply.</li>
+        </ul>
 
         <h3>What to tell the user</h3>
         <p><strong>If subdomain exists:</strong></p>
@@ -74,17 +98,18 @@ Authorization: Bearer {service_key}
         <p><strong>If no subdomain:</strong></p>
         <blockquote>
           <p>"Here's your updated app:</p>
-          <p><strong>{new_deployment_url}</strong></p>
+          <p><strong>{deployment_url}</strong></p>
           <p>Try the changes and let me know what you think!"</p>
         </blockquote>
 
-        <p>Note: If you've been iterating many times, only share the latest URL. The user doesn't need to track all previous versions.</p>
+        <p>Note: If you've been iterating many times, only share the latest URL.</p>
       </div>
 
       <div id="expected-output">
         <h2>Expected output</h2>
         <ul>
-          <li><code>new_deployment_url</code> — The new live URL for the updated app</li>
+          <li><code>release_id</code> — New release id from this deploy</li>
+          <li><code>deployment_url</code> — Raw deployment URL (changes per release)</li>
           <li><code>subdomain_url</code> — Unchanged if subdomain was reassigned</li>
         </ul>
       </div>
@@ -95,7 +120,8 @@ Authorization: Bearer {service_key}
         {
           "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "lease_expires_at", "iteration_count", "subdomain", "subdomain_url"],
           "store": {
-            "deployment_url": "REPLACE with new_deployment_url — always keep the latest"
+            "release_id": "REPLACE with the new release_id — always keep the latest",
+            "deployment_url": "REPLACE with the new deployment URL — always keep the latest"
           },
           "discard": []
         }

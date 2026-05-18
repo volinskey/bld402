@@ -37,7 +37,37 @@
       <div id="instruction">
         <h2>What to do</h2>
 
-        <h3>Execute SQL migration</h3>
+        <p>Two paths — pick whichever fits the flow:</p>
+
+        <h3>Preferred: registered migration via unified deploy</h3>
+        <p>Put SQL under <code>database.migrations[]</code> in <code>p.apply()</code>. The gateway tracks each migration by <code>(id, checksum)</code>: same id + same SQL is a no-op; same id + different SQL is a hard <code>MIGRATION_CHECKSUM_MISMATCH</code> error. Use a fresh id for each new SQL change.</p>
+
+        <pre><code>const p = await r.project(env.PROJECT_ID);
+await p.apply({
+  database: {
+    migrations: [{
+      id: "001_init",
+      sql: `CREATE TABLE todos (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        task text NOT NULL,
+        done boolean DEFAULT false,
+        user_id uuid,
+        created_at timestamptz DEFAULT now()
+      );
+      CREATE TABLE categories (
+        id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+        name text NOT NULL UNIQUE,
+        created_at timestamptz DEFAULT now()
+      );`
+    }]
+  }
+});</code></pre>
+
+        <p>You can combine this with <code>database.expose</code> (Step 12), <code>site.replace</code> (Step 15), and <code>functions.replace</code> in a single deploy. They all activate atomically.</p>
+
+        <h3>Imperative escape hatch: admin SQL endpoint</h3>
+        <p>For ad-hoc one-shot SQL outside a deploy, the admin SQL endpoint still works:</p>
+
         <pre><code>POST https://api.run402.com/projects/v1/admin/{project_id}/sql
 Content-Type: text/plain
 Authorization: Bearer {service_key}
@@ -48,12 +78,6 @@ CREATE TABLE todos (
   done boolean DEFAULT false,
   user_id uuid,
   created_at timestamptz DEFAULT now()
-);
-
-CREATE TABLE categories (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  name text NOT NULL UNIQUE,
-  created_at timestamptz DEFAULT now()
 );</code></pre>
 
         <p><strong>Response:</strong></p>
@@ -63,6 +87,8 @@ CREATE TABLE categories (
   "rows": [],
   "rowCount": 0
 }</code></pre>
+
+        <p>SDK equivalent (2.0+): <code>(await r.project(projectId)).sql(sqlString)</code>. MCP equivalent: <code>run_sql</code>. Use this only for exploration or ad-hoc fixes — registered migrations (above) are the durable path because the gateway tracks them.</p>
 
         <h3>SQL rules</h3>
         <ul>

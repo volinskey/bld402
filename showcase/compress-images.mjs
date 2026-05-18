@@ -1,100 +1,97 @@
 /**
- * Download seed images from storage, compress to JPEG, re-upload.
+ * Download seed images from storage, compress to JPEG/PNG, re-upload.
  * Reduces ~10MB PNGs to ~100-300KB JPEGs.
+ *
+ * SDK 2.0.0: storage is `r.assets` (renamed from the old `r.blobs`). The
+ * scoped form `p.assets.{get, put}` drops the projectId argument. The legacy
+ * `POST /storage/v1/object/:bucket/*` HTTP endpoint is gone — bytes flow
+ * through the 3-step direct-to-S3 CAS flow.
  */
-import sharp from 'sharp';
-import { readFileSync } from 'fs';
-import { resolve, dirname } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
+import sharp from "sharp";
+import { Run402Error } from "@run402/sdk";
+import { getClient, loadEnv } from "./_sdk.mjs";
 
 const APPS = [
   {
-    name: 'photo-wall',
-    bucket: 'photos',
-    images: Array.from({ length: 12 }, (_, i) => `seed-${String(i + 1).padStart(2, '0')}.jpg`),
+    name: "photo-wall",
+    bucket: "photos",
+    images: Array.from({ length: 12 }, (_, i) => `seed-${String(i + 1).padStart(2, "0")}.jpg`),
   },
   {
-    name: 'ai-sticker-maker',
-    bucket: 'stickers',
-    images: Array.from({ length: 10 }, (_, i) => `seed-${String(i + 1).padStart(2, '0')}.png`),
+    name: "ai-sticker-maker",
+    bucket: "stickers",
+    images: Array.from({ length: 10 }, (_, i) => `seed-${String(i + 1).padStart(2, "0")}.png`),
   },
   {
-    name: 'micro-blog',
-    bucket: 'posts',
-    images: ['seed-dog.jpg', 'seed-food.jpg', 'seed-sunset.jpg'],
+    name: "micro-blog",
+    bucket: "posts",
+    images: ["seed-dog.jpg", "seed-food.jpg", "seed-sunset.jpg"],
   },
 ];
 
-async function processApp(app) {
-  const envPath = resolve(__dirname, app.name, '.env');
-  const envText = readFileSync(envPath, 'utf8');
-  const env = Object.fromEntries(
-    envText.split('\n')
-      .filter(l => l && !l.startsWith('#'))
-      .map(l => l.split('='))
-      .map(([k, ...v]) => [k, v.join('=')])
-  );
+// Asset keys are flat per-project. We embed the legacy bucket into the key
+// (e.g. "photos/seed-01.jpg") so existing references keep working.
+function assetKey(bucket, name) {
+  return `${bucket}/${name}`;
+}
 
-  const apiUrl = env.API_URL;
-  const serviceKey = env.SERVICE_KEY;
+async function processApp(app) {
+  const env = loadEnv(app.name);
+  const r = getClient();
+  const p = await r.project(env.PROJECT_ID);
 
   console.log(`\n=== ${app.name} (${app.images.length} images) ===`);
 
   for (const imageName of app.images) {
-    const storageUrl = `${apiUrl}/storage/v1/object/${app.bucket}/${imageName}`;
-
-    // Download
-    console.log(`  Downloading ${imageName}...`);
-    const dlRes = await fetch(storageUrl, {
-      headers: { apikey: serviceKey },
-    });
-    if (!dlRes.ok) {
-      console.log(`    SKIP (${dlRes.status})`);
+    const key = assetKey(app.bucket, imageName);
+    let originalBuf;
+    try {
+      console.log(`  Downloading ${key}...`);
+      const response = await p.assets.get(key);
+      originalBuf = Buffer.from(await response.arrayBuffer());
+    } catch (err) {
+      if (err instanceof Run402Error) {
+        console.log(`    SKIP (${err.kind}): ${err.message}`);
+      } else {
+        console.log(`    SKIP: ${err.message}`);
+      }
       continue;
     }
-
-    const originalBuf = Buffer.from(await dlRes.arrayBuffer());
     const originalKB = Math.round(originalBuf.length / 1024);
 
-    // Compress to JPEG (or keep PNG for stickers but resize)
     let compressedBuf;
     let contentType;
-    if (imageName.endsWith('.png')) {
-      // Stickers: keep PNG but resize to 512x512
+    if (imageName.endsWith(".png")) {
       compressedBuf = await sharp(originalBuf)
-        .resize(512, 512, { fit: 'inside' })
+        .resize(512, 512, { fit: "inside" })
         .png({ quality: 80, compressionLevel: 9 })
         .toBuffer();
-      contentType = 'image/png';
+      contentType = "image/png";
     } else {
-      // Photos/blog: convert to JPEG, resize to 800px max
       compressedBuf = await sharp(originalBuf)
-        .resize(800, 800, { fit: 'inside' })
+        .resize(800, 800, { fit: "inside" })
         .jpeg({ quality: 80 })
         .toBuffer();
-      contentType = 'image/jpeg';
+      contentType = "image/jpeg";
     }
 
     const compressedKB = Math.round(compressedBuf.length / 1024);
     const ratio = Math.round((1 - compressedBuf.length / originalBuf.length) * 100);
     console.log(`    ${originalKB}KB → ${compressedKB}KB (${ratio}% smaller)`);
 
-    // Re-upload (overwrite)
-    const upRes = await fetch(storageUrl, {
-      method: 'POST',
-      headers: {
-        apikey: serviceKey,
-        'Content-Type': contentType,
-      },
-      body: compressedBuf,
-    });
-    if (!upRes.ok) {
-      const err = await upRes.text();
-      console.log(`    UPLOAD FAILED (${upRes.status}): ${err}`);
-    } else {
-      console.log(`    ✓ uploaded`);
+    try {
+      const ref = await p.assets.put(
+        key,
+        { bytes: new Uint8Array(compressedBuf) },
+        { contentType, immutable: false },
+      );
+      console.log(`    ✓ uploaded → ${ref.cdnUrl ?? ref.url}`);
+    } catch (err) {
+      if (err instanceof Run402Error) {
+        console.log(`    UPLOAD FAILED [${err.kind}]: ${err.message}`);
+      } else {
+        console.log(`    UPLOAD FAILED: ${err.message}`);
+      }
     }
   }
 }
@@ -103,4 +100,4 @@ for (const app of APPS) {
   await processApp(app);
 }
 
-console.log('\nDone!');
+console.log("\nDone!");

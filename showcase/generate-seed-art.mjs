@@ -1,110 +1,58 @@
 #!/usr/bin/env node
 /**
- * Generate seed art for showcase apps using run402 generate-image API.
- * Uploads generated images to each project's storage bucket.
+ * Generate seed art for showcase apps using run402's AI image generation,
+ * then upload to each project's asset storage.
  *
  * Usage: node showcase/generate-seed-art.mjs [app-name]
  *   If app-name given, only generates for that app. Otherwise generates all.
  *
- * Cost: ~$0.90 (30 images × $0.03 each)
+ * Cost: ~$0.90 (30 images × $0.03 each, paid via x402 from the shared wallet)
+ *
+ * SDK 2.0.0:
+ *   - `r.ai.generateImage({ prompt })` for x402-paid generation (wallet-scoped)
+ *   - `p.assets.put(key, { bytes }, ...)` for uploads (scoped to a project)
+ *
+ * The legacy `POST /v1/generate-image` and `POST /storage/v1/object/...`
+ * endpoints are gone; `r.blobs` is renamed to `r.assets`.
  */
+import { Run402Error } from "@run402/sdk";
+import { getClient, loadEnv } from "./_sdk.mjs";
 
-import { readFileSync } from "fs";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
-import { privateKeyToAccount } from "viem/accounts";
-import { createPublicClient, http } from "viem";
-import { baseSepolia } from "viem/chains";
-import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
-import { ExactEvmScheme } from "@x402/evm/exact/client";
-import { toClientEvmSigner } from "@x402/evm";
-
-const __scriptDir = dirname(fileURLToPath(import.meta.url));
-const WALLET_FILE = join(__scriptDir, ".wallet");
-const privateKey = readFileSync(WALLET_FILE, "utf-8").trim();
-const account = privateKeyToAccount(privateKey);
-
-const publicClient = createPublicClient({ chain: baseSepolia, transport: http() });
-const signer = toClientEvmSigner(account, publicClient);
-const client = new x402Client();
-client.register("eip155:84532", new ExactEvmScheme(signer));
-const fetchPaid = wrapFetchWithPayment(fetch, client);
-
-function loadEnv(appName) {
-  const content = readFileSync(`showcase/${appName}/.env`, "utf-8");
-  return Object.fromEntries(
-    content.split("\n")
-      .filter(l => l && !l.startsWith("#"))
-      .map(l => { const i = l.indexOf("="); return [l.slice(0, i).trim(), l.slice(i + 1).trim()]; })
-      .filter(([k, v]) => k && v)
-  );
+function assetKey(bucket, name) {
+  return `${bucket}/${name}`;
 }
 
-const API_URL = "https://api.run402.com";
-
-// Generate image via x402 — returns base64 buffer
-async function generateImage(prompt) {
-  console.log(`  Generating: "${prompt.substring(0, 60)}..."...`);
-  const res = await fetchPaid(`${API_URL}/v1/generate-image`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ prompt }),
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Generate failed (${res.status}): ${text}`);
+async function assetExists(p, key) {
+  try {
+    await p.assets.get(key);
+    return true;
+  } catch (err) {
+    if (err instanceof Run402Error && (err.status === 404 || err.kind === "api_error")) {
+      return false;
+    }
+    if (err instanceof Run402Error) throw err;
+    return false;
   }
-  const data = await res.json();
-  // API returns { image: "<base64>", content_type: "image/png", size: "..." }
-  if (!data.image) {
-    throw new Error(`No image data in response: ${JSON.stringify(data).substring(0, 200)}`);
-  }
-  return Buffer.from(data.image, "base64");
 }
 
-// Upload to storage bucket (no bucket creation needed — auto-created on first upload)
-async function uploadToStorage(env, bucket, path, buffer, contentType) {
-  const url = `${env.API_URL}/storage/v1/object/${bucket}/${path}`;
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "apikey": env.SERVICE_KEY,
-      "Authorization": `Bearer ${env.SERVICE_KEY}`,
-      "Content-Type": contentType,
-    },
-    body: buffer,
-  });
-  if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`Upload failed (${res.status}): ${text}`);
-  }
-  const result = await res.json();
-  console.log(`  Uploaded: ${bucket}/${path} (${result.size}B)`);
-}
-
-// Check if image already exists in storage
-async function imageExists(env, bucket, path) {
-  const url = `${env.API_URL}/storage/v1/object/${bucket}/${path}`;
-  const res = await fetch(url, {
-    method: "HEAD",
-    headers: { "apikey": env.SERVICE_KEY },
-  });
-  return res.ok;
-}
-
-// Generate + upload one image (skips if already uploaded)
-async function generateAndUpload(env, prompt, bucket, storagePath) {
-  if (await imageExists(env, bucket, storagePath)) {
-    console.log(`  SKIP (exists): ${bucket}/${storagePath}`);
+async function generateAndUpload(r, p, prompt, bucket, storagePath) {
+  const key = assetKey(bucket, storagePath);
+  if (await assetExists(p, key)) {
+    console.log(`  SKIP (exists): ${key}`);
     return "skipped";
   }
-  const buffer = await generateImage(prompt);
-  // All generated images are PNG regardless of seed filename extension
-  await uploadToStorage(env, bucket, storagePath, buffer, "image/png");
+
+  console.log(`  Generating: "${prompt.substring(0, 60)}..."`);
+  const result = await r.ai.generateImage({ prompt });
+  const bytes = new Uint8Array(Buffer.from(result.image, "base64"));
+
+  const ref = await p.assets.put(key, { bytes }, {
+    contentType: result.content_type ?? "image/png",
+    immutable: false,
+  });
+  console.log(`  Uploaded: ${key} → ${ref.cdnUrl ?? ref.url}`);
   return "generated";
 }
-
-// ============== APP DEFINITIONS ==============
 
 const apps = {
   "ai-sticker-maker": {
@@ -154,8 +102,6 @@ const apps = {
   },
 };
 
-// ============== MAIN ==============
-
 const targetApp = process.argv[2];
 const appsToProcess = targetApp ? { [targetApp]: apps[targetApp] } : apps;
 
@@ -164,6 +110,7 @@ if (targetApp && !apps[targetApp]) {
   process.exit(1);
 }
 
+const r = getClient();
 let totalGenerated = 0;
 let totalSkipped = 0;
 let totalFailed = 0;
@@ -171,21 +118,25 @@ let totalFailed = 0;
 for (const [appName, config] of Object.entries(appsToProcess)) {
   console.log(`\n=== ${appName} (${config.images.length} images) ===`);
   const env = loadEnv(appName);
+  const p = await r.project(env.PROJECT_ID);
 
   for (const img of config.images) {
     try {
-      const result = await generateAndUpload(env, img.prompt, config.bucket, img.path);
+      const result = await generateAndUpload(r, p, img.prompt, config.bucket, img.path);
       if (result === "skipped") totalSkipped++;
       else totalGenerated++;
     } catch (err) {
-      console.error(`  FAILED ${img.path}: ${err.message}`);
-      totalFailed++;
-      // Stop on 402 (out of funds) to avoid wasting attempts
-      if (err.message.includes("402")) {
-        console.error(`  OUT OF FUNDS — stopping. Refill wallet and re-run to continue.`);
-        console.log(`\n=== Done: ${totalGenerated} generated, ${totalSkipped} skipped, ${totalFailed} failed ===`);
-        process.exit(1);
+      if (err instanceof Run402Error) {
+        console.error(`  FAILED [${err.kind}] ${img.path}: ${err.message}`);
+        if (err.kind === "payment_required") {
+          console.error(`  OUT OF FUNDS — stopping. Refill wallet and re-run to continue.`);
+          console.log(`\n=== Done: ${totalGenerated} generated, ${totalSkipped} skipped, ${totalFailed} failed ===`);
+          process.exit(1);
+        }
+      } else {
+        console.error(`  FAILED ${img.path}: ${err.message}`);
       }
+      totalFailed++;
     }
   }
 }

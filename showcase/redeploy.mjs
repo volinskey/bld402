@@ -6,8 +6,9 @@
  *   node showcase/redeploy.mjs
  *
  * Walks each app's directory, substitutes placeholders, and calls
- * `r.deploy.apply` with site + subdomain in one shot. Subdomain reassignment
- * is part of the deploy state machine — no separate /subdomains call.
+ * `(await r.project(id)).apply` (SDK 2.0+) with site + subdomain in one
+ * shot. Subdomain reassignment is part of the deploy state machine — no
+ * separate /subdomains call.
  */
 import { readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
@@ -61,8 +62,9 @@ for (const app of apps) {
   }
 
   try {
-    const result = await r.deploy.apply({
-      project: env.PROJECT_ID,
+    // SDK 2.0.0: public hero is `(await r.project(id)).apply(spec)`.
+    const p = await r.project(env.PROJECT_ID);
+    const result = await p.apply({
       site: { replace: fileSet },
       ...(env.SUBDOMAIN ? { subdomains: { set: [env.SUBDOMAIN] } } : {}),
     });

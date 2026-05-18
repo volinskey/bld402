@@ -46,12 +46,14 @@ Content-Type: application/json
   "tier": "prototype"
 }</code></pre>
 
+        <p><strong>Prototype tier is FREE on testnet</strong> (Base Sepolia) — it still uses the x402 payment dance to verify your wallet works, but the price is zero. Hobby ($5 / 30 days) and Team ($20 / 30 days) are real-money on Base mainnet (USDC), Tempo (pathUSD), or Stripe credits.</p>
+
         <p><strong>First request will return 402 Payment Required:</strong></p>
         <pre><code>{
   "error": "Payment required",
   "accepts": [{
     "scheme": "exact",
-    "price": "$0.10",
+    "price": "0",
     "network": "eip155:84532",
     "to": "0x..."
   }]
@@ -75,9 +77,9 @@ Content-Type: application/json
   "accepts": [{
     "scheme": "exact",
     "network": "eip155:84532",
-    "maxAmountRequired": "100000",
+    "maxAmountRequired": "0",
     "resource": "https://api.run402.com/projects/v1",
-    "description": "Create run402 project (prototype tier)",
+    "description": "Create run402 project (prototype tier — FREE on testnet)",
     "mimeType": "application/json",
     "payTo": "0x...",
     "maxTimeoutSeconds": 300,

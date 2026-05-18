@@ -33,14 +33,15 @@
       <ul>
         <li><strong>Postgres database</strong> — tables, columns, constraints, indexes, SQL queries</li>
         <li><strong>REST API</strong> — full CRUD (create, read, update, delete) with filtering, pagination, ordering via PostgREST</li>
-        <li><strong>Row-level security</strong> — user_owns_rows, public_read, public_read_write templates</li>
-        <li><strong>User authentication</strong> — email/password signup, login, token refresh, logout</li>
-        <li><strong>File storage</strong> — upload, download, signed URLs, list objects (S3-backed)</li>
-        <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS, get a shareable URL, SPA support</li>
-        <li><strong>Multiple tiers</strong> — Prototype ($0.10, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
+        <li><strong>Row-level security</strong> — expose manifest policies: <code>user_owns_rows</code>, <code>public_read_authenticated_write</code>, <code>public_read_write_UNRESTRICTED</code>, <code>custom</code>. Tables are dark by default.</li>
+        <li><strong>User authentication</strong> — email/password signup, login, token refresh, logout; Google OAuth built in</li>
+        <li><strong>File storage</strong> — content-addressed CDN with SRI integrity. Upload via presigned PUT (<code>POST /storage/v1/uploads</code>); reads via <code>GET /storage/v1/blob/:key</code>.</li>
+        <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS via unified <code>(await r.project(id)).apply()</code> (SDK 2.0+), get a shareable URL. SPA support; clean URLs via <code>site.public_paths</code>.</li>
+        <li><strong>Same-origin web routes</strong> — map <code>/admin</code> and <code>/admin/*</code> patterns to Node 22 Fetch functions on the same domain as the static site.</li>
+        <li><strong>Multiple tiers</strong> — Prototype (FREE on testnet, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
         <li><strong>Testnet (free)</strong> — Base Sepolia with faucet for test USDC</li>
-        <li><strong><span class="brand-run">run</span>402 serverless functions (Node.js)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing)</li>
-        <li><strong>AI image generation</strong> — generate images from text prompts via <code>POST /generate-image/v1</code> (e.g., sticker makers, art generators)</li>
+        <li><strong><span class="brand-run">run</span>402 serverless functions (Node 22)</strong> — server-side logic for things that can't run in the browser (e.g., password hashing). Deployed via <code>functions.replace</code> in the unified deploy spec.</li>
+        <li><strong>AI image generation</strong> — generate images from text prompts via <code>POST /generate-image/v1</code> ($0.03/image)</li>
       </ul>
 
       <h2>What <span class="brand-run">run</span>402 CANNOT do</h2>
@@ -58,12 +59,12 @@
           <tr>
             <td>Fully custom domain names (myapp.com)</td>
             <td>"You can't use your own domain name (like myapp.com) right now, but you can get a memorable subdomain like myapp.run402.com."</td>
-            <td>Claim a subdomain via <code>POST /subdomains/v1</code> in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
+            <td>Claim a subdomain inline as part of the deploy spec (<code>subdomains.set: ["myapp"]</code>) in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
           </tr>
           <tr>
             <td>Server-side compute beyond <span class="brand-run">run</span>402 functions</td>
             <td>"Most of your app runs in the browser, but for things that need to happen on a server — like password hashing — we can use <span class="brand-run">run</span>402's built-in serverless functions. You can't run your own custom server, though."</td>
-            <td>Use <code>run402 functions</code> (Node.js) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>POST /projects/v1/admin/:id/functions</code>. All other logic runs client-side in JavaScript.</td>
+            <td>Use <code>run402 functions</code> (Node 22 Fetch handlers) for server-side logic that can't run client-side (e.g., bcrypt hashing, atomic operations). Deploy via <code>functions.replace</code> in <code>(await r.project(id)).apply()</code>. All other logic runs client-side in JavaScript.</td>
           </tr>
           <tr>
             <td>Real-time WebSocket connections</td>
@@ -81,9 +82,9 @@
             <td>Track IOUs or balances in the database. Use external payment links if needed.</td>
           </tr>
           <tr>
-            <td>OAuth / social login (Google, Facebook, etc.)</td>
-            <td>"Sign-in is email and password only. No 'Sign in with Google' button."</td>
-            <td>Email/password authentication is built in and works well.</td>
+            <td>OAuth providers other than Google</td>
+            <td>"Sign-in is email/password or Google. No 'Sign in with Facebook/GitHub/Apple' button right now."</td>
+            <td>Email/password and Google OAuth are both built in (zero-config).</td>
           </tr>
           <tr>
             <td>Custom database extensions</td>
@@ -91,9 +92,9 @@
             <td>Use standard PostgreSQL features (JSON columns, generated columns, etc.).</td>
           </tr>
           <tr>
-            <td>File sizes over 50 MB per deployment</td>
-            <td>"Your entire app needs to be under 50 MB. That's plenty for most apps, but no large video files."</td>
-            <td>Optimize images, use external hosting for large media files.</td>
+            <td>Files over the tier storage cap (250 MB on Prototype, 1 GB Hobby, 10 GB Team)</td>
+            <td>"Your app's total storage is capped per tier. Prototype gets 250 MB, which is plenty for most apps but no large video files."</td>
+            <td>Optimize images. Use the content-addressed CDN (<code>(await r.project(id)).assets.put</code>) for assets — deploys are no longer body-capped (bytes ride through CAS).</td>
           </tr>
           <tr>
             <td>More than 100 requests/second</td>

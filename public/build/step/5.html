@@ -60,27 +60,27 @@
             <tr>
               <td><strong>Row-Level Security</strong></td>
               <td>When users should only see their own data, or when some data is public and some private</td>
-              <td>RLS templates: <code>user_owns_rows</code>, <code>public_read</code>, <code>public_read_write</code>.</td>
+              <td>Expose manifest with policies: <code>user_owns_rows</code>, <code>public_read_authenticated_write</code>, <code>public_read_write_UNRESTRICTED</code>, <code>custom</code>. Tables are dark by default — they need an <code>expose: true</code> entry to appear in the REST API.</td>
             </tr>
             <tr>
               <td><strong>File Storage</strong></td>
               <td>When <code>app_spec.features.file_uploads</code> is true</td>
-              <td>S3-backed storage at <code>/storage/v1/object/{bucket}/{path}</code>.</td>
+              <td>Content-addressed CDN. Upload via <code>POST /storage/v1/uploads</code> (presigned PUT); reads via <code>GET /storage/v1/blob/:key</code>. The SDK helper <code>(await r.project(id)).assets.put()</code> (SDK 2.0+ — renamed from <code>r.blobs</code>) returns a paste-and-go <code>cdnUrl</code> with SRI integrity baked in.</td>
             </tr>
             <tr>
               <td><strong>Serverless Functions</strong></td>
               <td>When server-side logic is needed that can't run in the browser (e.g., password hashing, matching algorithms, secret operations)</td>
-              <td>Node.js functions deployed via <code>POST /projects/v1/admin/{id}/functions</code>. Called from frontend via <code>/functions/v1/{function_name}</code>.</td>
+              <td>Node 22 Fetch functions: <code>export default async (req) =&gt; Response</code>. Deployed via unified deploy (<code>functions.replace</code> in the ReleaseSpec). Called from frontend at <code>/functions/v1/{name}</code> (API-key protected) or via same-origin web routes (<code>routes.replace</code>).</td>
             </tr>
             <tr>
               <td><strong>AI Image Generation</strong></td>
               <td>When the app creates images from text prompts (e.g., sticker makers, art generators)</td>
-              <td>Generate images via <code>POST /generate-image/v1</code>. Returns image data to store in File Storage.</td>
+              <td>Generate images via <code>POST /generate-image/v1</code> ($0.03/image, x402-gated). SDK: <code>r.ai.generateImage({ prompt, aspect })</code>. Returns image bytes to upload to File Storage.</td>
             </tr>
             <tr>
               <td><strong>Static Hosting</strong></td>
               <td>Always — how the app is deployed</td>
-              <td>Deploy via <code>POST /deployments/v1</code>. Returns a shareable URL.</td>
+              <td>Unified deploy: <code>(await r.project(id)).apply({ site: { replace }, subdomains: { set } })</code> (SDK 2.0+). HTTP wire is <code>POST /apply/v1/plans</code> + <code>/commit</code>. Returns a shareable URL.</td>
             </tr>
           </tbody>
         </table>

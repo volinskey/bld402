@@ -31,78 +31,125 @@
 
       <div id="context">
         <h2>Context</h2>
-        <p>You have <code>project_id</code>, <code>service_key</code>, and <code>tables_created</code>. Now set up access rules so the right people can see the right data.</p>
+        <p>You have <code>project_id</code>, <code>service_key</code>, and <code>tables_created</code>. Now declare which tables are reachable via the REST API and what access rules apply.</p>
       </div>
 
       <div id="instruction">
         <h2>What to do</h2>
-        <p>Apply Row-Level Security (RLS) policies to your tables. This controls who can read and write data when using the <code>anon_key</code> (client-side).</p>
 
-        <h3>Available RLS templates</h3>
+        <h3>Tables are dark by default</h3>
+        <p>A table you just created with <code>CREATE TABLE</code> is <strong>unreachable</strong> from <code>/rest/v1/*</code> until you declare it in the expose manifest. This eliminates the "agent created a table, forgot to set RLS, data leaked" footgun. You must explicitly list every table you want to expose.</p>
+
+        <h3>Available RLS policies</h3>
         <table>
-          <thead><tr><th>Template</th><th>Who can read</th><th>Who can write</th><th>Use when</th></tr></thead>
+          <thead><tr><th>Policy</th><th>Who can read</th><th>Who can write</th><th>Use when</th></tr></thead>
           <tbody>
             <tr>
-              <td><code>public_read</code></td>
-              <td>Everyone</td>
-              <td>No one (admin only via service_key)</td>
-              <td>Reference data, shared content that users shouldn't modify</td>
-            </tr>
-            <tr>
-              <td><code>public_read_write</code></td>
-              <td>Everyone</td>
-              <td>Everyone</td>
-              <td>Open collaboration (voting, public comments, shared lists without auth)</td>
-            </tr>
-            <tr>
               <td><code>user_owns_rows</code></td>
-              <td>Only the row owner</td>
+              <td>Only the row owner (matched by <code>owner_column</code>)</td>
               <td>Only the row owner</td>
               <td>Personal data (my tasks, my profile, my scores). Requires <code>owner_column</code>.</td>
+            </tr>
+            <tr>
+              <td><code>public_read_authenticated_write</code></td>
+              <td>Everyone (anon)</td>
+              <td>Any authenticated user (any row)</td>
+              <td>Shared content with sign-in (comments, public bios). NOT row-scoped writes.</td>
+            </tr>
+            <tr>
+              <td><code>public_read_write_UNRESTRICTED</code></td>
+              <td>Everyone (anon)</td>
+              <td>Everyone (anon)</td>
+              <td>Open collaboration without auth (voting, anonymous shared lists). Requires <code>i_understand_this_is_unrestricted: true</code>.</td>
+            </tr>
+            <tr>
+              <td><code>custom</code></td>
+              <td colspan="2">Escape hatch — provide your own <code>custom_sql</code> with <code>CREATE POLICY</code> statements.</td>
+              <td>Anything the built-ins can't express (e.g. anon read + owner-only writes).</td>
             </tr>
           </tbody>
         </table>
 
-        <h3>Apply RLS</h3>
-        <pre><code>POST https://api.run402.com/projects/v1/admin/{project_id}/rls
+        <p><strong>One policy per table.</strong> The manifest forbids stacking multiple policies on the same table. If you need "anon reads + auth user writes", use <code>public_read_authenticated_write</code>. If you need anything more nuanced, use <code>policy: "custom"</code> with hand-rolled SQL.</p>
+
+        <h3>Preferred: declare in unified deploy</h3>
+        <p>Put the manifest under <code>database.expose</code> in your <code>p.apply()</code> call (Step 15). The gateway validates it against your migration SQL and applies it atomically with the rest of the release — schema, policies, exposure, and PostgREST reload all land together.</p>
+
+        <pre><code>const p = await r.project(env.PROJECT_ID);
+await p.apply({
+  database: {
+    expose: {
+      version: "1",
+      tables: [
+        { name: "todos",      expose: true, policy: "user_owns_rows", owner_column: "user_id" },
+        { name: "categories", expose: true, policy: "public_read_authenticated_write" },
+        { name: "audit",      expose: false }
+      ]
+    }
+  }
+});</code></pre>
+
+        <h3>Imperative escape hatch — apply manifest standalone</h3>
+        <p>For ad-hoc changes outside a deploy, POST the same manifest directly:</p>
+
+        <pre><code>POST https://api.run402.com/projects/v1/admin/{project_id}/expose
 Content-Type: application/json
 Authorization: Bearer {service_key}
 
 {
-  "template": "user_owns_rows",
+  "version": "1",
   "tables": [
-    {"table": "todos", "owner_column": "user_id"},
-    {"table": "profiles", "owner_column": "id"}
+    { "name": "todos",      "expose": true, "policy": "user_owns_rows", "owner_column": "user_id" },
+    { "name": "categories", "expose": true, "policy": "public_read_authenticated_write" }
   ]
 }</code></pre>
 
-        <p><strong>Response:</strong></p>
+        <p>The MCP equivalents are <code>validate_manifest</code> (non-mutating check) and <code>apply_expose</code> (write). <code>get_expose</code> returns the live state.</p>
+
+        <p><strong>The manifest is convergent:</strong> applying the same manifest twice is a no-op. Items removed between applies have their policies, grants, triggers, and views dropped. Always include <strong>everything</strong> you want exposed in each call — anything missing gets dark again.</p>
+
+        <h3>How <code>user_owns_rows</code> works</h3>
+        <p>The policy matches rows where <code>auth.uid() = owner_column</code>. The <code>owner_column</code> must be a <code>uuid</code> column on the table.</p>
+
+        <p>Set <code>force_owner_on_insert: true</code> to create an idempotent trigger that fills the owner column with <code>auth.uid()</code> when the client omits it:</p>
+
+        <pre><code>{ "name": "todos", "expose": true, "policy": "user_owns_rows",
+  "owner_column": "user_id", "force_owner_on_insert": true }</code></pre>
+
+        <p>The trigger fires <code>BEFORE INSERT</code> and only fills omitted / explicit-<code>null</code> owner values. Authenticated clients passing a non-null owner are still subject to the <code>WITH CHECK (owner_column = auth.uid())</code> rule, so they can't impersonate.</p>
+
+        <h3>Views and RPCs</h3>
+        <p>Views are dark too — list them in <code>views[]</code> with <code>expose: true</code>:</p>
+
         <pre><code>{
-  "status": "ok",
-  "template": "user_owns_rows",
-  "tables": ["todos", "profiles"]
+  "views": [
+    { "name": "leaderboard", "base": "items", "select": ["user_id", "score"], "expose": true }
+  ]
 }</code></pre>
 
-        <h3>Multiple templates</h3>
-        <p>You can apply different templates to different tables. Make separate API calls for each template:</p>
-        <ol>
-          <li>Apply <code>user_owns_rows</code> to personal data tables</li>
-          <li>Apply <code>public_read</code> to shared reference data tables</li>
-          <li>Apply <code>public_read_write</code> to open collaboration tables</li>
-        </ol>
+        <p>Views run with <code>security_invoker=true</code> — they inherit the base table's RLS.</p>
+
+        <p>Postgres functions / RPCs need an explicit grant — they're not reachable via PostgREST otherwise:</p>
+
+        <pre><code>{
+  "rpcs": [
+    { "name": "compute_streak", "signature": "(user_id uuid)", "grant_to": ["authenticated"] }
+  ]
+}</code></pre>
 
         <h3>Decision guide</h3>
         <ul>
-          <li><strong>App has auth?</strong> Use <code>user_owns_rows</code> for personal data, <code>public_read</code> for shared data.</li>
-          <li><strong>App has no auth?</strong> Use <code>public_read_write</code> for everything. Anyone with the link can read and write.</li>
-          <li><strong>Mixed:</strong> Some tables <code>public_read</code> (everyone sees), some <code>user_owns_rows</code> (personal data).</li>
+          <li><strong>App has auth?</strong> Use <code>user_owns_rows</code> for personal data, <code>public_read_authenticated_write</code> for shared data anyone signed-in can edit.</li>
+          <li><strong>App has no auth?</strong> Use <code>public_read_write_UNRESTRICTED</code> (with the <code>i_understand_this_is_unrestricted</code> ack) for everything. Anyone with the link can read and write.</li>
+          <li><strong>Anon read + owner-only writes?</strong> Use <code>policy: "custom"</code> with <code>custom_sql</code> — the built-ins can't express this in a single template.</li>
         </ul>
 
         <h3>Important notes</h3>
         <ul>
-          <li>The <code>service_key</code> always bypasses RLS. Use it only for admin setup, never in frontend code.</li>
-          <li>The <code>anon_key</code> respects RLS. This is what goes in the frontend code.</li>
-          <li>For <code>user_owns_rows</code>, the <code>owner_column</code> must contain the user's UUID (from auth). The column must exist in the table.</li>
+          <li>The <code>service_key</code> bypasses RLS. Use only for admin setup; never in frontend code.</li>
+          <li>The <code>anon_key</code> respects RLS — this is what goes in the frontend.</li>
+          <li>If the manifest references a table that doesn't exist in the schema, the deploy is rejected with a structured <code>errors</code> array.</li>
+          <li>The legacy <code>POST /projects/v1/admin/{id}/rls</code> endpoint with single-template format has been <strong>removed</strong> (returns 404). Use the manifest form above.</li>
         </ul>
 
         <h3>What to tell the user</h3>
@@ -112,10 +159,10 @@ Authorization: Bearer {service_key}
       <div id="expected-output">
         <h2>Expected output</h2>
         <ul>
-          <li><code>rls_configured</code> — Map of table → RLS template applied:
+          <li><code>rls_configured</code> — Map of table → policy applied:
             <pre><code>{
-  "todos": "user_owns_rows",
-  "categories": "public_read"
+  "todos":      "user_owns_rows",
+  "categories": "public_read_authenticated_write"
 }</code></pre>
           </li>
         </ul>
@@ -127,7 +174,7 @@ Authorization: Bearer {service_key}
         {
           "carry_forward": ["app_spec", "build_plan", "project_id", "anon_key", "service_key", "api_url", "tables_created", "selected_templates", "selected_patterns", "lease_expires_at"],
           "store": {
-            "rls_configured": "Map of table names to RLS templates"
+            "rls_configured": "Map of table names to expose-manifest policies"
           },
           "discard": []
         }

@@ -7,9 +7,9 @@
  *
  * Reads showcase/<app-name>/.env for credentials and showcase/<app-name>/*
  * for files. Substitutes `{{API_URL}}`, `{{ANON_KEY}}`, `{{PROJECT_ID}}`
- * placeholders in text files, then calls `r.deploy.apply` with the site +
- * subdomain in one shot. The state machine claims/reassigns the subdomain
- * atomically with the site activation.
+ * placeholders in text files, then calls `(await r.project(id)).apply`
+ * (SDK 2.0+) with the site + subdomain in one shot. The state machine
+ * claims/reassigns the subdomain atomically with the site activation.
  *
  * Pin uses a direct admin call (the SDK's `projects.pin` returns 403 for
  * non-platform-admin callers; the showcase needs the platform admin key
@@ -64,11 +64,13 @@ console.log(`Deploying ${appName} (${fileCount} file${fileCount === 1 ? "" : "s"
 if (subdomain) console.log(`  with subdomain: ${subdomain}`);
 
 // --- Deploy via SDK (unified state machine) ---
+// SDK 2.0.0: the public hero is `(await r.project(id)).apply(spec)`. The old
+// `r.deploy.apply(...)` was removed in v1.48 — `Deploy` is internal now.
+const p = await r.project(env.PROJECT_ID);
 let result;
 try {
-  result = await r.deploy.apply(
+  result = await p.apply(
     {
-      project: env.PROJECT_ID,
       site: { replace: fileSet },
       ...(subdomain ? { subdomains: { set: [subdomain] } } : {}),
     },

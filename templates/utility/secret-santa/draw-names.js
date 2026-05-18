@@ -1,111 +1,94 @@
 /**
- * Secret Santa — Draw Names Lambda Function
+ * Secret Santa — Draw Names function
  *
  * Generates a valid circular shuffle: A→B→C→D→A (no self-assignments).
- * Uses service_key to bypass RLS and write assigned_to for all members.
+ * Bypasses RLS via `adminDb()` from `@run402/functions` to write
+ * assigned_to for all members.
  *
- * Input: { group_id, service_key }
- * Output: { success: true, pairs_count: N }
+ * Input (POST body):  { group_id }
+ * Output:             { success: true, pairs_count: N }
  *
- * Deploy with: POST /admin/v1/projects/:id/functions
- * Set secret: NONE required (service_key passed per-call)
+ * Deploy via unified deploy spec (SDK 2.0+):
+ *   const p = await r.project(PROJECT_ID);
+ *   await p.apply({
+ *     functions: { replace: { "draw-names": { source: fs.readFileSync("draw-names.js", "utf-8") } } }
+ *   });
+ *
+ * Or the standalone path: `r.functions.deploy(PROJECT_ID, { name: "draw-names", code })`
+ * (scoped form: `p.functions.deploy({ name, code })`).
+ *
+ * Runtime contract: Node 22 Fetch handler — `export default async (req: Request) => Response`.
+ * The old AWS-Lambda `module.exports.handler = async (event) => { statusCode, body }`
+ * shape is rejected at deploy time.
  */
 
-module.exports.handler = async (event) => {
-  const { group_id, service_key } = JSON.parse(event.body || '{}');
+import { adminDb } from "@run402/functions";
 
-  if (!group_id || !service_key) {
-    return {
-      statusCode: 400,
-      body: JSON.stringify({ error: 'group_id and service_key are required' })
-    };
+export default async (req) => {
+  if (req.method !== "POST") {
+    return Response.json({ error: "Method not allowed" }, { status: 405 });
   }
 
-  const API_URL = 'https://run402.com';
-  const headers = {
-    'Authorization': 'Bearer ' + service_key,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json'
-  };
+  let group_id;
+  try {
+    ({ group_id } = await req.json());
+  } catch {
+    return Response.json({ error: "Invalid JSON body" }, { status: 400 });
+  }
+
+  if (!group_id) {
+    return Response.json({ error: "group_id is required" }, { status: 400 });
+  }
+
+  const db = adminDb();  // bypass RLS
 
   try {
     // 1. Verify group exists and is open
-    const groupRes = await fetch(
-      `${API_URL}/rest/v1/groups?id=eq.${group_id}&select=id,status`,
-      { headers }
-    );
-    const groups = await groupRes.json();
+    const groups = await db.from("groups").select("id,status").eq("id", group_id);
     if (!groups.length) {
-      return { statusCode: 404, body: JSON.stringify({ error: 'Group not found' }) };
+      return Response.json({ error: "Group not found" }, { status: 404 });
     }
-    if (groups[0].status === 'drawn') {
-      return { statusCode: 400, body: JSON.stringify({ error: 'Names already drawn' }) };
+    if (groups[0].status === "drawn") {
+      return Response.json({ error: "Names already drawn" }, { status: 400 });
     }
 
     // 2. Fetch all members
-    const membersRes = await fetch(
-      `${API_URL}/rest/v1/members?group_id=eq.${group_id}&select=id,display_name&order=id`,
-      { headers }
-    );
-    const members = await membersRes.json();
+    const members = await db
+      .from("members")
+      .select("id,display_name")
+      .eq("group_id", group_id)
+      .order("id");
 
     if (members.length < 3) {
-      return {
-        statusCode: 400,
-        body: JSON.stringify({ error: 'Need at least 3 members to draw names' })
-      };
+      return Response.json(
+        { error: "Need at least 3 members to draw names" },
+        { status: 400 },
+      );
     }
 
-    // 3. Circular shuffle (Fisher-Yates then shift by 1)
-    // Create a shuffled copy of member IDs
-    const ids = members.map(m => m.id);
+    // 3. Circular shuffle (Fisher-Yates then assign giver -> next)
+    const ids = members.map((m) => m.id);
     for (let i = ids.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [ids[i], ids[j]] = [ids[j], ids[i]];
     }
 
-    // Assign: each person gives to the next in the shuffled order
-    // Last person gives to first (circular)
+    // Each person gives to the next in shuffled order; last wraps to first
     const assignments = {};
     for (let i = 0; i < ids.length; i++) {
-      const giver = ids[i];
-      const receiver = ids[(i + 1) % ids.length];
-      assignments[giver] = receiver;
+      assignments[ids[i]] = ids[(i + 1) % ids.length];
     }
 
-    // 4. Write assignments to database
+    // 4. Write assignments
     for (const [giverId, receiverId] of Object.entries(assignments)) {
-      const updateRes = await fetch(
-        `${API_URL}/rest/v1/members?id=eq.${giverId}`,
-        {
-          method: 'PATCH',
-          headers: { ...headers, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ assigned_to: receiverId })
-        }
-      );
-      if (!updateRes.ok) {
-        throw new Error(`Failed to update member ${giverId}: ${await updateRes.text()}`);
-      }
+      await db.from("members").update({ assigned_to: receiverId }).eq("id", giverId);
     }
 
-    // 5. Update group status to 'drawn'
-    await fetch(
-      `${API_URL}/rest/v1/groups?id=eq.${group_id}`,
-      {
-        method: 'PATCH',
-        headers: { ...headers, 'Prefer': 'return=minimal' },
-        body: JSON.stringify({ status: 'drawn' })
-      }
-    );
+    // 5. Update group status
+    await db.from("groups").update({ status: "drawn" }).eq("id", group_id);
 
-    return {
-      statusCode: 200,
-      body: JSON.stringify({ success: true, pairs_count: members.length })
-    };
+    return Response.json({ success: true, pairs_count: members.length });
   } catch (err) {
-    return {
-      statusCode: 500,
-      body: JSON.stringify({ error: err.message || 'Internal error' })
-    };
+    return Response.json({ error: err.message || "Internal error" }, { status: 500 });
   }
 };

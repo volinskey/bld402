@@ -6,7 +6,7 @@
  *   node showcase/apply-rls.mjs <app-name>
  *
  * Reads templates/<utility|games>/<app>/rls.json and applies it via
- * `r.deploy.apply({ database: { expose: ... } })`. Two formats supported:
+ * `(await r.project(id)).apply({ database: { expose: ... } })`. Two formats supported:
  *
  *   - **Manifest v1** (preferred, has `version: "1"` and `tables`): passed
  *     through verbatim. Use `policy: "custom"` with `custom_sql` for cases
@@ -112,9 +112,10 @@ for (const t of manifest.tables) {
 
 const r = getClient();
 try {
-  const result = await r.deploy.apply(
+  // SDK 2.0.0: public hero is `(await r.project(id)).apply(spec)`.
+  const p = await r.project(env.PROJECT_ID);
+  const result = await p.apply(
     {
-      project: env.PROJECT_ID,
       database: { expose: manifest },
     },
     {

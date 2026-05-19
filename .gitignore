@@ -10,4 +10,5 @@ showcase/.keystore.json
 .claude/settings.local.json
 .claude/agent-memory/
 .claude/skills/
+.claude/*.lock
 .cursor/skills/

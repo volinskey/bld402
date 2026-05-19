@@ -242,30 +242,10 @@
 
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-    // Load storage images with apikey auth (img tags can't send headers)
-    const _blobCache = {};
-    function storageUrl(bucket, path) {
-      return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
-    }
-    async function loadAuthImage(imgEl, bucket, path) {
-      const key = bucket + '/' + path;
-      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
-      try {
-        const res = await fetch(storageUrl(bucket, path), {
-          headers: { 'apikey': CONFIG.ANON_KEY }
-        });
-        if (!res.ok) return;
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        _blobCache[key] = url;
-        imgEl.src = url;
-      } catch(e) { /* image load failed silently */ }
-    }
-    function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]').forEach(img => {
-        if (img.src && !img.src.startsWith('data:')) return;
-        loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
-      });
+    // `posts.image_path` stores a full storage key. Reads use the public
+    // blob endpoint — direct <img src>, no auth header.
+    function storageUrl(key) {
+      return CONFIG.API_URL + '/storage/v1/blob/' + key;
     }
 
     // ---- API helpers ----
@@ -287,11 +267,16 @@
       return res.json();
     }
 
-    async function uploadFile(bucket, path, file) {
-      const res = await fetch(CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path, {
+    async function uploadImage(file) {
+      const form = new FormData();
+      form.append('file', file);
+      const headers = { 'apikey': CONFIG.ANON_KEY };
+      const token = localStorage.getItem('access_token');
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(CONFIG.API_URL + '/functions/v1/upload', {
         method: 'POST',
-        headers: { 'apikey': CONFIG.ANON_KEY },
-        body: file
+        headers,
+        body: form
       });
       if (!res.ok) throw new Error(await res.text());
       return res.json();
@@ -429,11 +414,10 @@
       try {
         let imagePath = null;
 
-        // Upload image if selected
+        // Upload image if selected (via the deployed upload function).
         if (selectedImage) {
-          const filename = Date.now() + '-' + selectedImage.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-          await uploadFile('posts', filename, selectedImage);
-          imagePath = filename;
+          const { key } = await uploadImage(selectedImage);
+          imagePath = key;
         }
 
         // Create post
@@ -484,7 +468,6 @@
         }
 
         feed.innerHTML = posts.map(post => renderPost(post)).join('');
-        loadAllStorageImages();
       } catch (err) {
         feed.innerHTML = '<div class="empty-state"><p>Failed to load posts.</p></div>';
       }
@@ -501,7 +484,7 @@
 
       let imageHtml = '';
       if (post.image_path) {
-        imageHtml = `<img class="post-image" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="posts" data-storage-path="${esc(post.image_path)}" alt="Post image">`;
+        imageHtml = `<img class="post-image" src="${esc(storageUrl(post.image_path))}" alt="Post image">`;
       }
 
       // Demo badge for seed posts

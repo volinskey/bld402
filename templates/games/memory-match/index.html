@@ -340,30 +340,11 @@
 
     function esc(t) { const d = document.createElement('div'); d.textContent = t; return d.innerHTML; }
 
-    // Load storage images with apikey auth (img tags can't send headers)
-    const _blobCache = {};
-    function storageUrl(bucket, path) {
-      return CONFIG.API_URL + '/storage/v1/object/' + bucket + '/' + path;
-    }
-    async function loadAuthImage(imgEl, bucket, path) {
-      const key = bucket + '/' + path;
-      if (_blobCache[key]) { imgEl.src = _blobCache[key]; return; }
-      try {
-        const res = await fetch(storageUrl(bucket, path), {
-          headers: { 'apikey': CONFIG.ANON_KEY }
-        });
-        if (!res.ok) return;
-        const blob = await res.blob();
-        const url = URL.createObjectURL(blob);
-        _blobCache[key] = url;
-        imgEl.src = url;
-      } catch(e) { /* image load failed silently */ }
-    }
-    function loadAllStorageImages() {
-      document.querySelectorAll('img[data-storage-path]').forEach(img => {
-        if (img.src && !img.src.startsWith('data:')) return;
-        loadAuthImage(img, img.dataset.storageBucket, img.dataset.storagePath);
-      });
+    // `card_images.image_path` stores a full storage key (e.g.
+    // "memory-match/animals/0.png"). Reads use the public blob endpoint —
+    // direct <img src>, no auth header.
+    function storageUrl(key) {
+      return CONFIG.API_URL + '/storage/v1/blob/' + key;
     }
 
     // ---- API helper (no auth) ----
@@ -477,11 +458,10 @@
         <div class="card-cell" data-index="${i}" onclick="flipCard(${i})">
           <div class="card-inner">
             <div class="card-front">?</div>
-            <div class="card-back"><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" data-storage-bucket="memory-match" data-storage-path="${esc(card.imagePath)}" alt="Card"></div>
+            <div class="card-back"><img src="${esc(storageUrl(card.imagePath))}" alt="Card"></div>
           </div>
         </div>
       `).join('');
-      loadAllStorageImages();
     }
 
     function flipCard(index) {

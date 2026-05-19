@@ -2,7 +2,7 @@
 -- 50 words across easy (20), medium (15), and hard (15) difficulties
 
 -- Additional easy words (beyond schema.sql defaults)
-INSERT INTO word_lists (word, category, difficulty) VALUES
+INSERT INTO words (word, category, difficulty) VALUES
   ('tiger', 'animals', 'easy'),
   ('apple', 'food', 'easy'),
   ('cloud', 'nature', 'easy'),
@@ -11,7 +11,7 @@ INSERT INTO word_lists (word, category, difficulty) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Additional medium words
-INSERT INTO word_lists (word, category, difficulty) VALUES
+INSERT INTO words (word, category, difficulty) VALUES
   ('castle', 'objects', 'medium'),
   ('bridge', 'objects', 'medium'),
   ('rocket', 'objects', 'medium'),
@@ -20,7 +20,7 @@ INSERT INTO word_lists (word, category, difficulty) VALUES
 ON CONFLICT DO NOTHING;
 
 -- Hard words (8+ letters)
-INSERT INTO word_lists (word, category, difficulty) VALUES
+INSERT INTO words (word, category, difficulty) VALUES
   ('xylophone', 'objects', 'hard'),
   ('alligator', 'animals', 'hard'),
   ('astronaut', 'general', 'hard'),

@@ -231,7 +231,7 @@
     }
 
     async function getRandomWord(difficulty) {
-      let path = '/rest/v1/word_lists?select=word,category&limit=50';
+      let path = '/rest/v1/words?select=word,category&limit=50';
       if (difficulty && difficulty !== 'all') {
         path += '&difficulty=eq.' + difficulty;
       }

@@ -116,13 +116,15 @@ node scripts/fund-wallet.mjs 1.00                        # Top up test wallet vi
 1. **Track what you create.** When you provision a project during testing, save the `project_id` and `service_key`. You will need them to clean up.
 2. **Nuke when done.** Run `scripts/nuke-test.sh <project_id> <service_key>` to fully clean up: storage, subdomains, DB schema, users, tokens.
 3. **NEVER delete showcase projects.** The following projects are live on the site and must never be touched:
-   - `prj_1772702667600_0011` — shared-todo
-   - `prj_1772707206984_0012` — landing-waitlist
-   - `prj_1772707239699_0013` — hangman
-   - `prj_1772707271798_0014` — trivia-night
-   - `prj_1772707305070_0015` — voting-booth
-   - `prj_1772728652516_0019` — paste-locker
+   - `prj_1779176299046_1785` — shared-todo
+   - `prj_1779176382060_1786` — landing-waitlist
+   - `prj_1779176412662_1787` — hangman
+   - `prj_1779176711075_1789` — trivia-night
+   - `prj_1779176742335_1790` — voting-booth
+   - `prj_1779176772520_1791` — paste-locker
    The nuke script has a hard blocklist and will refuse to delete these, but **do not attempt it**.
+
+   The previous showcase project IDs (`prj_1772702667600_0011` … `prj_1772728652516_0019`) are no longer in use — those were owned by a different wallet and the subdomain claims lapsed in May 2026. The blocklist keeps them as legacy entries; do not touch those either.
 4. **Red Team (`/systemtest`, `/validate`):** Cleanup is part of the test. If you provision a project to test bld402's workflow, nuke it in your final cleanup step. Report cleanup status in the system test results.
 5. **If cleanup fails:** Report the orphaned project_id so it can be manually cleaned up. Do not silently leave garbage.
 

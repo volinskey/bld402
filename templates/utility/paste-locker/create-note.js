@@ -1,4 +1,4 @@
-import { db } from '@run402/functions';
+import { adminDb } from '@run402/functions';
 import { z } from 'zod';
 import bcrypt from 'bcryptjs';
 
@@ -26,22 +26,28 @@ function getExpiresAt(expiresIn) {
   return new Date(now + ms[expiresIn]).toISOString();
 }
 
+// The `notes` table is intentionally NOT exposed via REST (dark-by-default
+// — no entry in the expose manifest). This function is the only access path,
+// so it uses `adminDb()` (BYPASSRLS) to write directly. Anonymous users can
+// create notes; access control is enforced inside this function (password
+// hashing + burn-after-read), not via RLS.
 export default async (req) => {
   if (req.method !== 'POST') {
-    return new Response(JSON.stringify({ error: 'Method not allowed' }), { status: 405 });
+    return Response.json({ error: 'Method not allowed' }, { status: 405 });
   }
 
   let body;
   try {
     body = schema.parse(await req.json());
   } catch (err) {
-    return new Response(JSON.stringify({ error: 'Invalid input', details: err.errors }), { status: 400 });
+    return Response.json({ error: 'Invalid input', details: err.errors }, { status: 400 });
   }
 
   const code = generateCode();
   const password_hash = body.password ? await bcrypt.hash(body.password, 10) : null;
   const expires_at = getExpiresAt(body.expires_in);
 
+  const db = adminDb();
   const [note] = await db.from('notes').insert({
     code,
     title: body.title || 'Untitled',
@@ -51,9 +57,9 @@ export default async (req) => {
     expires_at,
   });
 
-  return new Response(JSON.stringify({
+  return Response.json({
     code,
     has_password: !!password_hash,
     burn_after_read: body.burn_after_read || false,
-  }), { status: 201 });
+  }, { status: 201 });
 };

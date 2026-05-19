@@ -1,10 +1,18 @@
 # run402 Services
 
-> Last synced: 2026-05-18 against @run402/sdk **2.0.0**
+> Last synced: 2026-05-19 against @run402/sdk **2.2.0**
 > Canonical source: <https://run402.com/llms.txt> (wayfinder) and `llms-sdk.txt` / `llms-cli.txt` / `llms-mcp.txt` / `llms-full.txt`. This file is the in-repo cache; the run402 docs are authoritative. If they diverge, the run402 docs win.
 
+> **SDK 2.2 changes (on top of 2.0):**
+> - New `r.jobs` namespace — fixed platform-managed jobs over `/jobs/v1/*` (`submit`, `get`, `logs`, `cancel`). Not arbitrary Docker; caller picks a known `job_type`, gateway-shaped JSON input, hard `max_cost_usd_micros` cap. Scoped form: `p.jobs.{...}`.
+> - `r.assets.put` substrate moved — bytes now ride through `/apply/v1/service-asset-put` (unified-apply CAS), not the legacy `/storage/v1/uploads*` (removed in gateway v1.48). The public API is unchanged.
+> - Low-level `r.assets.{initUploadSession, getUploadSession, completeUploadSession}` now throw `LocalError` directing callers to `r.assets.put` (single key) or `r.assets.uploadDir(path)` (Node-only, batch).
+> - New Node-only bulk asset helpers: `r.assets.{uploadDir, syncDir, prepareDir, putMany, dir}`. `syncDir` supports `prune` (with `confirm`).
+> - `@run402/functions` gains `assets` export (`assets.put(key, source, opts?)`) — in-function asset uploads using `RUN402_SERVICE_KEY`. Same activation substrate as deploy.
+> - `@run402/functions` also exports `routedHttp`, `bytes`, `isRequest`, `json`, `text` and related types for routed-HTTP handlers.
+>
 > **SDK 2.0 breaking changes (v1.48 → 2.0):**
-> - `r.deploy.apply(...)` is **removed** as a public surface. The sole hero is `(await r.project(id)).apply(spec)`. The `Deploy` class is now `@internal`.
+> - `r.deploy.apply(...)` is **removed** as a public surface. The sole hero is `(await r.project(id)).apply(spec)`. The `Deploy` class is now fully `@internal` (in 2.2 only `r._applyEngine` remains, also internal).
 > - `r.project(id)` is **async** — `await r.project(id)`.
 > - `r.blobs.*` namespace is renamed to `r.assets.*`.
 > - HTTP deploy wire renamed: `/deploy/v2/plans` → `/apply/v1/plans` (and `/commit` subpath).
@@ -32,6 +40,7 @@
 | apps | Publishable Apps / Fork | Publish a project as a template; fork by other agents |
 | billing | Billing & Allowances | Wallet allowances, Stripe credits, tier subscriptions, email packs |
 | ci | GitHub Actions OIDC | Link a GitHub repo/branch to a project for keyless push-to-deploy |
+| jobs | Fixed Platform-Managed Jobs | Submit known `job_type` jobs (e.g. zk-proving) with hard cost cap; gateway runs them, you read back artifacts/logs |
 | faucet | USDC Test Token Faucet | Base Sepolia drips for prototype-tier testing |
 | generate-image | AI Image Generation | $0.03 / image via x402 |
 | message | Talk-to-devs | `r.message.send(...)` — free with active tier |
@@ -81,10 +90,11 @@
 ### assets / storage
 
 - **Display:** Content-addressed CDN (S3 + CloudFront)
-- **Description:** Direct-to-S3 uploads with presigned PUT URLs; content-addressed `cdnUrl` with SRI integrity hash baked in. Old `POST /storage/v1/object/:bucket/*` is **gone**.
-- **Endpoints:** `POST /storage/v1/uploads` (returns presigned PUT URL[s]) → client PUTs bytes → `POST /storage/v1/uploads/:id/complete` (finalize) · `GET /storage/v1/blob/:key` (reads; public blobs need no auth) · project CDN: `https://pr-<public_id>.run402.com/_blob/<key>`
+- **Description:** Direct-to-S3 uploads; content-addressed `cdnUrl` with SRI integrity hash baked in. Bytes ride through the **same unified-apply CAS substrate** as deploys (since SDK 2.2.0 / gateway v1.48). Old `POST /storage/v1/object/:bucket/*` and the intermediate `POST /storage/v1/uploads*` flow are **both gone**.
+- **Endpoints:** `POST /apply/v1/service-asset-put` (single-key uploads from outside a deploy) — internally builds a one-key `assets.put` spec and runs the unified-apply machine. Reads via `GET /storage/v1/blob/:key` (public blobs need no auth) · project CDN: `https://pr-<public_id>.run402.com/_blob/<key>`. Bulk asset uploads go through the normal `/apply/v1/plans` + commit flow with `spec.assets.put: [...]`.
 - **Auth:** Project `service_key` or `project_admin` JWT in `apikey` header for write/list/admin. Anon for public reads.
-- **SDK (2.0+):** `r.assets.{put, get, ls, rm, sign, diagnoseUrl, waitFresh}` (renamed from `r.blobs` in 2.0). Scoped form: `(await r.project(id)).assets.{put, get, ls, rm, sign, diagnoseUrl, waitFresh}` — drops the projectId argument.
+- **SDK (2.2+):** `r.assets.{put, get, ls, rm, sign, diagnoseUrl, waitFresh}` (isomorphic, root form takes `projectId`). Scoped: `(await r.project(id)).assets.{...}` drops the projectId. Node-only bulk helpers on `@run402/sdk/node`: `r.assets.{uploadDir, syncDir, prepareDir, putMany, dir}` — walk a directory, batch one apply. `dir(path)` returns a synchronous `LocalDirRef`; the actual filesystem walk happens at apply submission.
+- **Removed (throws `LocalError`):** `r.assets.{initUploadSession, getUploadSession, completeUploadSession}` (legacy upload-session API; use `r.assets.put` or `r.assets.uploadDir` instead).
 - **MCP Tools:** `upload_file`, `download_file`, `list_files`, `delete_file`
 - **Metered:** Yes (per-tier storage byte limit).
 
@@ -191,6 +201,15 @@
 - **CLI:** `run402 ci link github` does the binding interactively.
 - **Notes:** CI sessions on `/apply/v1/plans` are constrained to the spec fields `project`, `database`, `functions`, `site`, `base: { release: "current" }`, and optionally `routes` (within delegated `route_scopes`). `secrets`, `subdomains`, `checks`, and `manifest_ref` are rejected on CI deploys.
 
+### jobs
+
+- **Display:** Fixed Platform-Managed Jobs
+- **Description:** Submit known `job_type` runs (e.g. `kysigned.fflonk_prove.v0_17_0`) with a gateway-shaped JSON input and a hard `max_cost_usd_micros` cap. Not arbitrary Docker — the platform runs the job. Read back status, logs, and artifacts.
+- **Endpoints:** `POST /jobs/v1/projects/:id/jobs` (submit; requires `Idempotency-Key` — SDK supplies internally) · `GET /jobs/v1/projects/:id/jobs/:job_id` · `GET /jobs/v1/projects/:id/jobs/:job_id/logs` · `POST /jobs/v1/projects/:id/jobs/:job_id/cancel`
+- **Auth:** Project `service_key`. SDK pulls it from the credential provider automatically.
+- **SDK (2.2+):** `r.jobs.{submit, get, logs, cancel}(projectId, ...)` (root form). Scoped: `(await r.project(id)).jobs.{...}` drops the projectId. Response shape (snake_case): `{ job_id, job_type, status: "queued"|"running"|"completed"|"failed"|"cancelled", created_at, started_at?, completed_at?, artifacts?, metadata?, error? }`.
+- **Metered:** Per-job. Caller sets `max_cost_usd_micros` at submit; the gateway hard-stops execution before exceeding it.
+
 ### faucet
 
 - **Display:** USDC Test Token Faucet
@@ -249,7 +268,7 @@
   - `@run402/sdk` (root) — isomorphic; bring your own `CredentialsProvider`.
   - `@run402/sdk/node` — zero-config defaults (keystore + allowance + x402-wrapped fetch).
   - Project-scoped client: `const p = await r.project(id)` (async in 2.0) — drops `project/projectId` arg from every namespaced method. `r.useProject(id)` persists active project AND scopes in one call.
-- `@run402/functions` — in-function helper. `db(req)`, `adminDb()`, `getUser(req)`, `email`, `ai`. Auto-bundled at deploy time.
+- `@run402/functions` (2.2.0) — in-function helper. Exports: `db(req)`, `adminDb()`, `QueryBuilder`, `getUser(req)`, `email`, `ai`, `assets`, plus routed-HTTP helpers (`routedHttp`, `bytes`, `isRequest`, `json`, `text`). Auto-bundled at deploy time. The 2.2 `assets.put(key, source, opts?)` helper lets a function upload runtime-generated bytes to the project's CDN using `RUN402_SERVICE_KEY` (no SDK install).
 - `@x402/core`, `@x402/evm`, `@x402/fetch`, `@x402/extensions` — payment-protocol packages. Currently ^2.12.x; release together.
 
 ## Path normalization quirks
@@ -262,11 +281,12 @@
 
 | Endpoint | Replacement |
 |---|---|
+| `POST /storage/v1/uploads`, `POST /storage/v1/uploads/:id/complete` (gateway v1.48) | `POST /apply/v1/service-asset-put` (single key) or `POST /apply/v1/plans` with `spec.assets.put` (bulk). SDK calls are unchanged — `r.assets.put` still works. |
 | `POST /deploy/v2/plans`, `/commit`, `/operations/:id`, `/resolve` (renamed in SDK 2.0) | `POST /apply/v1/plans`, `/commit`, `/operations/:id`, `/resolve` |
 | `POST /deployments/v1`, `GET /deployments/v1[/:id]` | `POST /apply/v1/plans` + `POST /apply/v1/plans/:id/commit` |
 | `POST /deploy/v1`, `/deploy/v1/plan`, `/deploy/v1/commit`, `GET /deploy/v1` | Same |
 | `POST /projects/v1/admin/:id/rls` (single-template format) | `POST /projects/v1/admin/:id/expose` with manifest |
-| `POST /storage/v1/object/:bucket/*`, `GET /storage/v1/object/:bucket/*` | `POST /storage/v1/uploads` (presigned PUT) → client PUT → `POST /storage/v1/uploads/:id/complete`; reads via `GET /storage/v1/blob/:key` |
+| `POST /storage/v1/object/:bucket/*`, `GET /storage/v1/object/:bucket/*` | Use `r.assets.put` (single key) or `r.assets.uploadDir` (Node-only, batch); reads via `GET /storage/v1/blob/:key` |
 
 ## Removed SDK surface (2.0 breaking)
 
@@ -284,6 +304,7 @@
 | `r.deploy.commit(planId, { project })` | `(await r.project(id)).deploy.commit(planId)` |
 | `r.blobs.{put,get,...}` (namespace) | `r.assets.{put,get,ls,rm,sign,diagnoseUrl,waitFresh}` (root) or `p.assets.{...}` (scoped, no projectId arg) |
 | `r.project(id)` synchronous return | `await r.project(id)` — now returns a `Promise<ScopedRun402>` |
+| `r.assets.{initUploadSession, getUploadSession, completeUploadSession}` (2.2) | `r.assets.put(...)` (single key) or `r.assets.uploadDir(path, opts)` (Node-only, batch). Low-level API throws `LocalError`. |
 
 ## MCP Tools → Service Mapping (run402-mcp)
 

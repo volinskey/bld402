@@ -67,6 +67,7 @@ Full catalog: [`docs/run402-services.md`](docs/run402-services.md)
 | apps | Publishable Apps / Fork | No |
 | billing | Wallet allowances, Stripe credits, tier subscriptions | N/A |
 | ci | GitHub Actions OIDC keyless deploy | No |
+| jobs | Fixed Platform-Managed Jobs — submit known `job_type` jobs with hard cost cap (2.2+) | Per-job (`max_cost_usd_micros`) |
 | faucet | Base Sepolia USDC drip (testnet) | No |
 | message | Talk-to-devs — `r.message.send(...)` | No (free with tier) |
 | x402 | x402 Payment Gateway (USDC on Base) | N/A |

@@ -5,10 +5,8 @@ import { assets } from '@run402/functions';
 // The runtime UI does NOT call this function — players don't upload cards;
 // card images are seeded once at deploy time. It exists so the seed/admin
 // path has a uniform `/functions/v1/upload` surface across all four
-// templates (matching photo-wall, micro-blog, ai-sticker-maker). The
-// legacy `POST /storage/v1/object/<bucket>/<path>` is gone and anon keys
-// can no longer write blobs, so anything that seeds card images must go
-// through a service-key-holding function like this one.
+// templates (matching photo-wall, micro-blog, ai-sticker-maker). Anything
+// that seeds card images goes through a service-key-holding function like this one.
 //
 // If you don't want admin uploads exposed on the public API, drop this
 // file from the function deploy spec — the runtime UI works fine without it.

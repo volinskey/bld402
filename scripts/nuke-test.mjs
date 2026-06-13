@@ -24,13 +24,13 @@ const SHOWCASE_PROJECTS = new Set([
   "prj_1779176711075_1789", // trivia-night
   "prj_1779176742335_1790", // voting-booth
   "prj_1779176772520_1791", // paste-locker
-  // Legacy showcase IDs (owned by a different wallet, subdomains lapsed) — kept for safety
-  "prj_1772702667600_0011", // shared-todo (legacy)
-  "prj_1772707206984_0012", // landing-waitlist (legacy)
-  "prj_1772707239699_0013", // hangman (legacy)
-  "prj_1772707271798_0014", // trivia-night (legacy)
-  "prj_1772707305070_0015", // voting-booth (legacy)
-  "prj_1772728652516_0019", // paste-locker (legacy)
+  // Protected historical showcase IDs, kept for safety
+  "prj_1772702667600_0011", // shared-todo
+  "prj_1772707206984_0012", // landing-waitlist
+  "prj_1772707239699_0013", // hangman
+  "prj_1772707271798_0014", // trivia-night
+  "prj_1772707305070_0015", // voting-booth
+  "prj_1772728652516_0019", // paste-locker
 ]);
 
 const projectId = process.argv[2];

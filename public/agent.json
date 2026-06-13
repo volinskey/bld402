@@ -157,7 +157,7 @@
       "phase": "deploy",
       "title": "Deploy to run402",
       "url": "/build/step/15",
-      "instruction": "Deploy via the unified primitive: (await r.project(id)).apply({ site: { replace: files }, subdomains: { set: [name] } }) for SDK 2.0+; run402 deploy apply --manifest for CLI; deploy / deploy_site_dir MCP tool. HTTP wire is POST /apply/v1/plans + /commit (CAS-based); the legacy POST /deployments/v1 and POST /deploy/v2/plans are removed. Subdomain claim/reassign is inline — no separate API call.",
+      "instruction": "Deploy via the unified primitive: (await r.project(id)).apply({ site: { replace: files }, subdomains: { set: [name] } }) for SDK 2.46+; run402 deploy apply --manifest for CLI; or the Run402 MCP apply/deploy tool that accepts a ReleaseSpec. HTTP wire is POST /apply/v1/plans + /commit (CAS-based). Subdomain assignment is inline through subdomains.set.",
       "inputs": ["app_files", "project_id"],
       "outputs": ["release_id", "deployment_url", "subdomain", "subdomain_url"],
       "next": 16
@@ -167,7 +167,7 @@
       "phase": "deploy",
       "title": "Confirm deployment",
       "url": "/build/step/16",
-      "instruction": "Tell the user their app is live. Share the subdomain URL (if claimed) or deployment URL. Be excited: 'Your app is live! Share this link: ...'",
+      "instruction": "Tell the user their app is live. Share the subdomain URL (if assigned) or deployment URL. Be excited: 'Your app is live! Share this link: ...'",
       "inputs": ["deployment_url", "subdomain_url"],
       "outputs": [],
       "next": 17

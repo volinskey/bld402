@@ -8,7 +8,7 @@
 - **Uses:** database, rest-api, deployments
 - **Missing opportunities:**
   - **auth** — README mentions this as optional upgrade, but no code shows how; adding a working auth variant would demo `user_owns_rows` RLS
-  - **subdomains** — could claim a custom subdomain for the deployed todo app
+  - **subdomains** — could assign a custom subdomain for the deployed todo app
 
 ### landing-waitlist
 - **Uses:** database, rest-api, deployments
@@ -61,7 +61,7 @@
 - **functions.js** — no pattern for calling Lambda functions (invoke, deploy); paste-locker uses functions but there's no reusable snippet
 - **generate-image.js** — no pattern for the AI image generation service
 - **message.js** — no pattern for sending Telegram notifications
-- **subdomains.js** — no pattern for claiming/managing custom subdomains
+- **subdomains.js** — no pattern for assigning/managing custom subdomains
 
 ## Summary
 

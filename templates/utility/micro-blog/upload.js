@@ -2,11 +2,9 @@ import { getUser, assets } from '@run402/functions';
 
 // Micro-blog upload handler.
 //
-// Legacy `POST /storage/v1/object/<bucket>/<path>` is gone and anon keys
-// cannot write blobs — bytes from the browser flow through this function
-// instead. It checks auth, validates, and uploads via `assets.put` with the
-// function's bundled `RUN402_SERVICE_KEY`. The browser stores the returned
-// `key` in `posts.image_path` and reads it back via
+// Browser uploads flow through this function. It checks auth, validates, and
+// uploads via `assets.put` with the function's bundled `RUN402_SERVICE_KEY`.
+// The browser stores the returned `key` in `posts.image_path` and reads it back via
 // `GET <API_URL>/storage/v1/blob/<key>` (no auth required for public blobs).
 
 const MAX_BYTES = 5 * 1024 * 1024;

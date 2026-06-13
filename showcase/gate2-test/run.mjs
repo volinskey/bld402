@@ -8,7 +8,7 @@
  *   3. Applies RLS per the template's rls.json
  *   4. (paste-locker only) Deploys server-side functions
  *   5. Deploys the template's index.html with placeholder substitution
- *   6. Claims a test subdomain
+ *   6. Assigns a test subdomain
  *   7. Verifies: HTTP 200, content checks, API write/read checks
  *   8. Nukes the project (storage, subdomains, archive)
  *   9. Outputs evidence JSON
@@ -16,6 +16,7 @@
  * Usage:
  *   node showcase/gate2-test/run.mjs                    # Run all 13 templates
  *   node showcase/gate2-test/run.mjs shared-todo        # Run one template
+ *   node showcase/gate2-test/run.mjs --keep --lease-perpetual
  *
  * Evidence output: showcase/gate2-test/evidence.json
  */
@@ -30,17 +31,21 @@ import { baseSepolia } from "viem/chains";
 import { x402Client, wrapFetchWithPayment } from "@x402/fetch";
 import { ExactEvmScheme } from "@x402/evm/exact/client";
 import { toClientEvmSigner } from "@x402/evm";
+import { NodeCredentialsProvider, run402 } from "@run402/sdk/node";
+import { Run402DeployError } from "@run402/sdk";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, "../..");
 const SHOWCASE_DIR = join(__dirname, "..");
 const WALLET_FILE = join(SHOWCASE_DIR, ".wallet");
+const ALLOWANCE_FILE = join(SHOWCASE_DIR, ".allowance.json");
+const KEYSTORE_FILE = join(SHOWCASE_DIR, ".keystore.json");
 const API_URL = "https://api.run402.com";
 const EVIDENCE_FILE = join(__dirname, "evidence.json");
 
 // CLI flags
 const KEEP_PROJECTS = process.argv.includes("--keep") || process.env.GATE2_KEEP_PROJECTS === "1";
-const PIN_PROJECTS = process.argv.includes("--pin");
+const KEEP_ORG_ALIVE = process.argv.includes("--lease-perpetual");
 const ADMIN_KEY = process.env.ADMIN_KEY || "";
 
 // ── Template definitions ────────────────────────────────────────
@@ -208,6 +213,21 @@ if (existsSync(WALLET_FILE)) {
 const account = privateKeyToAccount(privateKey);
 console.log("Wallet address:", account.address);
 
+writeFileSync(
+  ALLOWANCE_FILE,
+  JSON.stringify(
+    {
+      address: account.address,
+      privateKey,
+      created: new Date().toISOString(),
+      funded: false,
+    },
+    null,
+    2,
+  ),
+  { mode: 0o600 },
+);
+
 const publicClient = createPublicClient({
   chain: baseSepolia,
   transport: http(),
@@ -216,6 +236,15 @@ const signer = toClientEvmSigner(account, publicClient);
 const client = new x402Client();
 client.register("eip155:84532", new ExactEvmScheme(signer));
 const fetchPaid = wrapFetchWithPayment(fetch, client);
+const r402Credentials = new NodeCredentialsProvider({
+  allowancePath: ALLOWANCE_FILE,
+  keystorePath: KEYSTORE_FILE,
+});
+const r402 = run402({
+  apiBase: API_URL,
+  credentials: r402Credentials,
+  disablePaidFetch: true,
+});
 
 // ── Wallet auth headers (SIWX / CAIP-122) ───────────────────────
 async function walletAuthHeaders(path = "/") {
@@ -269,26 +298,30 @@ async function ensureFaucet() {
   }
 }
 
-// ── Pin project (admin) ──────────────────────────────────────────
-async function pinProject(projectId, serviceKey) {
+// ── Keep org alive (admin) ───────────────────────────────────────
+async function enableLeasePerpetual(orgId) {
   if (!ADMIN_KEY) {
-    console.log("  No ADMIN_KEY — skipping pin");
+    console.log("  No ADMIN_KEY — skipping lease-perpetual");
     return false;
   }
-  console.log(`  Pinning project ${projectId}...`);
-  const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/pin`, {
+  if (!orgId) {
+    console.log("  No org_id on project response — skipping lease-perpetual");
+    return false;
+  }
+  console.log(`  Enabling lease_perpetual for org ${orgId}...`);
+  const res = await fetch(`${API_URL}/orgs/v1/admin/${orgId}/lease-perpetual`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${serviceKey}`,
       "X-Admin-Key": ADMIN_KEY,
     },
+    body: JSON.stringify({ lease_perpetual: true }),
   });
   if (res.ok) {
-    console.log("  Pinned (lease will not expire)");
+    console.log("  lease_perpetual enabled");
     return true;
   } else {
-    console.log(`  Pin failed (${res.status}): ${await res.text()}`);
+    console.log(`  lease_perpetual failed (${res.status}): ${await res.text()}`);
     return false;
   }
 }
@@ -335,7 +368,15 @@ async function provisionProject(name) {
     throw new Error(`Provision failed (${res.status}): ${text}`);
   }
   const project = await res.json();
+  await r402Credentials.saveProject(project.project_id, {
+    anon_key: project.anon_key,
+    service_key: project.service_key,
+  });
+  await r402Credentials.setActiveProject(project.project_id);
   console.log("  project_id:", project.project_id);
+  if (project.org_id || project.organization_id) {
+    console.log("  org_id:", project.org_id || project.organization_id);
+  }
   console.log("  anon_key:", project.anon_key?.substring(0, 20) + "...");
   return project;
 }
@@ -357,40 +398,84 @@ async function runSQL(projectId, serviceKey, sqlFile, label) {
     throw new Error(`SQL failed (${res.status}): ${text}`);
   }
   const result = await res.json();
-  console.log(`  SQL OK — rows: ${result.rowCount ?? "n/a"}`);
+  console.log(`  SQL OK — rows: ${result.row_count ?? "n/a"}`);
   return result;
 }
 
-// ── Apply RLS ───────────────────────────────────────────────────
-async function applyRLS(projectId, serviceKey, rlsFile) {
-  const rls = JSON.parse(readFileSync(join(ROOT, rlsFile), "utf-8"));
-  if (!rls.policies || rls.policies.length === 0) {
-    console.log("  No RLS policies to apply (access via functions only)");
+// ── Apply expose/RLS manifest ────────────────────────────────────
+function policiesToManifest(config) {
+  const templateMap = {
+    user_owns_rows: "user_owns_rows",
+    public_read: "public_read_authenticated_write",
+    public_read_write: "public_read_write_UNRESTRICTED",
+  };
+  const tablesByName = new Map();
+  for (const policy of config.policies) {
+    const nextPolicy = templateMap[policy.template];
+    if (!nextPolicy) {
+      throw new Error(`Unknown RLS template '${policy.template}' in rls.json`);
+    }
+    for (const t of policy.tables) {
+      if (tablesByName.has(t.table)) {
+        throw new Error(`Table '${t.table}' appears in more than one RLS policy block`);
+      }
+      const entry = { name: t.table, expose: true, policy: nextPolicy };
+      if (nextPolicy === "user_owns_rows") {
+        if (!t.owner_column) {
+          throw new Error(`Table '${t.table}' uses user_owns_rows but is missing owner_column`);
+        }
+        entry.owner_column = t.owner_column;
+      }
+      if (nextPolicy === "public_read_write_UNRESTRICTED") {
+        entry.i_understand_this_is_unrestricted = true;
+      }
+      tablesByName.set(t.table, entry);
+    }
+  }
+  return { version: "1", tables: Array.from(tablesByName.values()) };
+}
+
+function normalizeExposeManifest(raw) {
+  let manifest;
+  if (raw.version === "1" && Array.isArray(raw.tables)) {
+    manifest = raw;
+  } else if (Array.isArray(raw.policies)) {
+    if (raw.policies.length === 0) return null;
+    manifest = policiesToManifest(raw);
+  } else {
+    throw new Error("rls.json is neither manifest v1 nor policies[] format");
+  }
+  return {
+    version: manifest.version ?? "1",
+    tables: manifest.tables ?? [],
+    views: manifest.views ?? [],
+    rpcs: manifest.rpcs ?? [],
+  };
+}
+
+async function applyExpose(projectId, serviceKey, rlsFile) {
+  const raw = JSON.parse(readFileSync(join(ROOT, rlsFile), "utf-8"));
+  const manifest = normalizeExposeManifest(raw);
+  if (!manifest) {
+    console.log("  No expose/RLS policies to apply (access via functions only)");
     return { skipped: true };
   }
-  const results = [];
-  for (const policy of rls.policies) {
-    console.log(`  Applying RLS template '${policy.template}' to tables: ${policy.tables.map(t => t.table).join(", ")}...`);
-    const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/rls`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${serviceKey}`,
-      },
-      body: JSON.stringify({
-        template: policy.template,
-        tables: policy.tables,
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`RLS failed (${res.status}): ${text}`);
-    }
-    const result = await res.json();
-    console.log(`  RLS OK — ${result.template}: ${JSON.stringify(result.tables)}`);
-    results.push(result);
+  console.log(`  Applying expose manifest (${manifest.tables.length} table${manifest.tables.length === 1 ? "" : "s"})...`);
+  const res = await fetch(`${API_URL}/projects/v1/admin/${projectId}/expose`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${serviceKey}`,
+    },
+    body: JSON.stringify(manifest),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`Expose manifest failed (${res.status}): ${text}`);
   }
-  return results;
+  const result = await res.json();
+  console.log("  Expose OK");
+  return result;
 }
 
 // ── Deploy functions (paste-locker) ─────────────────────────────
@@ -422,8 +507,8 @@ async function deployFunctions(projectId, serviceKey, functions) {
   return results;
 }
 
-// ── Deploy HTML ─────────────────────────────────────────────────
-async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain) {
+// ── Apply HTML release ──────────────────────────────────────────
+async function deployHTML(projectId, anonKey, templateDir, subdomain) {
   const htmlPath = join(ROOT, templateDir, "index.html");
   let html = readFileSync(htmlPath, "utf-8");
   html = html.replace(/\{\{API_URL\}\}/g, API_URL);
@@ -431,52 +516,55 @@ async function deployHTML(projectId, anonKey, serviceKey, templateDir, subdomain
   html = html.replace(/\{\{PROJECT_ID\}\}/g, projectId);
   html = html.replace(/\{\{APP_NAME\}\}/g, "Gate 2 Test");
 
-  console.log(`Deploying HTML from ${templateDir}/index.html...`);
-  const walletHeaders = await walletAuthHeaders("/deployments/v1");
-  const deployRes = await fetch(`${API_URL}/deployments/v1`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json", ...walletHeaders },
-    body: JSON.stringify({
-      name: `bld402-gate2-${subdomain}`,
-      project: projectId,
-      files: [{ file: "index.html", data: html, encoding: "utf-8" }],
-    }),
-  });
-  if (!deployRes.ok) {
-    const text = await deployRes.text();
-    throw new Error(`Deploy failed (${deployRes.status}): ${text}`);
+  console.log(`Applying release from ${templateDir}/index.html...`);
+  const project = await r402.project(projectId);
+  async function applySite(includeSubdomain) {
+    return project.apply(
+      {
+        site: { replace: { "index.html": html } },
+        ...(includeSubdomain ? { subdomains: { set: [subdomain] } } : {}),
+      },
+      {
+        onEvent(event) {
+          if (event.type === "commit.phase" && event.status !== "started") {
+            console.log(`  ${event.phase}: ${event.status}`);
+          }
+        },
+      },
+    );
   }
-  const deployment = await deployRes.json();
-  const deploymentId = deployment.deployment_id || deployment.id;
-  console.log("  deployment_id:", deploymentId);
-  console.log("  url:", deployment.url);
 
-  // Claim subdomain
+  let result;
   let subdomainUrl = null;
-  console.log(`  Claiming subdomain '${subdomain}'...`);
-  const subRes = await fetch(`${API_URL}/subdomains/v1`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${serviceKey}`,
-    },
-    body: JSON.stringify({ name: subdomain, deployment_id: deploymentId }),
-  });
-  if (subRes.ok) {
-    const sub = await subRes.json();
-    subdomainUrl = sub.url;
-    console.log("  subdomain_url:", subdomainUrl);
-  } else {
-    const text = await subRes.text();
-    console.log(`  Subdomain claim failed (${subRes.status}): ${text}`);
-    console.log("  Falling back to raw deployment URL");
+  try {
+    result = await applySite(true);
+    subdomainUrl = result.urls?.subdomain ?? `https://${subdomain}.run402.com`;
+  } catch (err) {
+    if (err instanceof Run402DeployError) {
+      console.log(`  Subdomain apply failed [${err.code}]: ${err.message}`);
+      console.log("  Retrying site apply without subdomain...");
+      try {
+        result = await applySite(false);
+      } catch (retryErr) {
+        if (retryErr instanceof Run402DeployError) {
+          throw new Error(`Apply failed [${retryErr.code}]: ${retryErr.message}`);
+        }
+        throw retryErr;
+      }
+    } else {
+      throw err;
+    }
   }
+  const siteUrl = result.urls?.site ?? result.urls?.deployment ?? subdomainUrl;
+  console.log("  release_id:", result.release_id);
+  console.log("  site_url:", siteUrl);
+  if (subdomainUrl) console.log("  subdomain_url:", subdomainUrl);
 
   return {
-    deployment_id: deploymentId,
-    deployment_url: deployment.url,
+    release_id: result.release_id,
+    deployment_url: siteUrl,
     subdomain_url: subdomainUrl,
-    live_url: subdomainUrl || deployment.url,
+    live_url: subdomainUrl || siteUrl,
   };
 }
 
@@ -752,7 +840,8 @@ async function runGate2(templateFilter) {
       name: template.name,
       test_id: `T-${66 + TEMPLATES.indexOf(template)}`,
       project_id: null,
-      deployment_id: null,
+      org_id: null,
+      release_id: null,
       live_url: null,
       subdomain: template.testSubdomain,
       checks: [],
@@ -760,10 +849,12 @@ async function runGate2(templateFilter) {
       error: null,
     };
 
+    let project = null;
     try {
       // 1. Provision
-      const project = await provisionProject(template.name);
+      project = await provisionProject(template.name);
       entry.project_id = project.project_id;
+      entry.org_id = project.org_id || project.organization_id || null;
 
       // 2. Run schema.sql
       await runSQL(
@@ -773,8 +864,8 @@ async function runGate2(templateFilter) {
         `${template.name} schema.sql`
       );
 
-      // 3. Apply RLS
-      await applyRLS(
+      // 3. Apply expose/RLS manifest
+      await applyExpose(
         project.project_id,
         project.service_key,
         `${template.dir}/rls.json`
@@ -790,15 +881,16 @@ async function runGate2(templateFilter) {
         );
       }
 
-      // 5. Deploy HTML + claim subdomain
+      // 5. Deploy HTML + assign subdomain
       const deploy = await deployHTML(
         project.project_id,
         project.anon_key,
-        project.service_key,
         template.dir,
         template.testSubdomain
       );
-      entry.deployment_id = deploy.deployment_id || deploy.deploymentId;
+      entry.release_id = deploy.release_id;
+      entry.deployment_url = deploy.deployment_url;
+      entry.subdomain_url = deploy.subdomain_url;
       entry.live_url = deploy.live_url;
 
       // Wait for deployment to propagate
@@ -807,8 +899,15 @@ async function runGate2(templateFilter) {
 
       // 6. Verify deployment (HTTP + content)
       console.log("Verifying deployment...");
-      const deployChecks = await verifyDeployment(deploy.live_url, template);
+      const deployChecks = await verifyDeployment(deploy.deployment_url || deploy.live_url, template);
       entry.checks.push(...deployChecks);
+      if (deploy.subdomain_url) {
+        entry.checks.push({
+          check: "Subdomain assigned",
+          passed: true,
+          detail: deploy.subdomain_url,
+        });
+      }
 
       // 7. Verify API (write + read)
       console.log("Verifying API access...");
@@ -827,9 +926,9 @@ async function runGate2(templateFilter) {
         entry.checks.push(...apiChecks);
       }
 
-      // 7b. Pin project (if --pin)
-      if (PIN_PROJECTS) {
-        await pinProject(project.project_id, project.service_key);
+      // 7b. Keep the owning org alive (if requested)
+      if (KEEP_ORG_ALIVE) {
+        await enableLeasePerpetual(project.org_id || project.organization_id);
       }
 
       // 8. Nuke project (skip if --keep)
@@ -857,12 +956,23 @@ async function runGate2(templateFilter) {
       entry.verdict = "FAIL";
       console.error(`\nERROR: ${err.message}`);
 
-      // Try to nuke even on failure
-      if (entry.project_id) {
+      // Clean up the provisioned project so failures don't leak resources.
+      // Skip when --keep is set so the user can inspect the failing project.
+      if (project?.project_id && project?.service_key && !KEEP_PROJECTS) {
+        console.log("Cleaning up failed project...");
         try {
-          // We need the service key — but we lost it. Try to clean up anyway.
-          console.log("Attempting cleanup despite error...");
-        } catch {}
+          const nukeChecks = await nukeProject(project.project_id, project.service_key);
+          entry.checks.push(...nukeChecks);
+        } catch (nukeErr) {
+          console.log(`  Cleanup error: ${nukeErr.message}`);
+          entry.checks.push({
+            check: "Cleanup after failure",
+            passed: false,
+            detail: nukeErr.message,
+          });
+        }
+      } else if (project?.project_id && KEEP_PROJECTS) {
+        console.log(`  --keep: leaving failed project ${project.project_id} for debugging`);
       }
     }
 
@@ -917,7 +1027,7 @@ function checkRun402McpVersion() {
 
 // ── Run ─────────────────────────────────────────────────────────
 if (KEEP_PROJECTS) console.log("Mode: --keep (projects will NOT be deleted)");
-if (PIN_PROJECTS) console.log("Mode: --pin (projects will be pinned)");
+if (KEEP_ORG_ALIVE) console.log("Mode: --lease-perpetual (owning orgs will be kept alive)");
 const mcpVersions = checkRun402McpVersion();
 const filter = process.argv.slice(2).find(a => !a.startsWith("--")) || null;
 const evidence = await runGate2(filter);

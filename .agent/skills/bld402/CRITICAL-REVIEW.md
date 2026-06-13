@@ -210,7 +210,7 @@ No faults found. Pure communication step, well-written messaging for both subdom
 
 | # | Severity | Finding |
 |---|----------|---------|
-| 17.1 | LOW | `discard: ["deployment_id"]` is premature. The subdomain reassignment in Step 19 doesn't need the old deployment_id (it only needs the new one), but discarding it removes the ability to reference or roll back to the previous deployment. |
+| 17.1 | LOW | Keep `release_id` available after deploy so agents can inspect the active release if a follow-up change needs comparison or rollback context. |
 
 **No blocking issues.**
 

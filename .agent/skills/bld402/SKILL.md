@@ -21,8 +21,7 @@ If you have **run402-mcp** installed, use its MCP tools instead of the raw HTTP 
 | Step 9 (Create Project) | `provision_postgres_project` | Creates project with DB |
 | Step 10 (Schema) | `run_sql` | Executes SQL DDL/DML |
 | Step 12 (REST verify) | `rest_query` | PostgREST CRUD operations |
-| Step 13 (Deploy site) | `deploy_site` | Deploys HTML/CSS/JS |
-| Step 14 (Subdomain) | `claim_subdomain` | Claims myapp.run402.com |
+| Steps 13-14 (Deploy site + subdomain) | Run402 apply/deploy tool | Deploys a ReleaseSpec with `site` and `subdomains.set` |
 | Steps 15-16 (Upload files) | `upload_file` | Stores files in S3 |
 
 Install: `claude mcp add run402 -- npx -y run402-mcp`
@@ -67,7 +66,7 @@ Check the user's requests against these lists at EVERY step. If a feature is imp
 - REST API (full CRUD with filtering, pagination, ordering via PostgREST)
 - Row-level security via expose manifest (policies: `user_owns_rows`, `public_read_authenticated_write`, `public_read_write_UNRESTRICTED`, `custom`). Tables are dark by default.
 - User authentication (email/password signup, login, token refresh, logout; Google OAuth zero-config; passkeys)
-- File storage — content-addressed CDN with SRI integrity. `(await r.project(id)).assets.put()` (SDK 2.0+ — renamed from `r.blobs`) returns paste-and-go URLs. Reads via `/storage/v1/blob/:key`.
+- File storage — content-addressed CDN with SRI integrity. Browser uploads go through a deployed function that calls `assets.put`; server-side uploads use `(await r.project(id)).assets.put()`. Reads use `/storage/v1/blob/:key` or the returned `cdnUrl`.
 - Static site hosting (deploy HTML/CSS/JS, get a shareable URL, SPA support, clean URLs via `site.public_paths`)
 - Same-origin web routes (`/admin`, `/admin/*`, `/api/*` mapped to functions on the static-site domain)
 - Serverless functions (Node 22 Fetch handlers — `export default async (req) => Response` — with cron scheduling; in-handler `db(req)` / `adminDb()` / `getUser(req)` / `ai` / `email` helpers via `@run402/functions`)
@@ -85,7 +84,7 @@ Check the user's requests against these lists at EVERY step. If a feature is imp
 
 | Not Possible | Tell the user | Alternative |
 |---|---|---|
-| Custom domain names (myapp.com) | "You can't use your own domain, but you can get a memorable URL like myapp.run402.com." | Claim a subdomain via `POST /subdomains/v1` |
+| Custom domain names (myapp.com) | "You can't use your own domain, but you can get a memorable URL like myapp.run402.com." | Assign a subdomain with `subdomains.set` in the apply spec |
 | Server-side compute beyond run402 functions | "Most of your app runs in the browser. For things like password hashing, we use built-in serverless functions." | Use run402 functions (Node.js) |
 | Real-time WebSocket connections | "Live instant updates aren't available, but the app can check for new stuff every few seconds." | Polling (fetch every 3-10 seconds) |
 | Email / SMS / push notifications | "The app can't send emails, texts, or push notifications, but it can show alerts inside the app." | In-app notifications, badge counters |
@@ -530,7 +529,7 @@ Authorization: Bearer {service_key}
 
 **Manifest is convergent:** Applying the same manifest twice is a no-op. Items removed between applies have their policies, grants, triggers, and views dropped. Always include everything you want exposed.
 
-**Removed:** The legacy `POST /projects/v1/admin/{id}/rls` single-template endpoint returns 404.
+Use the expose manifest as the single source of truth for reachable REST tables, views, and RPCs.
 
 Tell the user: "I've set up the access rules for your app."
 
@@ -672,7 +671,7 @@ Tell the user: "Everything looks good! Deploying your app now..."
 
 Deploy the site + subdomain in a single unified call. SIWX auth, free with active tier.
 
-**Preferred: `@run402/sdk@^2.0.0`**:
+**Preferred: `@run402/sdk@2.46.0` or newer**:
 
 ```javascript
 import { run402, Run402DeployError } from "@run402/sdk/node";
@@ -682,7 +681,7 @@ const p = await r.project(project_id);  // async — scopes the client
 try {
   const result = await p.apply({
     site: { replace: fileSet },           // { "index.html": "...", ... }
-    subdomains: { set: [subdomain] },     // inline claim/reassign — no separate call
+    subdomains: { set: [subdomain] },     // inline assignment — no separate call
   });
   // result.release_id, result.urls.site, result.urls.subdomain
 } catch (err) {
@@ -695,20 +694,18 @@ try {
 
 `fileSet` is `{ "filename": "utf-8 string" | Uint8Array | { data, encoding, contentType? } | { path, contentType? } }`. The Node entry has `fileSetFromDir(dir)` to walk a directory.
 
-**SDK 2.0 breaking note:** The old `r.deploy.apply(spec)` was removed in v1.48 — `Deploy` is now `@internal`. The sole public hero is `(await r.project(id)).apply(spec)`. Note that `project` drops out of the spec (the scoped client binds it). `r.blobs` is renamed to `r.assets`. For live progress events use `await p.apply.start(spec)`; to resume, `p.apply.resume(operationId)`. Release observability lives on `p.deploy.{getRelease, getActiveRelease, diff, resolve, list, events, status}`.
+**SDK:** Use `const p = await r.project(id)`, then `await p.apply(spec)`. The scoped client binds the project, so the spec does not include `project`. For live progress events use `await p.apply.start(spec)`; to resume, `p.apply.resume(operationId)`. Release observability lives on `p.deploy.{getRelease, getActiveRelease, diff, resolve, list, events, status}`.
 
 **Alternative — CLI:** `run402 deploy apply --manifest app.json`.
-**Alternative — MCP tool:** `deploy` (or older `bundle_deploy` / `deploy_site`).
+**Alternative — MCP tool:** use the Run402 deploy/apply tool that accepts a `ReleaseSpec`.
 
 **HTTP wire (raw):** Two-step CAS — `POST /apply/v1/plans` (gateway returns presigned PUT URLs for missing bytes) → client PUTs bytes → `POST /apply/v1/plans/:plan_id/commit`. **Do not hand-roll.** Auth is SIGN-IN-WITH-X (CAIP-122 / EIP-4361); the SDK signs it for you.
-
-**Removed (return 404):** `POST /deployments/v1`, `POST /deploy/v1`, `POST /deploy/v2/plans` (renamed to `/apply/v1/plans` in 2.0), the separate `POST /subdomains/v1` claim-on-deploy call.
 
 **Subdomain rules:** 3-63 chars, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no consecutive hyphens, no reserved words (api, www, admin, dashboard, docs, support, cdn, static, dev, staging, test, demo, run402). Free with active tier. Each project carries one subdomain via `subdomains.set` today.
 
 **Derive subdomain from app name:** lowercase, replace spaces/underscores with hyphens, strip non-alphanumeric (except hyphens), truncate to 63 chars.
 
-If claiming fails (409 conflict, etc.): retry the deploy without `subdomains` — site still deploys, user gets the raw `result.urls.site`. Don't retry in a loop.
+If subdomain assignment fails (409 conflict, etc.): retry the deploy without `subdomains` — site still deploys, user gets the raw `result.urls.site`. Don't retry in a loop.
 
 **Smoke-test gate (mandatory):**
 1. Fetch the live URL
@@ -716,13 +713,13 @@ If claiming fails (409 conflict, etc.): retry the deploy without `subdomains` �
 3. If fail: wait 5s, retry up to 3 times total
 4. Do NOT proceed until the smoke test passes
 
-**Output:** `deployment_id`, `deployment_url`, `subdomain`, `subdomain_url`
+**Output:** `release_id`, `deployment_url`, `subdomain`, `subdomain_url`
 
 ### Step 16: Confirm Deployment
 
 Share the good news. Be enthusiastic!
 
-If subdomain claimed:
+If subdomain assigned:
 > "Your app is live! Here's your link:
 >
 > **{subdomain_url}**
@@ -779,20 +776,11 @@ Tell the user: "I've made those changes! Let me put the updated version online."
 
 ### Step 19: Redeploy
 
-Deploy updated app (same process as Step 15 — wallet auth, free with active tier).
-
-If subdomain exists, reassign it to the new deployment:
-```
-POST https://api.run402.com/subdomains/v1
-Content-Type: application/json
-Authorization: Bearer {service_key}
-
-{ "name": "{subdomain}", "deployment_id": "{new_deployment_id}" }
-```
+Deploy the updated app with the same `(await r.project(id)).apply(spec)` process as Step 15. If a subdomain exists, include `subdomains.set: ["{subdomain}"]` in the same spec; the active release pointer and subdomain assignment update atomically. Do not call a separate subdomain endpoint.
 
 Tell the user the same link still works, then go back to Step 17 (iterate loop).
 
-**Output:** `new_deployment_url`, `subdomain_url`
+**Output:** `release_id`, `new_deployment_url`, `subdomain_url`
 
 ### Step 20: Done
 
@@ -810,10 +798,10 @@ Congratulate the user:
 
 | Option | Price | How |
 |--------|-------|-----|
-| Renew Prototype | $0.10 | `POST /tiers/v1/renew/prototype` (x402) |
-| Upgrade to Hobby | $5.00 | `POST /tiers/v1/upgrade/hobby` (x402) |
-| Upgrade to Team | $20.00 | `POST /tiers/v1/upgrade/team` (x402) |
-| Credit card (for humans) | Any amount | Send user to `https://run402.com/billing?wallet={wallet_address}` |
+| Renew Prototype | $0.10 | `POST /tiers/v1/prototype` (x402 wallet auth) |
+| Upgrade to Hobby | $5.00 | `POST /tiers/v1/hobby` (x402 wallet auth) |
+| Upgrade to Team | $20.00 | `POST /tiers/v1/team` (x402 wallet auth) |
+| Credit card (for humans) | Tier price | `POST /orgs/v1/{org_id}/checkouts {"product":"tier","tier":"hobby"}` |
 
 **Mandatory feedback ask:**
 > "Would you like to share feedback with the bld402 team? It only takes a minute and helps improve the platform."
@@ -905,11 +893,11 @@ Timestamp must be within 30 seconds of server time (fresh signature per request)
 
 At each step, maintain these in your working memory:
 
-**Always carry forward:** `project_id`, `anon_key`, `service_key`, `api_url`, `wallet_address`, `account`, `app_spec`
+**Always carry forward:** `project_id`, `org_id`, `anon_key`, `service_key`, `api_url`, `wallet_address`, `account`, `app_spec`
 
 **Carry during build:** `tables_created`, `rls_configured`, `app_files`, `selected_templates`
 
-**Carry during iterate:** `deployment_url`, `subdomain`, `subdomain_url`, `iteration_count`, `lease_expires_at`
+**Carry during iterate:** `release_id`, `deployment_url`, `subdomain`, `subdomain_url`, `iteration_count`, `lease_expires_at`
 
 If context is lost, the `bld402_project` snapshot from Step 20 contains everything needed to resume at Step 17.
 
@@ -921,9 +909,8 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 
 | Action | Method | Endpoint | Auth |
 |--------|--------|----------|------|
-| Subscribe to tier | POST | `/tiers/v1/subscribe/:tier` | x402 payment |
-| Renew tier | POST | `/tiers/v1/renew/:tier` | x402 payment |
-| Upgrade tier | POST | `/tiers/v1/upgrade/:tier` | x402 payment |
+| Subscribe/renew tier | POST | `/tiers/v1/:tier` | x402 payment |
+| Card checkout | POST | `/orgs/v1/:org_id/checkouts` | Org billing role |
 | Check tier status | GET | `/tiers/v1/status` | Wallet auth |
 | Generate image | POST | `/generate-image/v1` | x402 ($0.03) |
 
@@ -940,7 +927,7 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 | URL diagnostic | POST | `/apply/v1/resolve` | SIWX |
 | Send message | POST | `/message/v1` | SIWX |
 
-**Do not hand-roll the plan + upload + commit dance.** Use `(await r.project(id)).apply(spec)` (SDK 2.0+), `run402 deploy apply --manifest` (CLI), or the `deploy` MCP tool. **Removed (return 404):** `POST /deployments/v1`, `POST /deploy/v1`, `/deploy/v1/plan`, `/deploy/v1/commit`, `POST /deploy/v2/plans` (renamed to `/apply/v1/plans` in 2.0).
+**Do not hand-roll the plan + upload + commit dance.** Use `(await r.project(id)).apply(spec)` (SDK), `run402 deploy apply --manifest` (CLI), or the Run402 apply/deploy MCP tool.
 
 ### Admin (service_key)
 
@@ -953,11 +940,11 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 | Check usage | GET | `/projects/v1/:id/usage` | service_key or SIWX |
 | Deploy function (imperative) | POST | `/projects/v1/admin/:id/functions` | service_key |
 | Set secret | POST | `/projects/v1/admin/:id/secrets` | service_key |
-| Pin / unpin | POST | `/projects/v1/admin/:id/{pin,unpin}` | service_key + admin |
-| Claim subdomain (imperative) | POST | `/subdomains/v1` | service_key |
+| Keep org alive | POST | `/orgs/v1/admin/:org_id/lease-perpetual` | platform admin |
+| Assign subdomain on deploy | POST | `/apply/v1/plans` | SIWX |
 | Delete subdomain | DELETE | `/subdomains/v1/:name` | service_key |
 
-**Removed:** `POST /projects/v1/admin/:id/rls` (single-template format) returns 404. Use `/expose` with a manifest.
+Use `/expose` with a manifest for all REST reachability, and use org-level `lease_perpetual` for the platform-admin lifecycle escape hatch.
 
 ### Client API (anon_key / access_token)
 
@@ -969,12 +956,11 @@ If context is lost, the `bld402_project` snapshot from Step 20 contains everythi
 | Refresh token | POST | `/auth/v1/token?grant_type=refresh_token` | apikey |
 | Get current user | GET | `/auth/v1/user` | Bearer token |
 | Logout | POST | `/auth/v1/logout` | Bearer token |
-| Start upload | POST | `/storage/v1/uploads` (returns presigned PUT URL) | apikey (service_key for write) |
-| Finalize upload | POST | `/storage/v1/uploads/:id/complete` | apikey |
+| Upload through function | POST | `/functions/v1/upload` | apikey (+ Bearer token when user-scoped) |
 | Read blob | GET | `/storage/v1/blob/:key` | none (public) / apikey (private) |
 | Invoke function | POST | `/functions/v1/:name` | apikey |
 
-**Removed (return 404):** `POST/GET/DELETE /storage/v1/object/:bucket/*` — replaced by the presigned-PUT flow above. Use `(await r.project(id)).assets.put(...)` (SDK 2.0+; was `r.blobs.put` in 1.x) for the simple path.
+For server-side asset writes, call `assets.put` inside `@run402/functions` or `(await r.project(id)).assets.put(...)` from trusted Node code.
 
 ### Auth Model
 

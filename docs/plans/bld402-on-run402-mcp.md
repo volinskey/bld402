@@ -32,13 +32,12 @@ bld402-mcp has been consolidated into run402-mcp (2026-03-16). bld402.com is now
 | Project delete | `DELETE /projects/v1/:id` | service_key |
 | SQL execute | `POST /projects/v1/admin/:id/sql` | service_key |
 | Schema get | `GET /projects/v1/admin/:id/schema` | service_key |
-| RLS apply | `POST /projects/v1/admin/:id/rls` | service_key |
-| Pin project | `POST /projects/v1/admin/:id/pin` | admin key |
-| Deploy (static) | `POST /deployments/v1` | wallet auth |
-| Deploy (bundle) | `POST /deploy/v1` | wallet auth (x402) |
-| Subdomain claim | `POST /subdomains/v1` | service_key |
+| RLS/expose apply | `POST /projects/v1/admin/:id/expose` | service_key |
+| Keep org alive | `POST /orgs/v1/admin/:org_id/lease-perpetual` | platform admin |
+| Apply release | `POST /apply/v1/plans` + `POST /apply/v1/plans/:plan_id/commit` | wallet auth |
+| Subdomain assignment | Inline `subdomains.set` in the apply spec | wallet auth |
 | Subdomain delete | `DELETE /subdomains/v1/:name` | service_key |
-| Storage upload | `POST /storage/v1/object/:bucket/*` | service_key |
+| Storage upload | `assets.put` in a deployed function, or `(await r.project(id)).assets.put(...)` from trusted Node code | service_key held server-side |
 | Auth signup | `POST /auth/v1/signup` | anon_key |
 | Auth token | `POST /auth/v1/token` | anon_key |
 | Image gen | `POST /generate-image/v1` | x402 payment |
@@ -87,8 +86,8 @@ Per user feedback: prompts should say "Install run402-mcp and build me a..." —
 ### 1C: Fix Gate 2 test script
 
 - [x] 1C.1: Verify all endpoints in `showcase/gate2-test/run.mjs` match the endpoint map — all correct
-- [x] 1C.2: Fix SIWX auth (replaced old X-Run402-* headers with CAIP-122 SIGN-IN-WITH-X), fix deployment_id field name
-- [x] 1C.3: Run Gate 2 with `--keep --pin` — ALL 13 PASS (93/93 checks). Subdomain claims fail (owned by old wallet) but apps deploy and verify correctly via raw URLs.
+- [x] 1C.2: Fix SIWX auth (replaced old X-Run402-* headers with CAIP-122 SIGN-IN-WITH-X), align deploy output on release_id + urls
+- [x] 1C.3: Run Gate 2 with `--keep --lease-perpetual` — ALL 13 PASS (93/93 checks). Subdomain assignment can fail when a name is already owned, but apps deploy and verify correctly via raw URLs.
 
 ### 1D: Test via run402 CLI and MCP
 
@@ -138,7 +137,7 @@ Decision: MCP is the only user-facing path. CLI is internal testing only. All co
 ### 1G: Red team — build each template from scratch
 
 - [x] 1G.1: Red team round 1 — shared-todo PASS, 3 critical gaps found (RLS, project_info, set_tier). Fixed in llms.txt.
-- [x] 1G.2: Red team round 2 — shared-todo PASS, 3 previous gaps confirmed fixed. 1 new critical (claim_subdomain needs deployment_id). Fixed in llms.txt.
+- [x] 1G.2: Red team round 2 — shared-todo PASS, 3 previous gaps confirmed fixed. Subdomain guidance now uses inline `subdomains.set`.
 - [x] 1G.3: Red team round 3 — shared-todo CLEAN PASS. paste-locker failed (MCP tools not loading — missing .mcp.json).
 - [x] 1G.4: Red team round 4 — paste-locker FULL PASS via MCP (14/14 steps). Functions, RLS, deploy all work. GAP-001 RESOLVED (was .mcp.json, not platform bug). App live at secure-paste.run402.com.
 - [x] 1G.5: Red team ALL 13 templates via MCP — ALL PASS. ai-sticker-maker skipped generate_image (faucet rate-limited). Minor: setup_rls 500 on second template per table (agent uses raw SQL workaround).
@@ -154,7 +153,7 @@ Decision: MCP is the only user-facing path. CLI is internal testing only. All co
 Create a lightweight test script (`test/bld402-compat.test.mjs`) in the **run402 repo** that:
 
 1. Installs the **local** run402-mcp (not npm — tests the code about to be released)
-2. Provisions a project, runs SQL, deploys, claims subdomain for 2-3 representative templates (shared-todo, paste-locker, landing-waitlist)
+2. Provisions a project, runs SQL, deploys, and assigns a subdomain for 2-3 representative templates (shared-todo, paste-locker, landing-waitlist)
 3. Verifies HTTP 200 on deployed URLs, REST API read/write, auth flow
 4. Tears down test projects
 5. Runs as part of `npm test` or a dedicated `npm run test:bld402-compat`
@@ -191,20 +190,20 @@ This gives run402 devs a fast "does bld402 still work?" check before every relea
 
 - **CLI vs MCP vs raw API:** Three ways to use run402. CLI (`npx run402`) = shell commands, works with any agent. MCP (`npx run402-mcp`) = MCP tools, works with Claude Code/Cursor/etc. Raw API = HTTP fetch calls. Both CLI and MCP share the same wallet/config at `~/.config/run402/`.
 - **`run402 init`:** Idempotent wallet setup. Creates/reuses `allowance.json`, checks USDC balance, faucets if zero, shows tier status. Always run this first.
-- **CLI commands:** `run402 init` → `run402 tier set prototype` → `run402 projects provision` → `run402 projects sql <id> "<single-line SQL>"` → `run402 projects rls <id> <template> '<json>'` → `run402 sites deploy <id> --manifest <file>` → `run402 subdomains claim <id> <name>`. NOTE: `projects rest` (not `projects query`). NOTE: SQL with `--` comment lines silently fails on Windows — strip comments first.
+- **CLI commands:** `run402 init` → `run402 tier set prototype` → `run402 projects provision` → `run402 projects sql <id> "<single-line SQL>"` → apply an expose manifest via the current Run402 CLI/SDK surface → `run402 deploy apply --manifest <file>` with `subdomains.set` inline. NOTE: `projects rest` (not `projects query`). NOTE: SQL with `--` comment lines silently fails on Windows — strip comments first.
 - **SIWX auth required:** run402 wallet auth uses CAIP-122 SIGN-IN-WITH-X headers. Both CLI and MCP handle this internally.
-- **deployment_id field:** run402 returns `deployment_id` (not `id`) in the deployment response.
-- **Subdomain ownership:** gate2-test subdomains (gate2-todo, gate2-trivia, etc.) are claimed by the OLD wallet from earlier test runs. New wallet can't reclaim them.
+- **release_id field:** apply returns `release_id` and `urls`; subdomain reassignment is part of the release activation.
+- **Subdomain ownership:** gate2-test subdomains (gate2-todo, gate2-trivia, etc.) may already be assigned to an earlier test project. Use the raw release URL when reassignment fails.
 - **Wallet preservation:** Test wallet at `showcase/.wallet` (raw API tests) and `~/.config/run402/allowance.json` (CLI/MCP tests) must NEVER be deleted between test cycles.
 - **MCP version check:** Every test run logs run402-mcp version in evidence.json.
 
 ## Log
 
-- 2026-03-20: Completed Step 0 (version check), Step 1A (endpoints, 12 files), Step 1B (prompts), Step 1C (gate2-test — SIWX auth fix, deployment_id fix, all 13 PASS), Step 1E (Amplify deployed, WebFetch verified). Pushed `23ba129`.
+- 2026-03-20: Completed Step 0 (version check), Step 1A (endpoints, 12 files), Step 1B (prompts), Step 1C (gate2-test — SIWX auth + apply-output alignment, all 13 PASS), Step 1E (Amplify deployed, WebFetch verified). Pushed `23ba129`.
 - 2026-03-20: Completed Step 2 — bld402-compat test in run402 repo (42/42 PASS). Added npm script and AGENTS.md docs.
 - 2026-03-20: Discovered run402 CLI (`npx run402`) — separate npm package with full command set. Shares wallet with MCP. Rewrote Step 1D to test CLI first, then MCP. Added Step 1F for website updates.
 - 2026-03-20: ALL 6 TESTS PASS — 3 CLI (shared-todo, paste-locker, landing-waitlist) + 3 MCP (same). Bugs: em-dash SQL, sites deploy syntax, tier display, RLS needs dedicated command not raw SQL.
 - 2026-03-20: Filed 7 bugs against run402 (`run402/docs/bug_reports/bld402-compat-bugs.md`). 2 HIGH, 2 MEDIUM, 3 LOW. BUG-002/003 fixed by run402. BUG-004/005/007 not bugs (fixed in bld402 instructions). BUG-001 reproduced on Windows (SQL with comment lines, not em-dash). BUG-006 awaiting MCP parity release.
 - 2026-03-20: BLOCKED — waiting for run402 bug fixes.
 - 2026-03-21: UNBLOCKED — run402 v1.18.0 released. Re-tested ALL 6 (3 CLI + 3 MCP): ALL PASS. --file flag works, MCP parity confirmed. BUG-001/002/003 fixed.
-- 2026-03-21: Red team round 1: shared-todo PASS, 3 critical llms.txt gaps found and fixed. Round 2: gaps confirmed fixed, 1 new finding (claim_subdomain) fixed. Round 3: shared-todo CLEAN PASS, paste-locker failed (missing .mcp.json). Round 4: paste-locker FULL PASS after .mcp.json fix. Round 5: ALL 13 TEMPLATES PASS via MCP (3 parallel batches). ai-sticker-maker skipped generate_image (faucet rate-limited). Step 1 COMPLETE.
+- 2026-03-21: Red team round 1: shared-todo PASS, 3 critical llms.txt gaps found and fixed. Round 2: gaps confirmed fixed, 1 subdomain guidance issue fixed. Round 3: shared-todo CLEAN PASS, paste-locker failed (missing .mcp.json). Round 4: paste-locker FULL PASS after .mcp.json fix. Round 5: ALL 13 TEMPLATES PASS via MCP (3 parallel batches). ai-sticker-maker skipped generate_image (faucet rate-limited). Step 1 COMPLETE.

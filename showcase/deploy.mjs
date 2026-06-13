@@ -9,11 +9,11 @@
  * for files. Substitutes `{{API_URL}}`, `{{ANON_KEY}}`, `{{PROJECT_ID}}`
  * placeholders in text files, then calls `(await r.project(id)).apply`
  * (SDK 2.0+) with the site + subdomain in one shot. The state machine
- * claims/reassigns the subdomain atomically with the site activation.
+ * assigns/reassigns the subdomain atomically with the site activation.
  *
- * Pin uses a direct admin call (the SDK's `projects.pin` returns 403 for
- * non-platform-admin callers; the showcase needs the platform admin key
- * out-of-band via AWS Secrets Manager).
+ * Lease-perpetual uses a direct org-admin call; showcase deployments can opt
+ * into the org-level lifecycle escape hatch when the platform admin key is
+ * available out-of-band via AWS Secrets Manager.
  */
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
@@ -64,8 +64,7 @@ console.log(`Deploying ${appName} (${fileCount} file${fileCount === 1 ? "" : "s"
 if (subdomain) console.log(`  with subdomain: ${subdomain}`);
 
 // --- Deploy via SDK (unified state machine) ---
-// SDK 2.0.0: the public hero is `(await r.project(id)).apply(spec)`. The old
-// `r.deploy.apply(...)` was removed in v1.48 — `Deploy` is internal now.
+// The public hero is `(await r.project(id)).apply(spec)`.
 const p = await r.project(env.PROJECT_ID);
 let result;
 try {
@@ -113,8 +112,8 @@ const updated = {
 };
 saveEnv(appName, updated);
 
-// --- Pin (platform admin only) ---
-console.log("\nPinning project (lease never expires)...");
+// --- Keep org alive (platform admin only) ---
+console.log("\nEnabling lease_perpetual (if admin key and org id are available)...");
 let adminKey = "";
 try {
   const { execSync } = await import("node:child_process");
@@ -123,22 +122,36 @@ try {
     { encoding: "utf-8", stdio: ["pipe", "pipe", "pipe"] },
   ).trim();
 } catch {
-  console.log("  Could not fetch admin key (run 'aws sso login --profile kychee' first). Skipping pin.");
+  console.log("  Could not fetch admin key (run 'aws sso login --profile kychee' first). Skipping lease_perpetual.");
 }
 
 if (adminKey) {
-  const pinRes = await fetch(`${API_URL}/projects/v1/admin/${env.PROJECT_ID}/pin`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${env.SERVICE_KEY}`,
-      "X-Admin-Key": adminKey,
-    },
-  });
-  if (!pinRes.ok) {
-    console.log(`  Pin failed (${pinRes.status}): ${await pinRes.text()}`);
+  let orgId = env.ORG_ID || "";
+  if (!orgId) {
+    try {
+      const info = await r.projects.info(env.PROJECT_ID);
+      orgId = info.org_id || info.organization_id || "";
+    } catch (err) {
+      console.log(`  Could not resolve org id for ${env.PROJECT_ID}: ${err.message}`);
+    }
+  }
+
+  if (!orgId) {
+    console.log("  No ORG_ID available. Skipping lease_perpetual.");
   } else {
-    console.log("  Pinned");
+    const leaseRes = await fetch(`${API_URL}/orgs/v1/admin/${orgId}/lease-perpetual`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Admin-Key": adminKey,
+      },
+      body: JSON.stringify({ lease_perpetual: true }),
+    });
+    if (!leaseRes.ok) {
+      console.log(`  lease_perpetual failed (${leaseRes.status}): ${await leaseRes.text()}`);
+    } else {
+      console.log("  lease_perpetual enabled");
+    }
   }
 }
 

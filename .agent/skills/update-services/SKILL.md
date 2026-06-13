@@ -139,9 +139,9 @@ Build a complete endpoint map from run402's route files (Step 2 sources). Then c
 **Known drift patterns to watch for:**
 - `https://run402.com` vs `https://api.run402.com` — all API calls must use `api.run402.com`
 - Endpoint path format changes (current canonical: `/projects/v1/admin/:id/*` — the `/admin/v1/projects/...` ordering never shipped to production)
-- Deploy endpoints retired: `POST /deployments/v1`, `POST /deploy/v1`, `POST /deploy/v2/plans` (renamed in 2.0), `POST /projects/v1/admin/:id/rls` all return 404 — replaced by `POST /apply/v1/plans` + `/commit` and `POST /projects/v1/admin/:id/expose`
-- SDK 2.0 surface changes: `r.deploy.apply(spec)` → `(await r.project(id)).apply(spec)`; `r.blobs.*` → `r.assets.*`; `r.project(id)` is now async; release-observability methods moved to `(await r.project(id)).deploy.*`
-- Storage endpoints retired: `POST/GET/DELETE /storage/v1/object/:bucket/*` — replaced by `POST /storage/v1/uploads` → client PUT → `POST /storage/v1/uploads/:id/complete`, reads via `GET /storage/v1/blob/:key`
+- Current deploy/apply wire: `POST /apply/v1/plans` + `/commit`; REST reachability uses `POST /projects/v1/admin/:id/expose`
+- Current SDK surface: `const p = await r.project(id)` then `await p.apply(spec)`; assets are under `r.assets.*`; release observability lives on `(await r.project(id)).deploy.*`
+- Current storage pattern: browser uploads go through a deployed function that calls `assets.put`; trusted Node code can call `(await r.project(id)).assets.put(...)`; reads use `GET /storage/v1/blob/:key`
 - New auth methods or header name changes
 - New services with no bld402 coverage
 - Removed or deprecated endpoints still referenced

@@ -2,7 +2,7 @@
  * Shared SDK bootstrap for showcase scripts.
  *
  * Wires `@run402/sdk/node` to the showcase-local wallet and keystore:
- *   - `showcase/.allowance.json` — wallet (auto-migrated from legacy `showcase/.wallet`)
+ *   - `showcase/.allowance.json` — wallet credentials
  *   - `showcase/.keystore.json`  — per-project anon/service keys cached by the SDK
  *
  * Per-app `showcase/<app>/.env` files remain the source of truth for downstream

@@ -13,8 +13,7 @@
  *
  * Both code surfaces hit `POST /projects/v1/admin/:id/functions` under the
  * hood; this script uses the typed SDK method for retries + structured
- * errors. Path order is `/projects/v1/admin/...` (not the legacy
- * `/admin/v1/projects/...` form, which never existed for production).
+ * errors. Path order is `/projects/v1/admin/...`.
  */
 import { readFileSync } from "node:fs";
 import { Run402Error } from "@run402/sdk";

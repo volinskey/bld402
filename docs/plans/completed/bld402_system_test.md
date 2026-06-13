@@ -115,8 +115,8 @@ tests_gap: 0
 ### Feature Area 5: Build Workflow — Deploy Phase (F5)
 
 - [x] **T-019: Step 15 — Deploy to run402** — website
-  Steps: 1) Navigate to https://bld402.com/build/step/15 2) Verify deployment instructions via POST /v1/deployments 3) Verify subdomain claiming via POST /v1/subdomains
-  Expected: Page guides deployment and subdomain claiming with naming rules
+  Steps: 1) Navigate to https://bld402.com/build/step/15 2) Verify apply instructions and inline subdomain assignment
+  Expected: Page guides apply/deploy and subdomain assignment with naming rules
 
 - [x] **T-020: Step 16 — Confirm deployment** — website
   Steps: 1) Navigate to https://bld402.com/build/step/16 2) Verify user notification instructions

@@ -2,12 +2,9 @@ import { getUser, assets } from '@run402/functions';
 
 // Photo-wall upload handler.
 //
-// The legacy `POST /storage/v1/object/<bucket>/<path>` endpoint was removed
-// from run402 in gateway v1.48 and anon keys can no longer write blobs at
-// all — only `service_key` or a `project_admin` JWT can. Bytes from the
-// browser flow through this function: it authenticates the caller, validates
-// the file, and uploads via `assets.put` using the function's bundled
-// `RUN402_SERVICE_KEY` (baked at deploy time).
+// Browser uploads flow through this function: it authenticates the caller,
+// validates the file, and uploads via `assets.put` using the function's
+// bundled `RUN402_SERVICE_KEY`.
 //
 // Browser side: POST multipart/form-data to `/functions/v1/upload` with
 // fields `file` (the binary) and the user's `Authorization: Bearer <jwt>`

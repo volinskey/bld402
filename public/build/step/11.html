@@ -69,23 +69,19 @@ await p.apply({
         <p>For ad-hoc one-shot SQL outside a deploy, the admin SQL endpoint still works:</p>
 
         <pre><code>POST https://api.run402.com/projects/v1/admin/{project_id}/sql
-Content-Type: text/plain
+Content-Type: application/json
 Authorization: Bearer {service_key}
 
-CREATE TABLE todos (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  task text NOT NULL,
-  done boolean DEFAULT false,
-  user_id uuid,
-  created_at timestamptz DEFAULT now()
-);</code></pre>
+{
+  "sql": "CREATE TABLE todos (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), task text NOT NULL, done boolean DEFAULT false, user_id uuid, created_at timestamptz DEFAULT now());"
+}</code></pre>
 
         <p><strong>Response:</strong></p>
         <pre><code>{
   "status": "ok",
   "schema": "p0001",
   "rows": [],
-  "rowCount": 0
+  "row_count": 0
 }</code></pre>
 
         <p>SDK equivalent (2.0+): <code>(await r.project(projectId)).sql(sqlString)</code>. MCP equivalent: <code>run_sql</code>. Use this only for exploration or ad-hoc fixes — registered migrations (above) are the durable path because the gateway tracks them.</p>

@@ -8,12 +8,9 @@
  *
  * Cost: ~$0.90 (30 images × $0.03 each, paid via x402 from the shared wallet)
  *
- * SDK 2.0.0:
+ * SDK:
  *   - `r.ai.generateImage({ prompt })` for x402-paid generation (wallet-scoped)
  *   - `p.assets.put(key, { bytes }, ...)` for uploads (scoped to a project)
- *
- * The legacy `POST /v1/generate-image` and `POST /storage/v1/object/...`
- * endpoints are gone; `r.blobs` is renamed to `r.assets`.
  */
 import { Run402Error } from "@run402/sdk";
 import { getClient, loadEnv } from "./_sdk.mjs";

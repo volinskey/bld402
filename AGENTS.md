@@ -58,7 +58,7 @@ Full catalog: [`docs/run402-services.md`](docs/run402-services.md)
 | functions | Node 22 Fetch handlers (Lambda) — `export default async (req) => Response` | Yes |
 | deploy | Unified Apply v1 — `(await r.project(id)).apply(ReleaseSpec)` (SDK 2.0+) site + DB + functions + secrets + subdomain atomically | No (free with active tier) |
 | sites | Static Hosting (`*.run402.com`) — clean URLs via `site.public_paths` | No (free with tier) |
-| subdomains | Custom Subdomain Mapping — claimed inline in deploy spec | No |
+| subdomains | Custom Subdomain Mapping — assigned inline in deploy spec | No |
 | routes | Same-origin Web Routes — `/admin`, `/api/*` to functions on the static-site domain | No (free with tier) |
 | secrets | KMS-encrypted project secrets — values set out-of-band, asserted in deploy spec | No |
 | ai | Image generation ($0.03/img), text translate, content moderation | Per-call / quota |
@@ -84,13 +84,13 @@ A shared test wallet exists at `showcase/.wallet` (gitignored). It contains a pr
 **How to use it:**
 ```bash
 # The wallet credentials are at:
-showcase/.allowance.json   # SDK shape (auto-migrated from legacy showcase/.wallet)
+showcase/.allowance.json   # SDK wallet file
 
 # Use it with the existing provisioning scripts (all on @run402/sdk):
 node showcase/provision.mjs <app-name>           # Provision a project (x402 — FREE on testnet)
 node showcase/run-sql.mjs <app-name> <sql-file>  # Apply a SQL migration via unified deploy
 node showcase/apply-rls.mjs <app-name>           # Apply the expose manifest via unified deploy
-node showcase/deploy.mjs <app-name> <subdomain>  # Deploy site + claim subdomain (atomic)
+node showcase/deploy.mjs <app-name> <subdomain>  # Deploy site + assign subdomain (atomic)
 ```
 
 Or use the key directly with x402 fetch for manual API calls.
@@ -103,11 +103,11 @@ Gate 2 tests MUST run **one template at a time, sequentially**. If a template fa
 
 ## Testing Cleanup
 
-**By default, test projects are cleaned up after each run.** Use `--keep` flag to preserve projects (and their wallet funds) between test cycles. Use `--pin` with `ADMIN_KEY` to pin test projects so leases never expire.
+**By default, test projects are cleaned up after each run.** Use `--keep` flag to preserve projects (and their wallet funds) between test cycles. Use `--lease-perpetual` with `ADMIN_KEY` to keep owning orgs alive.
 
 ```bash
 node showcase/gate2-test/run.mjs shared-todo --keep     # Test one template, keep project
-node showcase/gate2-test/run.mjs --keep --pin            # Test all, keep and pin
+node showcase/gate2-test/run.mjs --keep --lease-perpetual # Test all and keep owning orgs alive
 node scripts/fund-wallet.mjs 1.00                        # Top up test wallet via admin faucet
 ```
 
@@ -124,7 +124,7 @@ node scripts/fund-wallet.mjs 1.00                        # Top up test wallet vi
    - `prj_1779176772520_1791` — paste-locker
    The nuke script has a hard blocklist and will refuse to delete these, but **do not attempt it**.
 
-   The previous showcase project IDs (`prj_1772702667600_0011` … `prj_1772728652516_0019`) are no longer in use — those were owned by a different wallet and the subdomain claims lapsed in May 2026. The blocklist keeps them as legacy entries; do not touch those either.
+   The previous showcase project IDs (`prj_1772702667600_0011` … `prj_1772728652516_0019`) are no longer in use. The blocklist keeps them as protected entries; do not touch those either.
 4. **Red Team (`/systemtest`, `/validate`):** Cleanup is part of the test. If you provision a project to test bld402's workflow, nuke it in your final cleanup step. Report cleanup status in the system test results.
 5. **If cleanup fails:** Report the orphaned project_id so it can be manually cleaned up. Do not silently leave garbage.
 
@@ -137,7 +137,7 @@ node scripts/fund-wallet.mjs 1.00                        # Top up test wallet vi
 # What it does:
 #   1. Blocks if project is on the showcase blocklist
 #   2. Deletes all storage objects
-#   3. Releases claimed subdomains
+#   3. Releases assigned subdomains
 #   4. Archives project (drops DB schema, users, tokens)
 ```
 

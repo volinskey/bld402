@@ -120,7 +120,7 @@ Every step page follows this structure inside `<section id="agent-instructions">
 
 - **PostgREST schema cache:** After DDL migrations, there's a 100-500ms reload delay. Step pages must instruct agents to wait/retry after SQL execution.
 - **x402 payment flow:** Agents need crypto wallet capabilities to pay for run402 services. The faucet flow (testnet) avoids this for prototypes, but the step pages must clearly explain the payment dance.
-- **Deployment is immutable:** Each deploy to `/v1/deployments` creates a new URL. Agents must track all deployment URLs in memory and communicate the latest to users.
+- **Deployment is immutable:** Each apply creates a new release URL. Agents must track the latest release URL in memory and communicate it to users.
 - **Lease expiry (7 days for prototype):** Step pages must warn about this during deploy and iterate phases. Guide upgrade path.
 - **SQL blocklist:** run402 blocks certain SQL statements (CREATE EXTENSION, COPY PROGRAM, ALTER SYSTEM, etc.). Templates must only use allowed SQL.
 - **RLS templates are limited:** Only 3 templates available (user_owns_rows, public_read, public_read_write). Complex permission models need manual SQL policies.
@@ -128,7 +128,7 @@ Every step page follows this structure inside `<section id="agent-instructions">
 - **Showcase app provisioning requires x402:** Each `POST /v1/projects` costs $5 (Hobby tier) paid via x402 USDC on Base mainnet. Need to ensure the wallet has sufficient USDC before provisioning.
 - **run402 API routing is JWT-based:** Schema is determined by the ANON_KEY JWT's `project_id` claim, NOT by URL path prefix. Correct: `https://api.run402.com/rest/v1/...` with JWT apikey header. Wrong: `https://api.run402.com/p00XX/rest/v1/...`.
 - **RLS API format:** Tables must be array of objects, not strings: `{"template":"public_read_write","tables":[{"table":"tablename"}]}`.
-- **Admin key for pin/faucet:** run402 requires `X-Admin-Key` header for `/admin/v1/projects/:id/pin` and `/admin/v1/faucet`. Key stored in AWS Secrets Manager (`agentdb/admin-key`, us-east-1, kychee profile). Fetch at runtime, never store locally.
+- **Admin key for lifecycle/faucet:** run402 requires `X-Admin-Key` for platform-admin lifecycle operations such as org `lease_perpetual`, and for the admin faucet. Key stored in AWS Secrets Manager (`agentdb/admin-key`, us-east-1, kychee profile). Fetch at runtime, never store locally.
 - **Viewport fitting pattern:** All apps use `height: 100dvh`, `display: flex`, `flex-direction: column`, `overflow: hidden` on body; `flex: 1; overflow: auto` on main; `flex-shrink: 0` on header/footer. This prevents page-level scroll while allowing content to scroll within main.
 - **Auth token storage:** Templates using auth store JWT in localStorage under `run402_access_token` and refresh token under `run402_refresh_token`. Auth-gated UI elements check for valid token on page load and show login/signup if missing.
 - **generate-image x402 flow:** Client must handle the 402 Payment Required → pay → retry dance. The generate-image.js pattern snippet handles this. Cost: $0.01 per image.
@@ -158,7 +158,7 @@ Every step page follows this structure inside `<section id="agent-instructions">
 - [x] Build Spec Phase step pages (F2): Step 1 — ask what the app does; Step 2 — template matching suggestions; Step 3 — clarifying questions (yes/no, multiple choice, plain language only); Step 4 — confirm spec summary. Each page includes agent-instructions and memory directives.
 - [x] Build Plan Phase step pages (F3): Step 5 — determine run402 services needed; Step 6 — select tier (default Prototype/testnet); Step 7 — identify code template(s); Step 8 — output build plan to agent memory
 - [x] Build Implement Phase step pages (F4): Step 9 — get testnet USDC via faucet; Step 10 — provision run402 project; Step 11 — create database tables via SQL; Step 12 — configure RLS; Step 13 — generate frontend code from template; Step 14 — test locally (instructions for agent to verify code)
-- [x] Build Deploy Phase step pages (F5): Step 15 — deploy to run402 `/v1/deployments`; Step 16 — confirm deployment and present URL to user
+- [x] Build Deploy Phase step pages (F5): Step 15 — apply to run402; Step 16 — confirm deployment and present URL to user
 - [x] Build Iterate Phase step pages (F6): Step 17 — gather user feedback; Step 18 — modify code based on feedback; Step 19 — redeploy (loop back to Step 15); Step 20 — satisfaction check (done or iterate again). Include memory continuity directives.
 
 ### Phase 4: Code Templates — Common Patterns
@@ -193,7 +193,7 @@ Every step page follows this structure inside `<section id="agent-instructions">
 - [x] Add faucet guidance to implement phase step pages — instruct agent to call `/v1/faucet` with user's wallet address (or guide wallet creation), explain testnet is free
 - [x] Add tier selection and pricing display to plan phase step pages — show run402 pricing from `/v1/projects/quote`, default to Prototype/testnet
 - [x] Add lease expiry warnings to deploy and iterate phase step pages — warn about 7-day prototype expiry, guide upgrade to hobby/team tier or mainnet
-- [x] Document Stripe subscription upgrade path in iterate phase — link to `/v1/stripe/checkout` flow for users who want to keep their app running
+- [x] Document credit-card upgrade path in iterate phase — create an org checkout with `POST /orgs/v1/:org_id/checkouts` for users who want to keep their app running
 
 ### Phase 8: Integration Testing & Polish
 
@@ -215,11 +215,11 @@ Every step page follows this structure inside `<section id="agent-instructions">
 
 ### Phase 10: Subdomain Support — Step Page & Guardrail Updates
 
-- [x] Update Step 15 (deploy) — add subdomain claiming via `POST /v1/subdomains` with `{ name, deployment_id }` using `service_key`. Show example request/response. Explain subdomain rules (3-63 chars, lowercase, no reserved words). Update memory directive to store `subdomain` and `subdomain_url`.
+- [x] Update Step 15 (deploy) — assign subdomains inline with `subdomains.set` in the apply spec. Explain subdomain rules (3-63 chars, lowercase, no reserved words). Update memory directive to store `subdomain` and `subdomain_url`.
 - [x] Update Step 16 (confirm deployment) — present the subdomain URL (`https://{name}.run402.com`) as the primary shareable link instead of the raw `dpl-*` URL. Update user-facing message template.
-- [x] Update Step 19 (redeploy) — instruct agent to reassign the existing subdomain to the new deployment_id after redeployment.
+- [x] Update Step 19 (redeploy) — instruct agent to include the existing subdomain in `subdomains.set` so reassignment happens with release activation.
 - [x] Update guardrails page — change "Custom domain names" entry from "not possible" to "run402 subdomains (myapp.run402.com) are supported; fully custom domains are not."
-- [x] Update `/agent.json` — add subdomain_url to deploy phase step outputs; update step 15/16 instructions to reference subdomain claiming.
+- [x] Update `/agent.json` — add subdomain_url to deploy phase step outputs; update step 15/16 instructions to reference subdomain assignment.
 
 ### Phase 11: Showcase Specs & Template Validation
 
@@ -259,8 +259,8 @@ Each app's index.html starts from the template, then adds demo-specific features
 - [x] Provision 5 new projects (reuse existing wallet)
 - [x] Run schema + seed SQL for each project
 - [x] Apply RLS per template rls.json for each project
-- [x] Deploy HTML + claim subdomains (todo, waitlist, hangman, trivia, vote)
-- [x] Pin all 5 projects
+- [x] Deploy HTML + assign subdomains (todo, waitlist, hangman, trivia, vote)
+- [x] Keep all 5 owning orgs alive
 
 ### Phase 15: Update Showcase Page & Final Integration
 
@@ -281,8 +281,8 @@ First showcase app to use run402 server-side functions. Demonstrates bcrypt pass
 - [x] Run schema: `node showcase/run-sql.mjs paste-locker showcase/paste-locker/schema.sql`
 - [x] Run seed: created demo note via create-note function, then updated code to `demo1234`
 - [x] Deploy functions: `node showcase/paste-locker/deploy-functions.mjs` — both create-note and read-note deployed
-- [x] Deploy HTML + claim subdomain: `node showcase/deploy.mjs paste-locker paste` → paste.run402.com
-- [x] Pin project — pinned: true
+- [x] Deploy HTML + assign subdomain: `node showcase/deploy.mjs paste-locker paste` → paste.run402.com
+- [x] Keep owning org alive
 - [x] Smoke test at paste.run402.com — verified: password protection, wrong password rejection, no-password notes, burn-after-read, 404 for missing notes
 
 ### Phase 18: Fix Cycle 2 — System Test Cycle 3 Fixes
@@ -311,7 +311,7 @@ Findings triaged: 6 accepted, 1 won't-fix (F-004), 1 auto-resolved by another fi
 System test cycle 5: 74 tests, 62 passed, 1 failed, 4 blocked, 3 gaps.
 All findings accepted. 1 code fix (F-001) + 2 testability fixes (TR-001, GAP-001).
 
-- [x] Fix F-001 (P2): Add subdomain-failure fallback to deploy steps 15 and 16 — Step 15 now has "If subdomain claiming fails" section covering 409 Conflict, 400 Bad Request, 429 Rate Limit, and 5xx errors with explicit fallback to raw deployment URL. Step 16 now clarifies "no subdomain" template applies when user skipped OR claim failed, plus a dedicated failure message template. Files changed: `public/build/step/15.html`, `public/build/step/16.html`.
+- [x] Fix F-001 (P2): Add subdomain-failure fallback to deploy steps 15 and 16 — Step 15 now has subdomain assignment failure handling with explicit fallback to raw deployment URL. Step 16 now clarifies "no subdomain" applies when user skipped assignment or assignment failed, plus a dedicated failure message template. Files changed: `public/build/step/15.html`, `public/build/step/16.html`.
 
 - [x] Fix TR-001: Add API-based verification procedures for 4 blocked tests — All 4 tests rewritten with REST API or code-inspection procedures and verified:
   - **T-039** (template banner): Changed to static code inspection — JS logic confirmed correct.
@@ -448,8 +448,8 @@ Generate all AI art needed for showcase seed data. ~55 images, ~$0.55 from showc
 - [x] Run schema + seed SQL for each project
 - [x] Apply RLS per template rls.json for each project (fixed: added owner_column to user_owns_rows tables)
 - [x] Deploy Secret Santa's `draw-names` Lambda function (deployed to api.run402.com/functions/v1/draw-names)
-- [x] Deploy HTML + claim subdomains (microblog, wall, santa, stickers, cards, bingo, memory — "blog" was reserved, used "microblog" instead)
-- [x] Pin all 7 projects
+- [x] Deploy HTML + assign subdomains (microblog, wall, santa, stickers, cards, bingo, memory — "blog" was reserved, used "microblog" instead)
+- [x] Keep all 7 owning orgs alive
 - [x] Smoke test all 7 live apps (all HTTP 200, API returns seed data)
 
 ### Phase 31: Update Human Pages & Final Integration
@@ -520,7 +520,7 @@ Test structured JSON format across ChatGPT, Claude, Gemini. If issues found, may
 - 2026-03-04: Plan continued — System test cycle 1 returned FAIL (51/62 passed, 6 failed, 1 gap). All 5 failures accepted. Added Phase 9: Fix Cycle 1 with 5 fix tasks (3x P1, 2x P2). Each task includes regression test requirement.
 - 2026-03-04: Phase 9 complete — All 5 fix cycle tasks resolved. F-001: schema.sql verified correct. F-002: 4 READMEs created. F-003: 5 build workflow links added to template gallery. F-004: 5 SVG mockup screenshots created and embedded. F-005: legal.html created, Legal link added to all page footers.
 - 2026-03-05: Plan continued — Spec updated to v0.2.0 with F12 (Live Showcase Apps) and subdomain support. Added Phases 10-16: subdomain step page updates, 5 showcase app build/deploy phases, final showcase page integration. 38 new tasks total.
-- 2026-03-05: Completed Phase 10 "Subdomain Support" — Updated step 15 (deploy with subdomain claiming), step 16 (present subdomain URL as primary), step 19 (reassign subdomain on redeploy), guardrails (custom domains → subdomains supported), step 3 (domain question updated), and agent.json (subdomain fields in deploy/iterate steps).
+- 2026-03-05: Completed Phase 10 "Subdomain Support" — Updated step 15 (deploy with subdomain assignment), step 16 (present subdomain URL as primary), step 19 (reassign subdomain on redeploy), guardrails (custom domains → subdomains supported), step 3 (domain question updated), and agent.json (subdomain fields in deploy/iterate steps).
 - 2026-03-05: Restructured Phases 11-16 — Old approach built showcase apps from scratch, ignoring templates. New approach: write detailed specs → build FROM templates → modify for pinned demo use → validate with red team. Archived old Phases 11-15 tasks. 5 showcase specs written at `docs/products/showcase/`.
 - 2026-03-05: Completed Phase 11 "Showcase Specs" — All 5 specs written with user input on behavior decisions (email hashing, cleanup rules, difficulty filter, host+join, vote-first-then-results).
 - 2026-03-05: Completed Phase 12 "Rebuild All 5 From Templates" — Schema SQL rewritten from templates for all 5 projects (fixed voting-booth column names: title/voter_id/sort_order). Seed SQL for shared-todo, trivia-night, voting-booth. RLS applied to all 5.

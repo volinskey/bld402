@@ -37,7 +37,7 @@
       <div id="instruction">
         <h2>What to do</h2>
 
-        <p>Deploys go through <span class="brand-run">run</span>402's unified deploy primitive: <strong>one declarative call</strong> that activates the site, claims the subdomain, applies any DB migrations, sets RLS, and deploys functions — atomically. <strong>Free with an active tier.</strong></p>
+        <p>Deploys go through <span class="brand-run">run</span>402's unified deploy primitive: <strong>one declarative call</strong> that activates the site, assigns the subdomain, applies any DB migrations, sets RLS, and deploys functions — atomically. <strong>Free with an active tier.</strong></p>
 
         <p>The HTTP wire is two-step CAS (<code>POST /apply/v1/plans</code> → upload missing bytes → <code>POST /apply/v1/plans/:id/commit</code>); don't hand-roll it. Pick one of these:</p>
 
@@ -47,7 +47,7 @@
           <tbody>
             <tr>
               <td><strong>SDK</strong> (TypeScript / Node)</td>
-              <td><code>(await r.project(id)).apply(spec)</code> from <code>@run402/sdk@^2.0.0</code></td>
+              <td><code>(await r.project(id)).apply(spec)</code> from <code>@run402/sdk@2.46.0</code> or newer</td>
               <td>You're authoring code. Typed, retries safe races automatically.</td>
             </tr>
             <tr>
@@ -57,15 +57,15 @@
             </tr>
             <tr>
               <td><strong>MCP tool</strong></td>
-              <td><code>deploy</code> (full bundle) or <code>deploy_site_dir</code> (site-only, incremental)</td>
+              <td>The Run402 apply/deploy tool that accepts a <code>ReleaseSpec</code></td>
               <td>You're in Claude Code / Cursor with <code>run402-mcp</code>.</td>
             </tr>
           </tbody>
         </table>
 
-        <p>If <code>run402-mcp</code> is available, use <code>deploy</code> with a <code>ReleaseSpec</code>. Older tool names <code>deploy_site</code> / <code>bundle_deploy</code> / <code>claim_subdomain</code> still work and route to the same primitive.</p>
+        <p>If <code>run402-mcp</code> is available, use its apply/deploy tool with a <code>ReleaseSpec</code>. Subdomain assignment belongs in <code>subdomains.set</code>, not a separate call.</p>
 
-        <p><strong>SDK 2.0 breaking change:</strong> <code>r.deploy.apply(...)</code> was removed in v1.48. The sole public hero is <code>(await r.project(id)).apply(spec)</code> — note the <em>async</em> <code>r.project(id)</code> and that <code>project</code> drops out of the spec (it's bound by the scoped client). <code>r.blobs</code> is renamed to <code>r.assets</code>.</p>
+        <p><strong>SDK:</strong> Use <code>const p = await r.project(id)</code>, then <code>await p.apply(spec)</code>. Put static files, functions, database migrations, expose manifests, secrets, routes, and <code>subdomains.set</code> in the same <code>ReleaseSpec</code>. Use <code>r.assets</code> for asset storage.</p>
 
         <h3>The ReleaseSpec — one shape for everything</h3>
         <p>The spec is declarative: each resource group uses <strong>replace</strong> (whole desired state) or <strong>patch</strong> (surgical update). Minimum site deploy with subdomain:</p>
@@ -107,7 +107,7 @@
 
         <p>Secrets values <strong>do not</strong> go in the spec — declare keys with <code>secrets.require[]</code>, set values out-of-band first via the secrets API (<code>p.secrets.set(key, value)</code> on the scoped client, or <code>POST /projects/v1/admin/{id}/secrets</code>). The commit phase hard-errors if a required key is missing.</p>
 
-        <h3>SDK example (Node, @run402/sdk ^2.0.0)</h3>
+        <h3>SDK example (Node, @run402/sdk 2.46.0+)</h3>
         <pre><code>import { run402, Run402DeployError } from "@run402/sdk/node";
 
 const r = run402();
@@ -116,7 +116,7 @@ const p = await r.project(env.PROJECT_ID);   // async — scope to the project
 try {
   const result = await p.apply({
     site: { replace: fileSet },              // { "index.html": "...", ... }
-    subdomains: { set: ["myapp"] },          // optional — inline subdomain claim
+    subdomains: { set: ["myapp"] },          // optional — inline subdomain assignment
   });
   console.log(result.release_id, result.urls);
   // result.urls.site, result.urls.subdomain
@@ -130,8 +130,8 @@ try {
 
         <p>For live progress events: <code>const op = await p.apply.start(spec); for await (const ev of op.events()) { ... }</code>. To resume an interrupted operation: <code>await p.apply.resume(operationId)</code>. Release observability lives on <code>p.deploy.{getRelease, getActiveRelease, diff, resolve, list, events}</code>.</p>
 
-        <h3>Subdomain claiming is inline</h3>
-        <p>No separate <code>/subdomains/v1</code> call. The deploy state machine atomically claims (or reassigns on redeploy) the subdomain as part of activation. Use <code>subdomains.set: ["name"]</code> in the same spec.</p>
+        <h3>Subdomain assignment is inline</h3>
+        <p>No separate <code>/subdomains/v1</code> call. The deploy state machine atomically assigns (or reassigns on redeploy) the subdomain as part of activation. Use <code>subdomains.set: ["name"]</code> in the same spec.</p>
 
         <p><strong>Derive the subdomain automatically:</strong> take the app name, lowercase it, replace spaces and underscores with hyphens, strip non-alphanumeric characters (except hyphens), collapse consecutive hyphens, and truncate to 63 characters. Only skip the subdomain if the user explicitly declines.</p>
 
@@ -141,18 +141,18 @@ try {
           <li>Must <strong>start and end</strong> with a letter or number (no leading/trailing hyphens)</li>
           <li>No consecutive hyphens (<code>--</code>)</li>
           <li><strong>Reserved words</strong> blocked: api, www, admin, app, dashboard, docs, help, support, cdn, static, dev, staging, test, demo, <span class="brand-run">run</span>402, others</li>
-          <li>Each subdomain is <strong>owned by the project</strong> that created it — other projects cannot claim it</li>
-          <li>Subdomain claim/reassign is <strong>free</strong> with an active tier</li>
+          <li>Each subdomain is <strong>owned by the project</strong> that assigned it — other projects cannot take it</li>
+          <li>Subdomain assignment/reassignment is <strong>free</strong> with an active tier</li>
         </ul>
 
-        <h4>If subdomain claiming fails</h4>
+        <h4>If subdomain assignment fails</h4>
         <p>The deploy spec is rejected by the planning phase before any bytes upload. Possible reasons:</p>
         <ul>
           <li><strong>409 Conflict</strong> — the name is already taken (or reserved for a previous owner whose lease is still in grace). Suggest a different name.</li>
           <li><strong>400 Bad Request</strong> — name violates the rules above.</li>
           <li><strong>SUBDOMAIN_MULTI_NOT_SUPPORTED</strong> — only one subdomain per project. Use <code>subdomains.set</code> with exactly one entry.</li>
         </ul>
-        <p><strong>Fallback:</strong> If subdomain claiming fails, retry the deploy <em>without</em> the <code>subdomains</code> field. The site still deploys; the user gets the raw deployment URL (<code>result.urls.site</code>). Don't retry in a loop.</p>
+        <p><strong>Fallback:</strong> If subdomain assignment fails, retry the deploy <em>without</em> the <code>subdomains</code> field. The site still deploys; the user gets the raw deployment URL (<code>result.urls.site</code>). Don't retry in a loop.</p>
 
         <h3>Auth model reference</h3>
         <p>Different <span class="brand-run">run</span>402 endpoints use different authentication methods:</p>
@@ -166,17 +166,6 @@ try {
             <tr><td><code>GET /rest/v1/...</code></td><td><code>apikey</code> header (<code>anon_key</code> or <code>service_key</code>)</td></tr>
           </tbody>
         </table>
-
-        <h3>Removed endpoints — do NOT use</h3>
-        <p>These were retired. Calling them returns 404 / 410:</p>
-        <ul>
-          <li><code>POST /deployments/v1</code> — superseded by <code>/apply/v1/plans</code> + <code>/commit</code></li>
-          <li><code>POST /deploy/v1</code> and its plan/commit subpaths — same</li>
-          <li><code>POST /deploy/v2/plans</code> — renamed to <code>/apply/v1/plans</code> in v2.0</li>
-          <li><code>POST /subdomains/v1</code> for claim/reassign on deploy — use inline <code>subdomains.set</code> in the deploy spec instead. (<code>DELETE /subdomains/v1/:name</code> still works for removal.)</li>
-          <li><code>r.deploy.apply(...)</code> in the SDK — replaced by <code>(await r.project(id)).apply(spec)</code> in 2.0.</li>
-          <li><code>r.blobs.*</code> — renamed to <code>r.assets.*</code> in 2.0.</li>
-        </ul>
 
         <h3>Important notes</h3>
         <ul>
@@ -197,7 +186,7 @@ const events = await p.deploy.events(operationId);</code></pre>
         <h3>Smoke-test gate</h3>
         <p>After deploy resolves, you <strong>MUST</strong> verify the app is actually live before proceeding.</p>
         <ol>
-          <li>Fetch the live URL (prefer <code>urls.subdomain</code> if claimed, otherwise <code>urls.site</code>).</li>
+          <li>Fetch the live URL (prefer <code>urls.subdomain</code> if assigned, otherwise <code>urls.site</code>).</li>
           <li>Confirm HTTP 200 and that the HTML loads (check for <code>&lt;!DOCTYPE html&gt;</code> or your app's <code>&lt;title&gt;</code>).</li>
           <li>If the fetch fails or returns non-200, wait 5 seconds and retry once. CDN propagation is usually instant but can take a few seconds.</li>
           <li>If it still fails, tell the user: "The deploy succeeded but the site isn't responding yet. Let's give it a moment." Retry up to 3 times total.</li>
@@ -210,7 +199,7 @@ const events = await p.deploy.events(operationId);</code></pre>
         <ul>
           <li><code>release_id</code> — Stable id for this release (e.g. <code>rel_...</code>)</li>
           <li><code>deployment_url</code> — Raw deployment URL (e.g. <code>https://dpl-xxx.run402.com</code>)</li>
-          <li><code>subdomain</code> — The claimed subdomain name (if any)</li>
+          <li><code>subdomain</code> — The assigned subdomain name (if any)</li>
           <li><code>subdomain_url</code> — The memorable URL (e.g. <code>https://myapp.run402.com</code>)</li>
         </ul>
       </div>
@@ -224,7 +213,7 @@ const events = await p.deploy.events(operationId);</code></pre>
             "release_id": "Current release id",
             "deployment_url": "Live URL — share this with the user",
             "subdomain": "Claimed subdomain name (if any)",
-            "subdomain_url": "Subdomain URL like https://myapp.run402.com (if claimed)"
+            "subdomain_url": "Subdomain URL like https://myapp.run402.com (if assigned)"
           },
           "discard": []
         }

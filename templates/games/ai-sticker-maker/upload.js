@@ -3,10 +3,8 @@ import { assets } from '@run402/functions';
 // AI sticker maker upload handler.
 //
 // Anonymous-friendly: the sticker maker is a "no signup, just play" gallery,
-// so this function accepts unauthenticated uploads (matching the original
-// anon-key write behaviour). The legacy `POST /storage/v1/object/...` route
-// no longer accepts anon writes anywhere, so bytes flow through this
-// function which holds `RUN402_SERVICE_KEY` (bundled at deploy time).
+// so this function accepts unauthenticated uploads. Bytes flow through this
+// function, which holds `RUN402_SERVICE_KEY`.
 //
 // Browser side: POST multipart/form-data to `/functions/v1/upload` with a
 // `file` field. Response: `{ key, cdnUrl, sha256 }`. Store `key` in

@@ -149,7 +149,7 @@ Authorization: Bearer {service_key}
           <li>The <code>service_key</code> bypasses RLS. Use only for admin setup; never in frontend code.</li>
           <li>The <code>anon_key</code> respects RLS — this is what goes in the frontend.</li>
           <li>If the manifest references a table that doesn't exist in the schema, the deploy is rejected with a structured <code>errors</code> array.</li>
-          <li>The legacy <code>POST /projects/v1/admin/{id}/rls</code> endpoint with single-template format has been <strong>removed</strong> (returns 404). Use the manifest form above.</li>
+          <li>Use one expose manifest for the reachable tables, views, and RPCs your app needs.</li>
         </ul>
 
         <h3>What to tell the user</h3>

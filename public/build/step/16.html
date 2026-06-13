@@ -39,7 +39,7 @@
         <p>Share the good news with the user. Be enthusiastic! This is the payoff moment.</p>
 
         <h3>What to tell the user</h3>
-        <p><strong>If the user claimed a subdomain</strong> (you have <code>subdomain_url</code>):</p>
+        <p><strong>If the user has an assigned subdomain</strong> (you have <code>subdomain_url</code>):</p>
         <blockquote>
           <p>"Your app is live! Here's your link:</p>
           <p><strong>{subdomain_url}</strong></p>
@@ -47,7 +47,7 @@
           <p>Try it out and let me know what you think! I can make changes anytime."</p>
         </blockquote>
 
-        <p><strong>If no subdomain was claimed</strong> (the user skipped it, or the claim failed):</p>
+        <p><strong>If no subdomain was assigned</strong> (the user skipped it, or assignment failed):</p>
         <blockquote>
           <p>"Your app is live! Here's your link:</p>
           <p><strong>{deployment_url}</strong></p>
@@ -56,7 +56,7 @@
           <p>Try it out and let me know what you think! I can make changes anytime."</p>
         </blockquote>
 
-        <h3>If subdomain claiming failed in Step 15</h3>
+        <h3>If subdomain assignment failed in Step 15</h3>
         <p>Use the "no subdomain" message template above. After sharing the deployment URL, add:</p>
         <blockquote>
           <p>"I tried to set up a custom URL but it didn't work this time. No worries — your app is fully live at the link above. I can try a different name for the custom URL whenever you'd like."</p>
@@ -66,7 +66,7 @@
         <ul>
           <li>The app will stay live for 7 days (prototype tier). If they love it, you can make it permanent.</li>
           <li>They can share the link with friends — it works on phones and computers.</li>
-          <li>If they claimed a subdomain, that name stays theirs as long as the project exists.</li>
+          <li>If they assigned a subdomain, that name stays theirs as long as the project exists.</li>
         </ul>
       </div>
 
@@ -79,7 +79,7 @@
         <h2>Memory directive</h2>
         <script type="application/json" id="agent-memory">
         {
-          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "deployment_url", "deployment_id", "lease_expires_at", "subdomain", "subdomain_url"],
+          "carry_forward": ["app_spec", "project_id", "org_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "release_id", "deployment_url", "lease_expires_at", "subdomain", "subdomain_url"],
           "store": {},
           "discard": []
         }

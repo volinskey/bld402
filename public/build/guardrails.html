@@ -35,7 +35,7 @@
         <li><strong>REST API</strong> — full CRUD (create, read, update, delete) with filtering, pagination, ordering via PostgREST</li>
         <li><strong>Row-level security</strong> — expose manifest policies: <code>user_owns_rows</code>, <code>public_read_authenticated_write</code>, <code>public_read_write_UNRESTRICTED</code>, <code>custom</code>. Tables are dark by default.</li>
         <li><strong>User authentication</strong> — email/password signup, login, token refresh, logout; Google OAuth built in</li>
-        <li><strong>File storage</strong> — content-addressed CDN with SRI integrity. Upload via presigned PUT (<code>POST /storage/v1/uploads</code>); reads via <code>GET /storage/v1/blob/:key</code>.</li>
+        <li><strong>File storage</strong> — content-addressed CDN with SRI integrity. Browser uploads go through a deployed function that calls <code>assets.put</code>; reads use <code>GET /storage/v1/blob/:key</code> or the returned <code>cdnUrl</code>.</li>
         <li><strong>Static site hosting</strong> — deploy HTML/CSS/JS via unified <code>(await r.project(id)).apply()</code> (SDK 2.0+), get a shareable URL. SPA support; clean URLs via <code>site.public_paths</code>.</li>
         <li><strong>Same-origin web routes</strong> — map <code>/admin</code> and <code>/admin/*</code> patterns to Node 22 Fetch functions on the same domain as the static site.</li>
         <li><strong>Multiple tiers</strong> — Prototype (FREE on testnet, 7 days), Hobby ($5, 30 days), Team ($20, 30 days)</li>
@@ -59,7 +59,7 @@
           <tr>
             <td>Fully custom domain names (myapp.com)</td>
             <td>"You can't use your own domain name (like myapp.com) right now, but you can get a memorable subdomain like myapp.run402.com."</td>
-            <td>Claim a subdomain inline as part of the deploy spec (<code>subdomains.set: ["myapp"]</code>) in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
+            <td>Assign a subdomain inline as part of the deploy spec (<code>subdomains.set: ["myapp"]</code>) in Step 15. Your app gets a URL like <code>https://myapp.run402.com</code>.</td>
           </tr>
           <tr>
             <td>Server-side compute beyond <span class="brand-run">run</span>402 functions</td>

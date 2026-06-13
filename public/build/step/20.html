@@ -59,25 +59,25 @@
               <td>Renew prototype</td>
               <td>$0.10</td>
               <td>+7 days</td>
-              <td><code>POST /projects/v1/{project_id}/renew</code> (x402)</td>
+              <td><code>POST /tiers/v1/prototype</code> (x402 wallet auth)</td>
             </tr>
             <tr>
               <td>Upgrade to Hobby</td>
               <td>$5.00</td>
               <td>30 days</td>
-              <td><code>POST /projects/v1/{project_id}/renew {"tier": "hobby"}</code> (x402)</td>
+              <td><code>POST /tiers/v1/hobby</code> (x402 wallet auth)</td>
             </tr>
             <tr>
               <td>Upgrade to Team</td>
               <td>$20.00</td>
               <td>30 days</td>
-              <td><code>POST /projects/v1/{project_id}/renew {"tier": "team"}</code> (x402)</td>
+              <td><code>POST /tiers/v1/team</code> (x402 wallet auth)</td>
             </tr>
             <tr>
-              <td>Stripe subscription</td>
-              <td>Varies</td>
-              <td>Monthly</td>
-              <td><code>POST /v1/stripe/checkout {"wallet": "...", "price_id": "..."}</code></td>
+              <td>Credit card checkout</td>
+              <td>Tier price</td>
+              <td>Tier lease</td>
+              <td><code>POST /orgs/v1/{org_id}/checkouts {"product":"tier","tier":"hobby"}</code></td>
             </tr>
           </tbody>
         </table>
@@ -116,6 +116,7 @@
               "app_name": "From app_spec",
               "app_spec": "Full app spec",
               "project_id": "run402 project ID",
+              "org_id": "Owning organization ID",
               "anon_key": "Client API key",
               "service_key": "Admin API key (never expose to user)",
               "api_url": "https://api.run402.com",

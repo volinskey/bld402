@@ -47,7 +47,7 @@ bld402 does NOT have its own MCP server or CLI. Agents install **run402-mcp** to
 - **GitHub repo:** `kychee-com/run402-mcp`
 - **Install:** `npx run402-mcp` — stdio transport, works with Claude Code, Cursor, Claude Desktop, Cline, Windsurf
 - **Claude Code shortcut:** `claude mcp add run402 -- npx -y run402-mcp`
-- **8 tools:** `provision_postgres_project`, `run_sql`, `rest_query`, `upload_file`, `deploy_site`, `claim_subdomain`, `delete_subdomain`, `set_tier`
+- **Core tools:** `set_tier`, `provision_postgres_project`, `run_sql`, `apply_expose`, `rest_query`, `upload_file`, the Run402 apply/deploy tool, `delete_subdomain`
 - **Full API reference:** https://run402.com/llms.txt
 
 ## run402 API Endpoint Reference
@@ -65,13 +65,12 @@ All endpoints are on `https://api.run402.com`. The pattern is `/{resource}/v1` (
 | Project delete | `DELETE /projects/v1/:id` | service_key |
 | SQL execute | `POST /projects/v1/admin/:id/sql` | service_key |
 | Schema inspect | `GET /projects/v1/admin/:id/schema` | service_key |
-| RLS apply | `POST /projects/v1/admin/:id/rls` | service_key |
-| Pin project | `POST /projects/v1/admin/:id/pin` | admin key |
-| Deploy (static) | `POST /deployments/v1` | wallet auth |
-| Deploy (bundle) | `POST /deploy/v1` | wallet auth (x402) |
-| Subdomain claim | `POST /subdomains/v1` | service_key |
+| RLS/expose apply | `POST /projects/v1/admin/:id/expose` | service_key |
+| Keep org alive | `POST /orgs/v1/admin/:org_id/lease-perpetual` | platform admin |
+| Apply release | `POST /apply/v1/plans` + `POST /apply/v1/plans/:plan_id/commit` | wallet auth |
+| Subdomain assignment | Inline `subdomains.set` in the apply spec | wallet auth |
 | Subdomain delete | `DELETE /subdomains/v1/:name` | service_key |
-| Storage upload | `POST /storage/v1/object/:bucket/*` | service_key |
+| Storage upload | `assets.put` in a deployed function, or `(await r.project(id)).assets.put(...)` from trusted Node code | service_key held server-side |
 | Auth signup | `POST /auth/v1/signup` | anon_key |
 | Auth token | `POST /auth/v1/token` | anon_key |
 | Auth user | `GET /auth/v1/user` | JWT |
@@ -112,7 +111,7 @@ Break the spec into a build plan using only run402-capable services.
 Guide the agent through building the app step by step, generating all code.
 
 - Walk through run402 project provisioning (create database, set up tables, configure RLS, seed data).
-- Agent uses run402-mcp tools: `set_tier` → `provision_postgres_project` → `run_sql` → `deploy_site` → `claim_subdomain`.
+- Agent uses Run402 tools: `set_tier` → `provision_postgres_project` → `run_sql` → `apply_expose` → apply/deploy with `subdomains.set`.
 - Generate complete client-side code (HTML/CSS/JS) using bld402's code templates as a foundation.
 - All run402 API interactions are done through run402-mcp tools on behalf of the user.
 - Provide code snippets and templates for every common pattern (database queries, auth flows, file uploads, UI components).
@@ -122,12 +121,12 @@ Guide the agent through building the app step by step, generating all code.
 
 Deploy the finished app to run402 static hosting and give the user a memorable, shareable URL.
 
-- Agent calls run402-mcp `deploy_site` tool (or `POST /deployments/v1`) to deploy the static site.
-- After deployment, claim a memorable subdomain via `claim_subdomain` tool (or `POST /subdomains/v1`) with `{ name, deployment_id }` using the project's `service_key`. This gives the app a URL like `https://hangman.run402.com` instead of the raw deployment URL.
+- Agent calls the Run402 apply/deploy tool or SDK `(await r.project(id)).apply(spec)` to deploy the static site.
+- Include `subdomains.set: ["name"]` in the same apply spec to assign or reassign a memorable subdomain. This gives the app a URL like `https://hangman.run402.com` instead of the raw release URL.
 - Subdomain rules: 3-63 characters, lowercase alphanumeric + hyphens, no leading/trailing hyphens, no reserved words (api, www, admin, etc.). Free, no x402 payment required.
-- When redeploying (iterate phase), reassign the subdomain to the new deployment_id — same `POST /subdomains/v1` call, same name, new deployment_id.
+- When redeploying (iterate phase), include the same `subdomains.set` value; reassignment happens atomically with release activation.
 - Return the subdomain URL to the user: "Your app is live! Share this link: https://myapp.run402.com"
-- Fall back to the raw deployment URL (`https://dpl-{id}.sites.run402.com`) if subdomain claiming fails.
+- Fall back to the raw deployment URL (`result.urls.site`) if subdomain assignment fails.
 
 ### F6: Build Workflow — Iterate Phase
 
@@ -550,7 +549,7 @@ Type a prompt, get an AI-generated sticker image, save to a public gallery.
 **Services flow:**
 1. User types prompt → client calls `POST /generate-image/v1` with prompt text (x402-gated, $0.01)
 2. Image returned → displayed as preview
-3. User clicks "Save" → client uploads image to storage via `POST /storage/v1/object/stickers/` → inserts row into `stickers` table with `image_path`
+3. User clicks "Save" → client posts the image to the upload function → function stores it with `assets.put` → client inserts a row into `stickers` with `image_path`
 
 **UI requirements:**
 - Header: "AI Sticker Maker" with sparkle/magic wand icon
@@ -694,14 +693,14 @@ Every template in the spec (all 13) requires **two gates** to be considered full
 - Verify edge cases (empty states, duplicate submissions, invalid input)
 - Verify mobile viewport works
 
-**Gate 2: Build-from-Scratch Test** — Provision a fresh run402 project using run402-mcp tools, follow the bld402 workflow using the template, deploy, and run the **same tests** from Gate 1 against the freshly built app. Test projects are kept and pinned (not deleted) to preserve testnet funds and enable debugging. This validates that the template actually works end-to-end when an agent follows the workflow.
+**Gate 2: Build-from-Scratch Test** — Provision a fresh run402 project using run402-mcp tools, follow the bld402 workflow using the template, deploy, and run the **same tests** from Gate 1 against the freshly built app. Test projects are kept and their owning orgs are marked lease-perpetual to preserve testnet funds and enable debugging. This validates that the template actually works end-to-end when an agent follows the workflow.
 
 **Rules:**
 1. Gate 2 cannot start until Gate 1 passes. If the showcase is broken, fix it first.
 2. A template is only "validated" when BOTH gates pass in the same test cycle.
 3. **Unbuilt templates are blocked, not skipped.** If a template has no implementation files, the system test plan MUST include lines for both Gate 1 and Gate 2, marked as `[B]` (blocked) with a note that the template is not yet built. They are never omitted from the test plan.
 4. **Any Blue Team change to a template or its showcase resets both gates to untested.** If the Blue Team modifies any file in `templates/{category}/{name}/` or `showcase/{name}/`, both Gate 1 and Gate 2 for that template must be re-run in the next Red Team cycle. Same applies when a new template is added to the spec.
-5. **Wallet preservation is mandatory.** Test wallet at `showcase/.wallet` is reused across test cycles. Use `--keep` and `--pin` flags. Admin faucet (`POST /faucet/v1/admin`) is used to top up without rate limits. NEVER delete the wallet or test projects between cycles.
+5. **Wallet preservation is mandatory.** Test wallet at `showcase/.wallet` is reused across test cycles. Use `--keep` and `--lease-perpetual` flags. Admin faucet (`POST /faucet/v1/admin`) is used to top up without rate limits. NEVER delete the wallet or test projects between cycles.
 6. **Sequential, stop on first failure.** Gate 2 tests run one template at a time. If a template fails, STOP — do not proceed to the next template. Fix the failure first, then continue. Order: shared-todo → landing-waitlist → voting-booth → paste-locker → hangman → trivia-night → micro-blog → photo-wall → secret-santa → ai-sticker-maker → flash-cards → bingo-card-generator → memory-match.
 7. **Wallet for Gate 2.** The Red Team uses the shared test wallet at `showcase/.wallet` for x402 payments. This is the only exception to the "no source code" rule — the wallet is equivalent to a user's own wallet. See AGENTS.md for usage details.
 8. **run402-mcp version check.** Before every test run, verify run402-mcp is at the latest npm version. Log the version in evidence.json.
@@ -715,7 +714,7 @@ Every template in the spec (all 13) requires **two gates** to be considered full
   Expected: ...
 
 - [ ] **T-XXX: Gate 2 — Build from scratch using {name} template** — run402-mcp tools + API
-  Steps: 1) set_tier 2) provision_postgres_project 3) run_sql (schema) 4) run_sql (RLS) 5) deploy_site 6) claim_subdomain 7) Run Gate 1 tests against new URL
+  Steps: 1) set_tier 2) provision_postgres_project 3) run_sql (schema) 4) apply_expose (manifest) 5) apply/deploy with site + subdomains.set 6) Run Gate 1 tests against new URL
   Expected: Same as Gate 1
 ```
 
@@ -806,10 +805,10 @@ End-to-end testing that bld402's workflow works with run402-mcp across multiple 
 
 ### Deploy Phase (F5)
 - [ ] The agent can deploy the static site to run402 and return a working URL.
-- [ ] The agent claims a memorable subdomain via `POST /subdomains/v1` (or `claim_subdomain` tool) after deployment.
+- [ ] The agent assigns a memorable subdomain inline with `subdomains.set` during apply.
 - [ ] The subdomain URL (e.g., `https://myapp.run402.com`) is accessible in a browser and the app functions correctly.
 - [ ] The user receives the subdomain URL in plain language ("Your app is live! Share this link.")
-- [ ] On redeploy, the agent reassigns the subdomain to the new deployment.
+- [ ] On redeploy, the agent includes the same `subdomains.set` value so the subdomain points at the new release.
 
 ### Iterate Phase (F6)
 - [ ] The user can request changes in plain language and the agent modifies and redeploys.
@@ -871,7 +870,7 @@ End-to-end testing that bld402's workflow works with run402-mcp across multiple 
 - [ ] Each app has seed data so it's not empty on first visit.
 - [ ] Each app includes "Built with bld402" branding.
 - [ ] Each app works on mobile and desktop.
-- [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, keep and pin).
+- [ ] Each app passes both gates of the two-gate validation process: Gate 1 (showcase test) AND Gate 2 (build from scratch, test, keep, and keep the owning org alive).
 - [ ] The showcase page links to each live app.
 - [ ] Showcase apps use Hobby tier (not Prototype) so they don't expire.
 - [ ] All 13 templates have lines in the system test plan for both gates.
@@ -905,11 +904,10 @@ End-to-end testing that bld402's workflow works with run402-mcp across multiple 
    b. `provision_postgres_project` to create the database.
    c. `run_sql` to create tables (questions, players, scores) and apply RLS.
    d. Generates frontend code from trivia template with user's customizations.
-   e. `deploy_site` to deploy the static site.
-   f. `claim_subdomain` to get `trivia.run402.com`.
+   e. Apply/deploy the static site with `subdomains.set` to get `trivia.run402.com`.
 6. Agent tells user: "Your trivia game is live! Share this link with your friends: https://trivia.run402.com"
 7. User tries it, says: "Can you make the timer longer and add funny sound effects?"
-8. Agent modifies code, redeploys via `deploy_site`, gives new URL.
+8. Agent modifies code, reapplies the release with the same `subdomains.set`, gives the live URL.
 9. User is happy. Agent stores memory directives for future reference.
 
 ### Flow 2: Returning User Iterates on Existing App

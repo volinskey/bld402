@@ -65,7 +65,7 @@
             <tr>
               <td><strong>File Storage</strong></td>
               <td>When <code>app_spec.features.file_uploads</code> is true</td>
-              <td>Content-addressed CDN. Upload via <code>POST /storage/v1/uploads</code> (presigned PUT); reads via <code>GET /storage/v1/blob/:key</code>. The SDK helper <code>(await r.project(id)).assets.put()</code> (SDK 2.0+ — renamed from <code>r.blobs</code>) returns a paste-and-go <code>cdnUrl</code> with SRI integrity baked in.</td>
+              <td>Content-addressed CDN. Browser uploads go through a deployed function that calls <code>assets.put</code>; server-side uploads use <code>(await r.project(id)).assets.put()</code>. Reads use <code>GET /storage/v1/blob/:key</code>, or the returned paste-and-go <code>cdnUrl</code>.</td>
             </tr>
             <tr>
               <td><strong>Serverless Functions</strong></td>

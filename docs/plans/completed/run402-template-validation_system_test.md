@@ -28,7 +28,7 @@ tests_gap: 0
 **Testing tools:**
 - `showcase/gate2-test/run.mjs` — automated build-from-scratch test (uses raw run402 API)
 - `scripts/fund-wallet.mjs` — admin faucet for wallet funding
-- run402-mcp tools (provision_postgres_project, run_sql, deploy_site, etc.)
+- run402-mcp tools (provision_postgres_project, run_sql, apply/deploy, etc.)
 
 **Wallet:** Shared test wallet at `showcase/.wallet` (preserved between cycles, admin-funded)
 
@@ -42,7 +42,7 @@ tests_gap: 0
 
 ## A: Gate 2 — Build From Scratch (13 templates)
 
-Tests run via `node showcase/gate2-test/run.mjs --keep --pin`
+Tests run via `node showcase/gate2-test/run.mjs --keep --lease-perpetual`
 
 Each template test:
 1. Provisions a fresh run402 project (x402 payment)
@@ -88,7 +88,7 @@ Verify all MCP-related pages now reference run402-mcp instead of bld402-mcp.
 
 - [ ] **T-023: wallet file persists** — `showcase/.wallet` exists after test run, same address as before
 - [ ] **T-024: --keep flag works** — Gate 2 test with `--keep` does not nuke projects
-- [ ] **T-025: --pin flag works** — Gate 2 test with `--pin` pins projects (requires ADMIN_KEY)
+- [ ] **T-025: --lease-perpetual flag works** — Gate 2 test with `--lease-perpetual` keeps owning orgs alive (requires ADMIN_KEY)
 - [ ] **T-026: admin faucet works** — `node scripts/fund-wallet.mjs` funds wallet without rate limit
 - [ ] **T-027: wallet not regenerated** — Corrupted wallet file causes error, not silent regeneration
 

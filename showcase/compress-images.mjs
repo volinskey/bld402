@@ -2,10 +2,8 @@
  * Download seed images from storage, compress to JPEG/PNG, re-upload.
  * Reduces ~10MB PNGs to ~100-300KB JPEGs.
  *
- * SDK 2.0.0: storage is `r.assets` (renamed from the old `r.blobs`). The
- * scoped form `p.assets.{get, put}` drops the projectId argument. The legacy
- * `POST /storage/v1/object/:bucket/*` HTTP endpoint is gone — bytes flow
- * through the 3-step direct-to-S3 CAS flow.
+ * SDK storage is `r.assets`. The scoped form `p.assets.{get, put}` drops the
+ * projectId argument, and bytes flow through the apply CAS flow.
  */
 import sharp from "sharp";
 import { Run402Error } from "@run402/sdk";
@@ -29,7 +27,7 @@ const APPS = [
   },
 ];
 
-// Asset keys are flat per-project. We embed the legacy bucket into the key
+// Asset keys are flat per-project. We embed the template bucket into the key
 // (e.g. "photos/seed-01.jpg") so existing references keep working.
 function assetKey(bucket, name) {
   return `${bucket}/${name}`;

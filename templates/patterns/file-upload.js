@@ -2,11 +2,12 @@
  * run402 File Upload Pattern (content-addressed CDN)
  *
  * Provides: upload, read, list, delete files via run402's content-addressed
- * storage. The legacy `/storage/v1/object/:bucket/*` endpoints are GONE
- * (return 404) — bytes go through presigned PUT now, and every blob's
- * download URL is content-addressed (immutable; SHA-256 baked into the URL).
+ * storage. Browser uploads go through a deployed function that calls
+ * `assets.put` from `@run402/functions`; every blob's download URL is
+ * content-addressed (immutable; SHA-256 baked into the URL).
  *
- * Requires: db-connection.js (CONFIG with API_URL and ANON_KEY).
+ * Requires: db-connection.js (CONFIG with API_URL and ANON_KEY) and a
+ * deployed `upload` function like the template upload.js handlers.
  *
  * Server-side path (Node, @run402/sdk ^2.0.0):
  *   import { run402 } from "@run402/sdk/node";
@@ -14,61 +15,41 @@
  *   const p = await r.project(projectId);
  *   const ref = await p.assets.put("logo.png", { bytes });
  *   // ref.cdnUrl is the paste-and-go content-addressed URL
- *   // (`r.blobs` was renamed to `r.assets` in SDK 2.0)
  *
- * The client-side helpers below talk directly to the gateway from the
- * browser. Writes require `service_key` (CORS is intentionally open for
- * x402 — never embed `service_key` in user-visible code; perform writes
- * from a deployed function or have the user log in and route through it).
+ * The client-side helper below talks to that function from the browser.
+ * Never embed `service_key` in user-visible code.
  */
 
-// === Compute SHA-256 of a Blob/File (required by the uploads API) ===
+// === Upload File ===
+// Returns { key, cdnUrl, sha256 } from your upload function.
+// The default endpoint is CONFIG.API_URL + /functions/v1/upload.
+// Pass { endpoint: "/api/upload" } when using a same-origin web route.
 
-async function sha256OfFile(file) {
-  const buf = await file.arrayBuffer();
-  const hash = await crypto.subtle.digest('SHA-256', buf);
-  return Array.from(new Uint8Array(hash))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+async function uploadFile(name, file, options = {}) {
+  const endpoint = options.endpoint || (CONFIG.API_URL + '/functions/v1/' + (options.functionName || 'upload'));
+  const form = new FormData();
+  form.append('file', file, name);
+  form.append('subpath', name);
 
-// === Upload File (two-step: register → PUT → finalize) ===
-// Returns { key, sha256, cdnUrl } — cdnUrl is content-addressed (immutable).
-// Requires serviceKey for the register/finalize steps. Anonymous browser
-// uploads are not supported.
+  const headers = {};
+  if (!options.endpoint || endpoint.startsWith(CONFIG.API_URL)) {
+    headers.apikey = options.apiKey || CONFIG.ANON_KEY;
+  }
 
-async function uploadFile(name, file, serviceKey) {
-  const size = file.size;
-  const sha256 = await sha256OfFile(file);
+  const authToken = options.authToken || localStorage.getItem('access_token');
+  if (authToken) headers.Authorization = 'Bearer ' + authToken;
 
-  // 1) Register the upload — returns a presigned PUT URL
-  const reg = await fetch(CONFIG.API_URL + '/storage/v1/uploads', {
+  const res = await fetch(endpoint, {
     method: 'POST',
-    headers: {
-      'apikey': serviceKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      name,
-      size,
-      sha256,
-      content_type: file.type || 'application/octet-stream',
-    }),
+    headers,
+    body: form,
   });
-  if (!reg.ok) throw new Error('Register upload failed: ' + (await reg.text()));
-  const { upload_id, presigned_put_url } = await reg.json();
-
-  // 2) PUT the bytes
-  const put = await fetch(presigned_put_url, { method: 'PUT', body: file });
-  if (!put.ok) throw new Error('PUT failed: ' + put.status);
-
-  // 3) Finalize
-  const done = await fetch(CONFIG.API_URL + '/storage/v1/uploads/' + upload_id + '/complete', {
-    method: 'POST',
-    headers: { 'apikey': serviceKey },
-  });
-  if (!done.ok) throw new Error('Finalize failed: ' + (await done.text()));
-  return done.json();  // { key, sha256, cdnUrl, ... }
+  const data = await res.json().catch(() => null);
+  if (!res.ok) {
+    const message = data && data.error ? data.error : 'Upload failed';
+    throw new Error(message);
+  }
+  return data;
 }
 
 // === Read a Blob ===
@@ -120,12 +101,15 @@ async function deleteFile(key, serviceKey) {
 }
 
 // === File Input Helper ===
-// Attach to an <input type="file"> element for easy upload. Pass `serviceKey`
-// (NOT anon_key) — uploads are admin-authenticated. For a public-facing app,
-// route uploads through a deployed function that holds the service_key
-// server-side; never embed service_key in user-visible code.
+// Attach to an <input type="file"> element for easy upload. Pass upload
+// options such as { endpoint, authToken, apiKey } when needed.
 
-function setupFileInput(inputId, serviceKey, onUploaded) {
+function setupFileInput(inputId, options = {}, onUploaded) {
+  if (typeof options === 'function') {
+    onUploaded = options;
+    options = {};
+  }
+
   const input = document.getElementById(inputId);
   if (!input) return;
 
@@ -135,7 +119,7 @@ function setupFileInput(inputId, serviceKey, onUploaded) {
 
     try {
       const safeName = Date.now() + '-' + file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
-      const result = await uploadFile(safeName, file, serviceKey);
+      const result = await uploadFile(safeName, file, options);
       if (onUploaded) onUploaded(result);  // { key, cdnUrl, sha256, ... }
     } catch (err) {
       alert('Upload failed: ' + err.message);

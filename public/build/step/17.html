@@ -73,12 +73,12 @@
         <h2>Memory directive</h2>
         <script type="application/json" id="agent-memory">
         {
-          "carry_forward": ["app_spec", "project_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "deployment_url", "lease_expires_at"],
+          "carry_forward": ["app_spec", "project_id", "org_id", "anon_key", "service_key", "api_url", "tables_created", "rls_configured", "app_files", "release_id", "deployment_url", "lease_expires_at"],
           "store": {
             "user_feedback": "List of changes requested, or 'satisfied'",
             "iteration_count": "Increment by 1 each time through this step"
           },
-          "discard": ["deployment_id"]
+          "discard": []
         }
         </script>
       </div>

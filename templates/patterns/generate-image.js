@@ -52,8 +52,8 @@ async function generateAndSave(prompt, key, opts = {}) {
   for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
   const file = new Blob([bytes], { type: result.content_type || 'image/png' });
 
-  // Upload (assumes a deployed function holds the service_key; see file-upload.js)
-  const asset = await uploadFile(key, file, opts.serviceKey);
+  // Upload through the app's upload function; see file-upload.js.
+  const asset = await uploadFile(key, file, opts.upload || {});
 
   return {
     prompt,

@@ -21,10 +21,10 @@ IMPORTANT: The MCP server provides 52 tools. Your environment may only load a su
 Available tools by category:
 
 **Setup & billing:** init, set_tier, tier_status, status, check_balance, allowance_create, allowance_status, allowance_export, request_faucet, create_checkout, billing_history
-**Projects:** provision_postgres_project, project_info, project_keys, project_use, list_projects, get_schema, get_usage, archive_project, pin_project
+**Projects:** provision_postgres_project, project_info, project_keys, project_use, list_projects, get_schema, get_usage, archive_project
 **Database:** run_sql, apply_expose / setup_rls, validate_manifest, get_expose, rest_query
-**Deployment:** deploy (unified), deploy_site_dir (incremental site upload), get_deployment, bundle_deploy / deploy_site (older names — still work)
-**Subdomains:** claim_subdomain, delete_subdomain, list_subdomains
+**Deployment:** apply/deploy with a ReleaseSpec, deploy_site_dir for site-only updates, get_deployment
+**Subdomains:** assign with `subdomains.set` during apply; delete_subdomain, list_subdomains for maintenance
 **Functions:** deploy_function, invoke_function, list_functions, delete_function, get_function_logs, set_secret, list_secrets, delete_secret
 **Storage:** upload_file, download_file, list_files, delete_file
 **Apps:** publish_app, get_app, browse_apps, fork_app, list_versions, update_version, delete_version
@@ -56,7 +56,7 @@ Examples: todo lists, recipe books, expense splitters, landing pages, trivia gam
 6. **Declare which tables are reachable (required for public apps).** Tables are dark by default. Use `apply_expose` with a manifest, or include `database.expose` in the deploy spec. Policies: `user_owns_rows`, `public_read_authenticated_write`, `public_read_write_UNRESTRICTED`, `custom`. One policy per table. Without an exposed entry the anon key cannot read or write and your app's REST calls will return 404 / 401.
 7. **Deploy functions (if needed).** For server-side logic (password hashing, secret matching, etc.), include `functions.replace` in the deploy spec or call `deploy_function`. Use `set_secret` for environment variable values (set values OUT-OF-BAND, then assert keys via `secrets.require[]` in the spec — secret values never appear in deploy payloads).
 8. Build the HTML/CSS/JS frontend. Use the anon_key from step 4. REST API calls need `apikey: <anon_key>`. Call functions via `https://api.run402.com/functions/v1/<function_name>` (API-key protected) or via same-origin web routes (`routes.replace` in the deploy spec) like `/api/*` that hit the function transparently from the static site.
-9. **Deploy everything in one call.** Use the `deploy` MCP tool (or older `bundle_deploy` / `deploy_site`) with a unified `ReleaseSpec` containing `site`, `subdomains.set`, and any DB/functions/secrets you want. Subdomain claim/reassign happens inline. SDK 2.0+ form: `(await r.project(id)).apply(spec)`. The HTTP wire is `POST /apply/v1/plans` + `/commit` (renamed from `/deploy/v2/plans` in 2.0; the legacy `POST /deployments/v1` is removed).
+9. **Deploy everything in one call.** Use the Run402 MCP apply/deploy tool or `run402 deploy apply --manifest` with a unified `ReleaseSpec` containing `site`, `subdomains.set`, and any DB/functions/secrets you want. Subdomain assignment happens inline. SDK 2.46+ form: `(await r.project(id)).apply(spec)`. The HTTP wire is `POST /apply/v1/plans` + `/commit`.
 10. Show the user their live URL — done!
 11. If they want changes: edit files and redeploy. The deploy diff-and-skip pipeline only re-uploads bytes that changed and only rebuilds functions whose source/config changed.
 
@@ -86,7 +86,7 @@ Rewrite: "Querying the database..." → "Loading your data..."
 | REST API | Full CRUD with filtering, pagination (PostgREST) |
 | Auth | Email/password + Google OAuth, JWT tokens |
 | Row-level security | Expose manifest: user_owns_rows, public_read_authenticated_write, public_read_write_UNRESTRICTED, custom. Tables are dark by default. |
-| File storage | Content-addressed CDN with SRI (`r.blobs.put` → paste-and-go URL). Presigned PUT uploads via `/storage/v1/uploads`. |
+| File storage | Content-addressed CDN with SRI (`r.assets.put` → paste-and-go URL). Bulk bytes ride through the apply CAS pipeline. |
 | Static hosting | Unified `(await r.project(id)).apply()` (or `deploy` MCP tool). Clean URLs via `site.public_paths`. |
 | Web routes | Same-origin `/admin`, `/api/*` patterns to Node 22 Fetch functions on the static site's domain. |
 | Functions | Node 22 Fetch handlers (`export default async (req) => Response`). |
@@ -98,7 +98,7 @@ Rewrite: "Querying the database..." → "Loading your data..."
 
 | Not possible | Alternative |
 |---|---|
-| Fully custom domains (myapp.com) | Use myapp.run402.com subdomain — claimed inline in the deploy spec |
+| Fully custom domains (myapp.com) | Use myapp.run402.com subdomain — assigned inline in the deploy spec |
 | WebSocket / real-time | Polling (fetch every 3-10s) |
 | Email / SMS / push notifications | Use the email service (`r.email.send`) for transactional; in-app notifications for the rest |
 | OAuth providers other than Google | Google OAuth + email/password (both built in) |

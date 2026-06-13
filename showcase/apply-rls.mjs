@@ -12,12 +12,12 @@
  *     through verbatim. Use `policy: "custom"` with `custom_sql` for cases
  *     the built-in templates can't express (e.g. anon read + owner writes).
  *
- *   - **Legacy** (has `policies` array): translated table-by-table:
+ *   - **Policies array** (has `policies`): translated table-by-table:
  *       `user_owns_rows`     → `user_owns_rows`
  *       `public_read`        → `public_read_authenticated_write`
  *       `public_read_write`  → `public_read_write_UNRESTRICTED`
- *     Stacking the same table in multiple legacy policy blocks errors —
- *     the new manifest forbids it. Migrate the file to v1 with `custom`.
+ *     Stacking the same table in multiple policy blocks errors. Prefer
+ *     manifest v1 with `custom` for hand-written SQL policies.
  */
 import { readFileSync } from "node:fs";
 import { Run402DeployError } from "@run402/sdk";
@@ -38,24 +38,24 @@ const templateDir = utilityApps.includes(appName)
 
 const raw = JSON.parse(readFileSync(`${templateDir}/rls.json`, "utf-8"));
 
-function legacyToManifest(legacy) {
+function policiesToManifest(config) {
   const TEMPLATE_MAP = {
     user_owns_rows: "user_owns_rows",
     public_read: "public_read_authenticated_write",
     public_read_write: "public_read_write_UNRESTRICTED",
   };
   const tablesByName = new Map();
-  for (const policy of legacy.policies) {
+  for (const policy of config.policies) {
     const newTemplate = TEMPLATE_MAP[policy.template];
     if (!newTemplate) {
       throw new Error(
-        `Unknown legacy template '${policy.template}'. Migrate this rls.json to manifest v1 — see https://run402.com/schemas/manifest.v1.json`,
+        `Unknown RLS template '${policy.template}'. Use manifest v1 — see https://run402.com/schemas/manifest.v1.json`,
       );
     }
     for (const t of policy.tables) {
       if (tablesByName.has(t.table)) {
         throw new Error(
-          `Table '${t.table}' appears in more than one policy block. The new manifest allows ONE policy per table — migrate this rls.json to manifest v1 with 'policy: "custom"' and a hand-rolled SQL block for the stacked semantics.`,
+          `Table '${t.table}' appears in more than one policy block. Manifest v1 allows one policy per table; use 'policy: "custom"' with SQL for stacked semantics.`,
         );
       }
       const entry = { name: t.table, expose: true, policy: newTemplate };
@@ -83,13 +83,13 @@ if (raw.version === "1" && Array.isArray(raw.tables)) {
     process.exit(0);
   }
   try {
-    manifest = legacyToManifest(raw);
+    manifest = policiesToManifest(raw);
   } catch (err) {
     console.error(err.message);
     process.exit(1);
   }
 } else {
-  console.error("rls.json is neither manifest v1 nor legacy format. See https://run402.com/schemas/manifest.v1.json");
+  console.error("rls.json is neither manifest v1 nor policies[] format. See https://run402.com/schemas/manifest.v1.json");
   process.exit(1);
 }
 

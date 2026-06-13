@@ -76,6 +76,9 @@ try {
 
 console.log("\nProject created!");
 console.log("  project_id:  ", project.project_id);
+if (project.org_id || project.organization_id) {
+  console.log("  org_id:      ", project.org_id || project.organization_id);
+}
 console.log("  schema_slot: ", project.schema_slot);
 
 // Tier metadata for the .env (the SDK persisted keys to keystore; the
@@ -102,6 +105,7 @@ if (leaseExpiresAt) console.log("  lease_expires_at:", leaseExpiresAt);
 // --- Step 4: Save .env ---
 const envData = {
   PROJECT_ID: project.project_id,
+  ...(project.org_id || project.organization_id ? { ORG_ID: project.org_id || project.organization_id } : {}),
   ANON_KEY: project.anon_key,
   SERVICE_KEY: project.service_key,
   SCHEMA_SLOT: project.schema_slot,

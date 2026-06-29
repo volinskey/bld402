@@ -1,11 +1,11 @@
 ---
 product: bld402
-version: 0.5.0
+version: 0.5.1
 status: Draft
 type: product
 interfaces: [website]
 created: 2026-03-04
-updated: 2026-03-20
+updated: 2026-06-29
 ---
 
 # bld402 — Build Web Apps Without Code on run402
@@ -44,7 +44,7 @@ bld402 is a free accessibility layer for [run402.com](https://run402.com) that e
 bld402 does NOT have its own MCP server or CLI. Agents install **run402-mcp** to get the tools needed to build apps.
 
 - **npm package:** `run402-mcp` (public, MIT license)
-- **GitHub repo:** `kychee-com/run402-mcp`
+- **GitHub repo:** `kychee-com/run402`
 - **Install:** `npx run402-mcp` — stdio transport, works with Claude Code, Cursor, Claude Desktop, Cline, Windsurf
 - **Claude Code shortcut:** `claude mcp add run402 -- npx -y run402-mcp`
 - **Core tools:** `set_tier`, `provision_postgres_project`, `run_sql`, `apply_expose`, `rest_query`, `upload_file`, the Run402 apply/deploy tool, `delete_subdomain`
@@ -742,7 +742,7 @@ Pages under `/humans` on bld402.com explaining the run402 plugin and guiding non
   - "What AI tools work with this?" → Claude Code, Cursor, Windsurf, Claude Desktop, Cline, and any MCP-compatible agent.
   - "Does it cost anything?" → The plugin is free. Building apps uses testnet crypto (also free). Only pay if you want to keep your app running permanently.
   - "What happens to my data?" → The plugin runs locally on your computer. Nothing is sent anywhere except the run402 API to build your app.
-  - "Can I see the code?" → Yes, 100% open source at github.com/kychee-com/run402-mcp.
+  - "Can I see the code?" → Yes, 100% open source at github.com/kychee-com/run402.
   - "What if something goes wrong?" → Your AI agent handles errors. If stuck, ask it to check the project status.
 
 - **`/humans/mcp-safety.html`** — Safety & Trust page
@@ -857,7 +857,7 @@ End-to-end testing that bld402's workflow works with run402-mcp across multiple 
 - [ ] FAQ page answers all listed questions in plain language.
 - [ ] Safety page includes the "ask your AI to review the code" instruction.
 - [ ] Safety page accurately describes what run402-mcp can and cannot do.
-- [ ] All GitHub links point to `kychee-com/run402-mcp` (not bld402-mcp).
+- [ ] All GitHub links point to `kychee-com/run402` (not bld402-mcp).
 
 ### Agent Validation (F14)
 - [ ] Claude Code completes a cold-start build from `Install run402-mcp and build me a todo app` to a live URL.

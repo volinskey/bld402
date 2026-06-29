@@ -108,7 +108,7 @@ Rewrite: "Querying the database..." → "Loading your data..."
 
 ## Source code
 
-Open source (MIT): https://github.com/kychee-com/run402-mcp
+Open source (MIT): https://github.com/kychee-com/run402
 
 ## Powered by
 

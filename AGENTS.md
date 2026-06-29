@@ -4,7 +4,7 @@
 
 A free accessibility layer for [run402.com](https://run402.com) that lets anyone build and deploy web apps by describing what they want to an AI agent. Static site on AWS Amplify — no build tools, pure HTML/CSS/JS.
 
-**MCP consolidation (2026-03-16):** bld402-mcp has been consolidated into [run402-mcp](https://github.com/kychee-com/run402-mcp). bld402.com now routes users to install run402-mcp for MCP tooling. The bld402-mcp NPM package is unpublished.
+**MCP consolidation (2026-03-16):** bld402-mcp has been consolidated into [run402-mcp](https://github.com/kychee-com/run402). bld402.com now routes users to install run402-mcp for MCP tooling. The bld402-mcp NPM package is unpublished.
 
 ## Project Structure
 

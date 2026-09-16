@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://bld402.com/sitemap.xml
